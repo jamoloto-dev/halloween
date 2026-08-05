@@ -8,6 +8,7 @@ import subprocess
 import platform
 import threading
 import shutil
+import importlib
 
 # Configure Flask to serve static files from the project's assets/static directory
 STATIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../assets/static'))
