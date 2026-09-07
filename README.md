@@ -55,3 +55,6 @@ Feel free to contribute new questions by adding them to the `assets/questions.js
 
 ## Run game local
 /home/jafta/Desktop/halloween/venv/bin/python src/game.py
+
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCQDHa8+fnOlBGVhxvxCgfRG+lH4JtfZ+UpN3ro0zgUi1xFzckx3HVngsuBdYEzM4XFcdx5ILzM6r1HZndxZXnUb5HApN+5j0e33yXnwZwMOLB76dR0RDqxu/cj8kmbEkXSdGus2ydaUq/OjRujWah1c4hJLiFDhSPpm1d9DrQTfl80cF3MsI3+Ots3K997Te66PxJ87aK/E6nTJZu38aJNWwzprQUx7yTaxBOjRyeYmfIRAig10xettoK42tDFAUqFGTIjQj95BdQB+p7h0qilrCZTzZsSMMtefJAaAfN4Zmgurl45Y+hdipdgzX5VDClYK7QYcOiqljMJ+UNxTuQF
