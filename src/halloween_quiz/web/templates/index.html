@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halloween Quiz 🎃 The Spooky Trivia Challenge</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="manifest" href="/pwa/manifest.json">
+    <meta name="theme-color" content="#ff7518">
+    <meta name="description" content="Test your Halloween, horror, and paranormal knowledge in this interactive spooky trivia game!">
+</head>
+<body>
+    <!-- Sound & Controls Bar -->
+    <header class="top-nav">
+        <div class="nav-branding">
+            <img class="brand-mark" src="/static/logo.svg" alt="">
+            <div>
+                <span class="brand-title">Halloween Quiz</span>
+                <span class="brand-kicker">Trivia after dark</span>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <button id="btn-leaderboard-open" class="nav-btn" title="View High Scores">🏆 Leaderboard</button>
+            <div class="audio-controls">
+                <button id="btn-bgm-toggle" class="nav-btn" title="Toggle Ambient Music">🎵 Music: Off</button>
+                <button id="btn-sound-toggle" class="nav-btn" title="Mute / Unmute Sound">🔊 Sound</button>
+                <div class="volume-slider-wrap" title="Master Volume">
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.7">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- SCREEN 1: SETUP / START -->
+        <section id="screen-start" class="game-screen active">
+            <div class="card setup-card">
+                <div class="card-header-art">
+                    <div class="hero-emblem" aria-hidden="true">👻</div>
+                    <p class="eyebrow">A midnight challenge</p>
+                    <h2>Dare to Enter the Spooky Quiz?</h2>
+                    <p class="subtitle">Test your knowledge of folklore, horror cinema, Halloween history and candy lore.</p>
+                </div>
+
+                <form id="form-start-quiz" class="setup-form">
+                    <div class="form-group">
+                        <label for="player-name">Your Hunter Name:</label>
+                        <input type="text" id="player-name" name="player_name" maxlength="30" value="Ghost Hunter" required placeholder="Enter your spooky nickname">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Difficulty:</label>
+                        <div class="difficulty-options">
+                            <label class="diff-chip">
+                                <input type="radio" name="difficulty" value="easy">
+                                <span class="diff-content">
+                                    <strong>Easy</strong>
+                                    <small>30s / 100 pts</small>
+                                </span>
+                            </label>
+                            <label class="diff-chip">
+                                <input type="radio" name="difficulty" value="medium" checked>
+                                <span class="diff-content">
+                                    <strong>Medium</strong>
+                                    <small>20s / 200 pts</small>
+                                </span>
+                            </label>
+                            <label class="diff-chip">
+                                <input type="radio" name="difficulty" value="hard">
+                                <span class="diff-content">
+                                    <strong>Hard</strong>
+                                    <small>15s / 300 pts</small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Trivia Categories:</label>
+                        <div id="category-picker" class="category-grid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="num-questions">Question Count:</label>
+                            <select id="num-questions" name="num_questions" class="select-styled">
+                                <option value="5">5 Questions (Quick Bite)</option>
+                                <option value="10" selected>10 Questions (Standard)</option>
+                                <option value="15">15 Questions (Deep Dive)</option>
+                                <option value="20">20 Questions (Nightmare)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-start" class="btn-cta">
+                        <span>Enter the Crypt</span><span aria-hidden="true">→</span>
+                    </button>
+                    <p class="keyboard-hint">Choose an answer with keys <kbd>1</kbd>–<kbd>4</kbd> once your round begins.</p>
+                </form>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: ACTIVE QUESTION -->
+        <section id="screen-quiz" class="game-screen">
+            <div class="card quiz-card">
+                <!-- Status Bar -->
+                <div class="quiz-hud">
+                    <div class="hud-item progress-indicator">
+                        <span id="q-counter">Question 1/10</span>
+                        <span id="q-category-badge" class="badge">👻 Spooky Stories</span>
+                    </div>
+
+                    <div class="hud-item streak-box" id="streak-indicator">
+                        <span class="streak-flame">🔥</span>
+                        <span id="streak-count">0 Streak</span>
+                    </div>
+
+                    <div class="hud-item score-indicator">
+                        <span>Score:</span>
+                        <strong id="live-score">0</strong>
+                    </div>
+                </div>
+
+                <!-- Smooth Countdown Bar -->
+                <div class="timer-container" aria-live="polite">
+                    <div class="timer-info">
+                        <span class="timer-label">Time Remaining:</span>
+                        <span id="timer-display" class="timer-num">20.0s</span>
+                    </div>
+                    <div class="progress-track">
+                        <div id="timer-bar" class="progress-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Question Text -->
+                <div class="question-body">
+                    <h3 id="question-text" class="question-title">Loading spooky question...</h3>
+                </div>
+
+                <!-- Answer Options (Keys 1-4) -->
+                <div id="options-grid" class="options-container" role="radiogroup" aria-label="Trivia answers">
+                    <!-- Option buttons populated by JS -->
+                </div>
+
+                <!-- Explanation & Feedback (Revealed after answer) -->
+                <div id="feedback-panel" class="feedback-panel hidden" aria-live="assertive">
+                    <div id="feedback-status" class="feedback-title">Correct! 🎉</div>
+                    <p id="feedback-explanation" class="feedback-text"></p>
+                    <div class="feedback-breakdown">
+                        <span id="feedback-points">+200 pts</span>
+                        <span id="feedback-bonus">+45 time bonus</span>
+                    </div>
+                    <button id="btn-next-question" class="btn-primary">Next Question ➔</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: GAME OVER / SUMMARY -->
+        <section id="screen-gameover" class="game-screen">
+            <div class="card summary-card">
+                <div class="summary-header">
+                    <span class="trophy-emoji" id="summary-badge-icon">🏆</span>
+                    <h2 id="summary-title">Spooky Master!</h2>
+                    <p id="summary-subtitle" class="subtitle">You survived the Halloween trivia challenge!</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-final-score">0</div>
+                        <div class="stat-label">Final Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-accuracy">0%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-correct">0/10</div>
+                        <div class="stat-label">Correct Answers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-max-streak">0</div>
+                        <div class="stat-label">Max Streak</div>
+                    </div>
+                </div>
+
+                <!-- Question Review List -->
+                <div class="review-section">
+                    <h3>Round Review</h3>
+                    <div id="review-list" class="review-list"></div>
+                </div>
+
+                <div class="summary-actions">
+                    <button id="btn-play-again" class="btn-cta">🎃 Play Another Round</button>
+                    <button id="btn-view-board-finish" class="btn-secondary">🏆 View Leaderboard</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: LEADERBOARD MODAL -->
+        <div id="modal-leaderboard" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2 id="leaderboard-title">🎃 Crypt of High Scores</h2>
+                    <button id="btn-close-modal" class="btn-close" aria-label="Close modal">✖</button>
+                </div>
+
+                <div class="leaderboard-tabs">
+                    <button class="tab-btn active" data-diff="all">All Modes</button>
+                    <button class="tab-btn" data-diff="easy">Easy</button>
+                    <button class="tab-btn" data-diff="medium">Medium</button>
+                    <button class="tab-btn" data-diff="hard">Hard</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Hunter</th>
+                                <th>Mode</th>
+                                <th>Score</th>
+                                <th>Acc.</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-tbody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Canvas for celebration confetti -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Hidden audio element for background ambiance -->
+    <audio id="bgm-audio" loop preload="none">
+        <source src="/sounds/background.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

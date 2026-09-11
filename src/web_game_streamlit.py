@@ -279,14 +279,14 @@ def render_background_audio_if_needed():
         b64 = base64.b64encode(data).decode('ascii')
         components.html(
             f"""
-            <audio id=\"bgm\" autoplay loop style=\"display:none\">\n
-              <source src=\"data:{mime};base64,{b64}\" type=\"{mime}\">\n
-            </audio>\n
-            <script>\n
-              setTimeout(() => {\n
-                const a = document.getElementById('bgm');\n
-                if (a) { a.muted = false; a.volume = 0.6; a.play().catch(() => {}); }\n
-              }, 300);\n
+            <audio id="bgm" autoplay loop style="display:none">
+              <source src="data:{mime};base64,{b64}" type="{mime}">
+            </audio>
+            <script>
+              setTimeout(() => {{
+                const a = document.getElementById('bgm');
+                if (a) {{ a.muted = false; a.volume = 0.6; a.play().catch(() => {{}}); }}
+              }}, 300);
             </script>
             """,
             height=0,

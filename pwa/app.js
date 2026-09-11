@@ -47,15 +47,25 @@ let gameState = {
   bgmAudio: null,
 };
 
-// Load questions from JSON
+// Load questions from JSON with resilient fallback paths
 async function loadQuestions() {
-  try {
-    const response = await fetch('../assets/questions.json');
-    gameState.quiz = await response.json();
-  } catch (error) {
-    console.error('Failed to load questions:', error);
-    alert('Could not load quiz questions. Please check your connection.');
+  const candidateUrls = [
+    'questions.json',
+    './questions.json',
+    '/pwa/questions.json',
+    '../assets/questions.json',
+    '/assets/questions.json'
+  ];
+  for (const url of candidateUrls) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        gameState.quiz = await response.json();
+        return;
+      }
+    } catch (e) {}
   }
+  console.error('Failed to load questions from all candidate URLs');
 }
 
 // Get random questions based on difficulty and categories

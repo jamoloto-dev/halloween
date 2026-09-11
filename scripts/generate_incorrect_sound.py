@@ -2,7 +2,11 @@
 """
 Generate a short 'incorrect' WAV sound and write to assets/sounds/incorrect.wav
 """
-import os, wave, struct, math
+import math
+import os
+import struct
+import wave
+
 
 def write_beep(path, freq=880.0, duration=0.22, volume=0.5, rate=44100):
     n_samples = int(rate * duration)
