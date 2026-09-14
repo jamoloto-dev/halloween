@@ -45,7 +45,17 @@ let gameState = {
   gameStarted: false,
   gameOver: false,
   bgmAudio: null,
+  answerLocked: false,
+  advanceTimeout: null,
 };
+
+function shuffleInPlace(items) {
+  for (let index = items.length - 1; index > 0; index--) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [items[index], items[swapIndex]] = [items[swapIndex], items[index]];
+  }
+  return items;
+}
 
 // Load questions from JSON with resilient fallback paths
 async function loadQuestions() {
@@ -82,22 +92,29 @@ function getQuestionsForGame(difficulty) {
     }
   });
   
-  // Shuffle and return top 10
-  return allQuestions.sort(() => Math.random() - 0.5).slice(0, 10);
+  // Each question gets its own Fisher–Yates answer order.  Correctness is
+  // still determined by the answer text, never by a displayed position.
+  return shuffleInPlace([...allQuestions]).slice(0, 10).map((question) => ({
+    ...question,
+    displayOptions: shuffleInPlace([...question.options]),
+  }));
 }
 
 // Initialize background music
 function initBackgroundMusic() {
   if (gameState.musicEnabled && !gameState.bgmAudio) {
-    gameState.bgmAudio = new Audio('../assets/sounds/background.mp3');
+    gameState.bgmAudio = new Audio('/sounds/horror-ambience.mp3');
     gameState.bgmAudio.loop = true;
-    gameState.bgmAudio.volume = 0.6;
+    gameState.bgmAudio.volume = 0.25;
+    gameState.bgmAudio.addEventListener('error', () => {
+      gameState.musicEnabled = false;
+    });
   }
 }
 
 // Play background music
 function playBackgroundMusic() {
-  if (gameState.bgmAudio && gameState.musicEnabled) {
+  if (gameState.bgmAudio && gameState.musicEnabled && gameState.bgmAudio.paused) {
     gameState.bgmAudio.play().catch(() => {
       console.log('Autoplay blocked; music will play after user interaction.');
     });
@@ -147,6 +164,9 @@ function startGame() {
   gameState.score = 0;
   gameState.gameStarted = true;
   gameState.gameOver = false;
+  gameState.answerLocked = false;
+  if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+  if (gameState.advanceTimeout) clearTimeout(gameState.advanceTimeout);
   
   initBackgroundMusic();
   playBackgroundMusic();
@@ -154,14 +174,37 @@ function startGame() {
 }
 
 // Handle answer selection
-function selectAnswer(optionIndex) {
-  if (!gameState.gameStarted || gameState.gameOver) return;
+function setOptionButtonsDisabled(disabled) {
+  document.querySelectorAll('#options button').forEach((button) => {
+    button.disabled = disabled;
+  });
+}
+
+function advanceQuestion() {
+  gameState.currentQuestion++;
+  gameState.answerLocked = false;
+  if (gameState.currentQuestion >= gameState.quiz._questions.length) {
+    gameState.gameOver = true;
+    stopBackgroundMusic();
+    trackGameEnd(gameState.score, gameState.quiz._questions.length);
+  } else {
+    gameState.timeRemaining = 30;
+  }
+  render();
+}
+
+function selectAnswer(selectedAnswer) {
+  if (!gameState.gameStarted || gameState.gameOver || gameState.answerLocked) return;
+  gameState.answerLocked = true;
+  if (gameState.timerInterval) {
+    clearInterval(gameState.timerInterval);
+    gameState.timerInterval = null;
+  }
+  setOptionButtonsDisabled(true);
   
   const questions = gameState.quiz._questions;
   const currentQ = questions[gameState.currentQuestion];
-  const correctIndex = currentQ.options.indexOf(currentQ.correct_answer);
-  
-  const isCorrect = optionIndex === correctIndex;
+  const isCorrect = selectedAnswer === currentQ.correct_answer;
   const message = document.getElementById('message');
   
   if (isCorrect) {
@@ -175,19 +218,7 @@ function selectAnswer(optionIndex) {
     trackAnswer(false, currentQ.category || 'unknown');
   }
   
-  setTimeout(() => {
-    gameState.currentQuestion++;
-    if (gameState.currentQuestion >= questions.length) {
-      gameState.gameOver = true;
-      stopBackgroundMusic();
-      // Track game completion
-      trackGameEnd(gameState.score, questions.length);
-    } else {
-      gameState.timeRemaining = 30;
-      startTimer();
-    }
-    render();
-  }, 2000);
+  gameState.advanceTimeout = setTimeout(advanceQuestion, 2000);
 }
 
 // Timer logic
@@ -199,23 +230,16 @@ function startTimer() {
     gameState.timeRemaining--;
     updateTimerUI();
     
-    if (gameState.timeRemaining <= 0) {
+    if (gameState.timeRemaining <= 0 && !gameState.answerLocked) {
+      gameState.answerLocked = true;
       clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
+      setOptionButtonsDisabled(true);
       const message = document.getElementById('message');
       message.textContent = '⏰ Time\'s up!';
       message.className = 'message warning';
       
-      setTimeout(() => {
-        gameState.currentQuestion++;
-        if (gameState.currentQuestion >= gameState.quiz._questions.length) {
-          gameState.gameOver = true;
-          stopBackgroundMusic();
-        } else {
-          gameState.timeRemaining = 30;
-          startTimer();
-        }
-        render();
-      }, 2000);
+      gameState.advanceTimeout = setTimeout(advanceQuestion, 2000);
     }
   }, 1000);
 }
@@ -240,7 +264,10 @@ function playAgain() {
   gameState.playerName = '';
   gameState.selectedCategories = [];
   gameState.timeRemaining = 30;
+  gameState.answerLocked = false;
   if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+  if (gameState.advanceTimeout) clearTimeout(gameState.advanceTimeout);
+  stopBackgroundMusic();
   render();
 }
 
@@ -296,6 +323,7 @@ function renderGame() {
   }
   
   const currentQ = questions[gameState.currentQuestion];
+  gameState.answerLocked = false;
   document.getElementById('score').textContent = `Score: ${gameState.score}`;
   document.getElementById('timer').textContent = gameState.timeRemaining;
   document.getElementById('progressFill').style.width = (gameState.timeRemaining / 30) * 100 + '%';
@@ -303,10 +331,10 @@ function renderGame() {
   
   const optionsEl = document.getElementById('options');
   optionsEl.innerHTML = '';
-  currentQ.options.forEach((option, index) => {
+  currentQ.displayOptions.forEach((option, index) => {
     const btn = document.createElement('button');
-    btn.textContent = option;
-    btn.onclick = () => selectAnswer(index);
+    btn.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+    btn.onclick = () => selectAnswer(option);
     optionsEl.appendChild(btn);
   });
   

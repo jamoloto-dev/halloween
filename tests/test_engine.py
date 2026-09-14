@@ -48,8 +48,12 @@ def test_session_lifecycle(sample_questions):
     assert res1.streak == 1
     assert session.score == res1.points_awarded
 
-    # Correct answer with index "0"
-    res2 = session.submit_answer("0", time_taken=2.0)
+    # A numeric answer refers to the displayed (shuffled) option, not the
+    # answer's original position in the question data.
+    view2 = session.get_current_question_view()
+    assert view2 is not None
+    correct_display_index = view2.options.index("Answer A")
+    res2 = session.submit_answer(str(correct_display_index), time_taken=2.0)
     assert res2.is_correct
     assert res2.streak == 2
 
@@ -80,3 +84,34 @@ def test_question_bank_loading():
 
     selected = bank.select_questions(count=5)
     assert len(selected) <= 5
+
+
+def test_question_view_shuffles_options_and_preserves_answer_mapping(sample_questions):
+    """Answer order is randomized per session, while validation uses the answer itself."""
+    config = QuizConfig(player_name="Witch", difficulty=Difficulty.EASY, num_questions=1)
+    positions = set()
+
+    for _ in range(60):
+        session = QuizSession(config, [sample_questions[0]])
+        view = session.get_current_question_view()
+        assert view is not None
+        assert sorted(view.options) == sorted(sample_questions[0].options)
+
+        correct_index = view.options.index(sample_questions[0].correct_answer)
+        positions.add(correct_index)
+        result = session.submit_answer(view.options[correct_index], time_taken=1.0)
+        assert result.is_correct
+
+    # Repeated independent shuffles make every displayed A–D position viable.
+    assert positions == {0, 1, 2, 3}
+
+
+def test_question_view_keeps_the_same_order_for_status_refreshes(sample_questions):
+    session = QuizSession(
+        QuizConfig(player_name="Witch", difficulty=Difficulty.EASY, num_questions=1),
+        [sample_questions[0]],
+    )
+    first_view = session.get_current_question_view()
+    refreshed_view = session.get_current_question_view()
+    assert first_view is not None and refreshed_view is not None
+    assert refreshed_view.options == first_view.options

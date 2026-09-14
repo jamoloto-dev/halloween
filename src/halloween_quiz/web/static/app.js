@@ -7,17 +7,31 @@
 (function () {
     "use strict";
 
+    const CATEGORY_FACTS = {
+        spooky: "Many ghost stories use familiar places because the ordinary can feel more unsettling than the unknown.",
+        costumes: "Samhain disguises were once used to confuse wandering spirits during the changing of the seasons.",
+        movies: "Horror films often use silence just before a scare to make the audience lean in.",
+        history: "Early jack-o'-lanterns in Ireland were carved from turnips, not pumpkins.",
+        candy: "Candy corn was originally marketed as 'Chicken Feed' in the late 1800s.",
+        paranormal: "EMF meters are commonly used in ghost hunting, although readings can have many ordinary causes.",
+    };
+
     // ==========================================
     // 1. CLIENT-SIDE WEB AUDIO ENGINE
     // ==========================================
     class SoundEngine {
         constructor() {
             this.muted = localStorage.getItem("halloween_muted") === "true";
-            this.volume = parseFloat(localStorage.getItem("halloween_volume") || "0.7");
+            this.musicVolume = this.getStoredVolume("halloween_music_volume", 0.25);
+            this.sfxVolume = this.getStoredVolume("halloween_sfx_volume", 0.60);
             this.audioCtx = null;
             this.bgmAudio = document.getElementById("bgm-audio");
             this.bgmPlaying = false;
-            this.soundCache = {};
+            this.backgroundAvailable = Boolean(this.bgmAudio);
+            this.ambienceRequested = false;
+            this.fadeFrame = null;
+            this.duckRestoreTimer = null;
+            this.soundCache = new Map();
 
             // Preload standard HTML5 sound elements
             this.soundUrls = {
@@ -26,8 +40,31 @@
                 incorrect: "/sounds/incorrect.mp3",
                 congrats: "/sounds/congrats.mp3",
             };
+            this.soundLevels = {
+                start: 0.80,
+                correct: 1.00,
+                incorrect: 1.00,
+                congrats: 1.17,
+            };
+            this.duckDurations = {
+                correct: 900,
+                incorrect: 1100,
+                congrats: 1800,
+            };
 
             this.initAudioContext();
+            this.preloadSoundEffects();
+
+            if (this.bgmAudio) {
+                this.bgmAudio.addEventListener("error", () => {
+                    // Ambience is optional: a missing/corrupt file must not
+                    // affect quiz play or the other sound effects.
+                    console.warn("Horror ambience could not be loaded; continuing without music.");
+                    this.backgroundAvailable = false;
+                    this.bgmPlaying = false;
+                    this.notifyBgmStateChange();
+                });
+            }
         }
 
         initAudioContext() {
@@ -37,18 +74,48 @@
             }
         }
 
+        getStoredVolume(key, fallback) {
+            const value = parseFloat(localStorage.getItem(key));
+            return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
+        }
+
+        preloadSoundEffects() {
+            Object.entries(this.soundUrls).forEach(([key, url]) => {
+                const audio = new Audio(url);
+                audio.preload = "auto";
+                audio.addEventListener("error", () => {
+                    // A missing sound is non-fatal; playSynthFallback remains available.
+                    this.soundCache.delete(key);
+                });
+                this.soundCache.set(key, audio);
+            });
+        }
+
         unlock() {
             if (this.audioCtx && this.audioCtx.state === "suspended") {
                 this.audioCtx.resume();
             }
         }
 
-        setVolume(val) {
-            this.volume = Math.max(0, Math.min(1, parseFloat(val)));
-            localStorage.setItem("halloween_volume", this.volume.toString());
-            if (this.bgmAudio) {
-                this.bgmAudio.volume = this.volume * 0.5; // ambient music is softer
+        notifyBgmStateChange() {
+            if (typeof this.onBgmStateChange === "function") {
+                this.onBgmStateChange(this.bgmPlaying);
             }
+        }
+
+        setMusicVolume(val) {
+            const parsed = parseFloat(val);
+            this.musicVolume = Number.isFinite(parsed) ? Math.max(0, Math.min(1, parsed)) : 0.25;
+            localStorage.setItem("halloween_music_volume", this.musicVolume.toString());
+            if (this.bgmAudio && this.bgmPlaying) {
+                this.fadeBackgroundTo(this.musicVolume, 150);
+            }
+        }
+
+        setSfxVolume(val) {
+            const parsed = parseFloat(val);
+            this.sfxVolume = Number.isFinite(parsed) ? Math.max(0, Math.min(1, parsed)) : 0.60;
+            localStorage.setItem("halloween_sfx_volume", this.sfxVolume.toString());
         }
 
         toggleMute() {
@@ -57,39 +124,109 @@
             if (this.bgmAudio) {
                 this.bgmAudio.muted = this.muted;
             }
+            this.soundCache.forEach((audio) => {
+                audio.muted = this.muted;
+            });
+            if (!this.muted && this.ambienceRequested) this.startBackgroundAmbience();
             return this.muted;
+        }
+
+        startBackgroundAmbience() {
+            if (!this.bgmAudio || !this.backgroundAvailable) return false;
+            this.unlock();
+            this.ambienceRequested = true;
+            if (this.muted) return false;
+
+            if (!this.bgmAudio.paused) {
+                this.bgmPlaying = true;
+                this.fadeBackgroundTo(this.musicVolume, 300);
+                this.notifyBgmStateChange();
+                return true;
+            }
+
+            this.bgmAudio.volume = 0;
+            this.bgmAudio.muted = false;
+            this.bgmPlaying = true;
+            this.notifyBgmStateChange();
+            const playPromise = this.bgmAudio.play();
+            if (playPromise) {
+                playPromise.then(() => {
+                    this.bgmPlaying = true;
+                    this.fadeBackgroundTo(this.musicVolume, 1200);
+                    this.notifyBgmStateChange();
+                }).catch(() => {
+                    this.bgmPlaying = false;
+                    this.ambienceRequested = false;
+                    this.notifyBgmStateChange();
+                });
+            }
+            return true;
+        }
+
+        fadeBackgroundTo(target, duration, onComplete = null) {
+            if (!this.bgmAudio) return;
+            if (this.fadeFrame) cancelAnimationFrame(this.fadeFrame);
+            const startVolume = this.bgmAudio.volume;
+            const startedAt = performance.now();
+            const step = (now) => {
+                const progress = Math.min(1, (now - startedAt) / duration);
+                this.bgmAudio.volume = startVolume + ((target - startVolume) * progress);
+                if (progress < 1) {
+                    this.fadeFrame = requestAnimationFrame(step);
+                } else {
+                    this.fadeFrame = null;
+                    if (onComplete) onComplete();
+                }
+            };
+            this.fadeFrame = requestAnimationFrame(step);
+        }
+
+        duckBackground(duration = 1000) {
+            if (!this.bgmAudio || !this.bgmPlaying || this.muted || !this.ambienceRequested) return;
+            if (this.duckRestoreTimer) clearTimeout(this.duckRestoreTimer);
+            this.fadeBackgroundTo(this.musicVolume * 0.45, 120);
+            this.duckRestoreTimer = setTimeout(() => {
+                if (this.ambienceRequested && !this.muted) {
+                    this.fadeBackgroundTo(this.musicVolume, 350);
+                }
+            }, duration);
+        }
+
+        stopBackgroundAmbience(reset = false, fadeDuration = 0) {
+            if (!this.bgmAudio) return;
+            this.ambienceRequested = false;
+            if (this.duckRestoreTimer) clearTimeout(this.duckRestoreTimer);
+            const stop = () => {
+                this.bgmAudio.pause();
+                if (reset) this.bgmAudio.currentTime = 0;
+                this.bgmPlaying = false;
+                this.notifyBgmStateChange();
+            };
+            if (fadeDuration > 0 && !this.bgmAudio.paused) {
+                this.fadeBackgroundTo(0.08, fadeDuration, stop);
+            } else {
+                stop();
+            }
         }
 
         toggleBgm() {
             if (!this.bgmAudio) return false;
-            this.unlock();
-
-            if (this.bgmPlaying) {
-                this.bgmAudio.pause();
-                this.bgmPlaying = false;
-            } else {
-                this.bgmAudio.volume = this.volume * 0.5;
-                this.bgmAudio.muted = this.muted;
-                const playPromise = this.bgmAudio.play();
-                if (playPromise) {
-                    playPromise.then(() => {
-                        this.bgmPlaying = true;
-                    }).catch(() => {
-                        this.bgmPlaying = false;
-                    });
-                }
+            if (this.bgmPlaying || !this.bgmAudio.paused) {
+                this.stopBackgroundAmbience(false, 200);
+                return false;
             }
-            return this.bgmPlaying;
+            return this.startBackgroundAmbience();
         }
 
         play(soundKey) {
             if (this.muted) return;
             this.unlock();
 
-            const url = this.soundUrls[soundKey];
-            if (url) {
-                const audio = new Audio(url);
-                audio.volume = this.volume;
+            const audio = this.soundCache.get(soundKey);
+            if (audio) {
+                audio.muted = false;
+                audio.volume = Math.min(1, this.sfxVolume * (this.soundLevels[soundKey] || 1));
+                audio.currentTime = 0;
                 audio.play().catch(() => {
                     // Fallback to Web Audio synthetic tone generator if file fails or is blocked
                     this.playSynthFallback(soundKey);
@@ -97,6 +234,12 @@
             } else {
                 this.playSynthFallback(soundKey);
             }
+            if (this.duckDurations[soundKey]) this.duckBackground(this.duckDurations[soundKey]);
+        }
+
+        playUiSound() {
+            this.unlock();
+            this.playSynthFallback("ui");
         }
 
         // Web Audio API procedural synthesizer (zero external network dependency)
@@ -115,7 +258,7 @@
                     osc.type = "sine";
                     osc.frequency.setValueAtTime(587.33, now); // D5
                     osc.frequency.setValueAtTime(880.0, now + 0.12); // A5
-                    gain.gain.setValueAtTime(this.volume * 0.3, now);
+                    gain.gain.setValueAtTime(this.sfxVolume * 0.35, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
                     osc.start(now);
                     osc.stop(now + 0.45);
@@ -124,7 +267,7 @@
                     osc.type = "sawtooth";
                     osc.frequency.setValueAtTime(140, now);
                     osc.frequency.linearRampToValueAtTime(80, now + 0.35);
-                    gain.gain.setValueAtTime(this.volume * 0.25, now);
+                    gain.gain.setValueAtTime(this.sfxVolume * 0.30, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
                     osc.start(now);
                     osc.stop(now + 0.35);
@@ -132,17 +275,26 @@
                     // Crisp hollow clock pulse
                     osc.type = "triangle";
                     osc.frequency.setValueAtTime(950, now);
-                    gain.gain.setValueAtTime(this.volume * 0.15, now);
+                    gain.gain.setValueAtTime(this.sfxVolume * 0.15, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
                     osc.start(now);
                     osc.stop(now + 0.06);
+                } else if (type === "ui") {
+                    // A short, restrained click for navigation and settings.
+                    osc.type = "triangle";
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(390, now + 0.07);
+                    gain.gain.setValueAtTime(this.sfxVolume * 0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
                 } else if (type === "start" || type === "congrats") {
                     // Harmonic chord flourish
                     osc.type = "sine";
                     osc.frequency.setValueAtTime(440, now);
                     osc.frequency.setValueAtTime(554.37, now + 0.1);
                     osc.frequency.setValueAtTime(659.25, now + 0.2);
-                    gain.gain.setValueAtTime(this.volume * 0.3, now);
+                    gain.gain.setValueAtTime(this.sfxVolume * 0.40, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
                     osc.start(now);
                     osc.stop(now + 0.6);
@@ -247,6 +399,8 @@
             this.isAnswerPending = false;
             this.isFeedbackActive = false;
             this.selectedAnswerIndex = null;
+            this.roundCorrect = 0;
+            this.roundAnswered = 0;
 
             // DOM Elements
             this.screens = {
@@ -261,7 +415,8 @@
                 btnLeaderboard: document.getElementById("btn-leaderboard-open"),
                 btnSoundToggle: document.getElementById("btn-sound-toggle"),
                 btnBgmToggle: document.getElementById("btn-bgm-toggle"),
-                volumeSlider: document.getElementById("volume-slider"),
+                musicVolumeSlider: document.getElementById("music-volume-slider"),
+                sfxVolumeSlider: document.getElementById("sfx-volume-slider"),
                 modalLeaderboard: document.getElementById("modal-leaderboard"),
                 btnCloseModal: document.getElementById("btn-close-modal"),
                 leaderboardTbody: document.getElementById("leaderboard-tbody"),
@@ -278,6 +433,7 @@
                 feedbackExplanation: document.getElementById("feedback-explanation"),
                 feedbackPoints: document.getElementById("feedback-points"),
                 feedbackBonus: document.getElementById("feedback-bonus"),
+                feedbackAchievement: document.getElementById("feedback-achievement"),
                 btnNextQuestion: document.getElementById("btn-next-question"),
                 btnPlayAgain: document.getElementById("btn-play-again"),
                 btnViewBoardFinish: document.getElementById("btn-view-board-finish"),
@@ -289,6 +445,7 @@
             };
 
             this.initEvents();
+            this.sound.onBgmStateChange = () => this.updateAudioControlsUi();
             this.loadCategories();
             this.updateAudioControlsUi();
         }
@@ -297,6 +454,20 @@
             // Unlock audio on any first click
             document.addEventListener("click", () => this.sound.unlock(), { once: true });
             document.addEventListener("keydown", () => this.sound.unlock(), { once: true });
+
+            // One subtle click sound covers ordinary controls without adding
+            // duplicate handlers. Start and answer buttons already have their
+            // own higher-priority feedback sounds.
+            document.addEventListener("click", (event) => {
+                const button = event.target.closest("button");
+                if (!button || button.disabled || button.id === "btn-start" || button.classList.contains("option-btn")) return;
+                this.sound.playUiSound();
+            }, true);
+            document.addEventListener("change", (event) => {
+                if (event.target.matches("input[name='categories'], input[name='difficulty']")) {
+                    this.sound.playUiSound();
+                }
+            });
 
             // Start Form Submission
             this.dom.formStart.addEventListener("submit", (e) => {
@@ -332,18 +503,22 @@
             });
 
             // Sound Controls
-            this.dom.btnSoundToggle.addEventListener("click", () => {
-                const muted = this.sound.toggleMute();
+            this.dom.btnSoundToggle?.addEventListener("click", () => {
+                this.sound.toggleMute();
                 this.updateAudioControlsUi();
             });
 
-            this.dom.btnBgmToggle.addEventListener("click", () => {
-                const playing = this.sound.toggleBgm();
+            this.dom.btnBgmToggle?.addEventListener("click", () => {
+                this.sound.toggleBgm();
                 this.updateAudioControlsUi();
             });
 
-            this.dom.volumeSlider.addEventListener("input", (e) => {
-                this.sound.setVolume(e.target.value);
+            this.dom.musicVolumeSlider?.addEventListener("input", (e) => {
+                this.sound.setMusicVolume(e.target.value);
+            });
+
+            this.dom.sfxVolumeSlider?.addEventListener("input", (e) => {
+                this.sound.setSfxVolume(e.target.value);
             });
 
             // Keyboard Shortcuts
@@ -362,8 +537,9 @@
 
                 // During active question, keys 1-4 select answers
                 if (!this.isAnswerPending && !this.isFeedbackActive && this.screens.quiz.classList.contains("active")) {
-                    if (["1", "2", "3", "4"].includes(e.key)) {
-                        const index = parseInt(e.key, 10) - 1;
+                    const key = e.key.toUpperCase();
+                    if (["1", "2", "3", "4", "A", "B", "C", "D"].includes(key)) {
+                        const index = /^[1-4]$/.test(key) ? parseInt(key, 10) - 1 : key.charCodeAt(0) - 65;
                         const buttons = this.dom.optionsGrid.querySelectorAll(".option-btn");
                         if (buttons[index]) {
                             buttons[index].click();
@@ -374,13 +550,18 @@
         }
 
         updateAudioControlsUi() {
-            this.dom.btnSoundToggle.textContent = this.sound.muted ? "🔇 Muted" : "🔊 Sound";
-            this.dom.btnSoundToggle.classList.toggle("muted", this.sound.muted);
+            if (this.dom.btnSoundToggle) {
+                this.dom.btnSoundToggle.textContent = this.sound.muted ? "🔇 Muted" : "🔊 Sound";
+                this.dom.btnSoundToggle.classList.toggle("muted", this.sound.muted);
+            }
 
-            this.dom.btnBgmToggle.textContent = this.sound.bgmPlaying ? "🎵 Music: On" : "🎵 Music: Off";
-            this.dom.btnBgmToggle.classList.toggle("active", this.sound.bgmPlaying);
+            if (this.dom.btnBgmToggle) {
+                this.dom.btnBgmToggle.textContent = this.sound.bgmPlaying ? "🎵 Ambience: On" : "🎵 Ambience: Off";
+                this.dom.btnBgmToggle.classList.toggle("active", this.sound.bgmPlaying);
+            }
 
-            this.dom.volumeSlider.value = this.sound.volume;
+            if (this.dom.musicVolumeSlider) this.dom.musicVolumeSlider.value = this.sound.musicVolume;
+            if (this.dom.sfxVolumeSlider) this.dom.sfxVolumeSlider.value = this.sound.sfxVolume;
         }
 
         showScreen(screenName) {
@@ -391,13 +572,15 @@
         }
 
         async loadCategories() {
-            try {
-                const res = await fetch("/api/categories");
-                if (!res.ok) throw new Error("Failed to load categories");
-                const data = await res.json();
-
+            const renderCategories = (categories) => {
+                if (!Array.isArray(categories) || categories.length === 0) return false;
                 this.dom.categoryPicker.innerHTML = "";
-                data.categories.forEach((cat) => {
+                const progress = this.getProgress();
+                categories.forEach((cat) => {
+                    const mastery = progress.mastery[cat.id];
+                    const masteryLabel = mastery && mastery.answered
+                        ? `${Math.round((mastery.correct / mastery.answered) * 100)}% mastery`
+                        : "New trail";
                     const label = document.createElement("label");
                     label.className = "category-chip";
                     label.innerHTML = `
@@ -405,13 +588,27 @@
                         <div class="cat-content">
                             <span class="cat-icon">${cat.icon}</span>
                             <span class="cat-name">${cat.name}</span>
-                            <small class="cat-count">${cat.question_count} Qs</small>
+                            <small class="cat-count">${cat.question_count} Qs · ${masteryLabel}</small>
                         </div>
                     `;
                     this.dom.categoryPicker.appendChild(label);
                 });
+                return true;
+            };
+
+            // Render server-provided data first; this prevents a blank picker
+            // while the endpoint request is pending or unavailable.
+            renderCategories(window.__HALLOWEEN_CATEGORY_FALLBACK__);
+            try {
+                const res = await fetch("/api/categories");
+                if (!res.ok) throw new Error("Failed to load categories");
+                const data = await res.json();
+                renderCategories(data.categories);
             } catch (err) {
-                console.error("Error loading categories:", err);
+                if (!this.dom.categoryPicker.children.length) {
+                    this.dom.categoryPicker.textContent = "Categories could not load. Please refresh the page.";
+                }
+                console.warn("Category refresh failed; using server-rendered categories when available.", err);
             }
         }
 
@@ -428,6 +625,9 @@
             }
 
             try {
+                // This call happens within the Start Game interaction, so it
+                // respects browser autoplay rules without creating a new track.
+                this.sound.startBackgroundAmbience();
                 const res = await fetch("/api/quiz/start", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -442,6 +642,7 @@
 
                 if (!res.ok) {
                     const err = await res.json();
+                    this.sound.stopBackgroundAmbience(true);
                     alert(err.detail || "Failed to start quiz.");
                     return;
                 }
@@ -450,12 +651,15 @@
                 this.sessionId = data.session_id;
                 this.currentScore = 0;
                 this.currentStreak = 0;
+                this.roundCorrect = 0;
+                this.roundAnswered = 0;
 
                 this.sound.play("start");
                 this.showScreen("quiz");
                 this.renderQuestion(data.first_question);
             } catch (err) {
                 console.error("Error starting game:", err);
+                this.sound.stopBackgroundAmbience(true);
                 alert("Could not connect to game server. Please try again.");
             }
         }
@@ -485,7 +689,7 @@
                 btn.setAttribute("data-index", idx);
                 btn.setAttribute("data-answer", opt);
                 btn.innerHTML = `
-                    <span class="opt-badge">${idx + 1}</span>
+                    <span class="opt-badge">${String.fromCharCode(65 + idx)}</span>
                     <span class="opt-text">${this.escapeHtml(opt)}</span>
                 `;
                 btn.addEventListener("click", () => this.handleAnswerSelect(opt, idx, btn));
@@ -497,6 +701,12 @@
 
             // Start Countdown Timer
             this.startTimer(qView.time_limit);
+        }
+
+        setAnswerButtonsDisabled(disabled) {
+            this.dom.optionsGrid.querySelectorAll(".option-btn").forEach((button) => {
+                button.disabled = disabled;
+            });
         }
 
         startTimer(seconds) {
@@ -559,6 +769,7 @@
             if (this.isAnswerPending || this.isFeedbackActive) return;
             this.isAnswerPending = true;
             this.stopTimer();
+            this.setAnswerButtonsDisabled(true);
 
             buttonEl.classList.add("selected");
             const timeTaken = parseFloat((this.timeLimit - this.timeRemaining).toFixed(2));
@@ -579,12 +790,14 @@
             } catch (err) {
                 console.error("Error submitting answer:", err);
                 this.isAnswerPending = false;
+                this.setAnswerButtonsDisabled(false);
             }
         }
 
         async handleTimeout() {
             if (this.isAnswerPending || this.isFeedbackActive) return;
             this.isAnswerPending = true;
+            this.setAnswerButtonsDisabled(true);
 
             try {
                 const res = await fetch(`/api/quiz/${this.sessionId}/timeout`, {
@@ -597,6 +810,7 @@
             } catch (err) {
                 console.error("Error processing timeout:", err);
                 this.isAnswerPending = false;
+                this.setAnswerButtonsDisabled(false);
             }
         }
 
@@ -606,6 +820,7 @@
             this.currentStreak = result.streak;
             this.nextQuestionData = result.next_question;
             this.isGameOver = result.is_game_over;
+            const newAchievements = this.recordProgress(result);
 
             // Highlight buttons
             const buttons = this.dom.optionsGrid.querySelectorAll(".option-btn");
@@ -622,24 +837,75 @@
             // Audio & Feedback Content
             if (result.is_correct) {
                 this.sound.play("correct");
+                this.vibrate([18]);
                 this.dom.feedbackStatus.textContent = "✨ Correct! Spooky Genius!";
                 this.dom.feedbackStatus.className = "feedback-title correct-msg";
                 this.dom.feedbackPoints.textContent = `+${result.points_awarded - result.time_bonus} pts`;
                 this.dom.feedbackBonus.textContent = result.time_bonus > 0 ? `+${result.time_bonus} fast time bonus!` : "";
             } else {
                 this.sound.play("incorrect");
+                this.vibrate([30, 35, 30]);
                 this.dom.feedbackStatus.textContent = "💀 Missed! Wandering in the dark...";
                 this.dom.feedbackStatus.className = "feedback-title incorrect-msg";
                 this.dom.feedbackPoints.textContent = "+0 pts";
                 this.dom.feedbackBonus.textContent = `Correct answer: ${result.correct_answer}`;
             }
 
-            this.dom.feedbackExplanation.textContent = result.explanation || "";
+            const fact = CATEGORY_FACTS[this.currentQuestion.category];
+            const explanation = result.explanation ? `Why: ${result.explanation}` : "";
+            this.dom.feedbackExplanation.textContent = fact
+                ? `${explanation}${explanation ? " " : ""}Spooky fact: ${fact}`
+                : explanation;
+            this.dom.feedbackAchievement.textContent = newAchievements.length
+                ? `🏅 ${newAchievements.join(" · ")}`
+                : "";
             this.dom.liveScore.textContent = this.currentScore;
             this.dom.streakCount.textContent = `${this.currentStreak} Streak`;
 
             this.dom.feedbackPanel.classList.remove("hidden");
             this.dom.btnNextQuestion.focus();
+        }
+
+        vibrate(pattern) {
+            if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+            if (navigator.vibrate) navigator.vibrate(pattern);
+        }
+
+        getProgress() {
+            try {
+                const saved = JSON.parse(localStorage.getItem("halloween_progress_v1") || "{}");
+                return {
+                    mastery: saved.mastery || {},
+                    achievements: saved.achievements || {},
+                };
+            } catch (_) {
+                return { mastery: {}, achievements: {} };
+            }
+        }
+
+        recordProgress(result) {
+            const progress = this.getProgress();
+            const category = this.currentQuestion.category;
+            const mastery = progress.mastery[category] || { answered: 0, correct: 0 };
+            mastery.answered += 1;
+            if (result.is_correct) mastery.correct += 1;
+            progress.mastery[category] = mastery;
+            this.roundAnswered += 1;
+            if (result.is_correct) this.roundCorrect += 1;
+
+            const unlocked = [];
+            const unlock = (key, label) => {
+                if (!progress.achievements[key]) {
+                    progress.achievements[key] = true;
+                    unlocked.push(label);
+                }
+            };
+            if (result.streak >= 3) unlock("ghost_hunter", "Ghost Hunter");
+            if (result.streak >= 5) unlock("night_stalker", "Night Stalker");
+            if (result.is_game_over && this.roundCorrect === this.roundAnswered) unlock("perfect_round", "Perfect Round");
+            if (result.is_game_over && this.currentQuestion.difficulty === "hard") unlock("hard_survivor", "Hard Mode Survivor");
+            localStorage.setItem("halloween_progress_v1", JSON.stringify(progress));
+            return unlocked;
         }
 
         advanceToNext() {
@@ -654,6 +920,8 @@
 
         async finishGame() {
             this.stopTimer();
+            this.sound.stopBackgroundAmbience(true, 450);
+            this.updateAudioControlsUi();
             try {
                 const res = await fetch(`/api/quiz/${this.sessionId}`);
                 if (!res.ok) throw new Error("Failed to load summary");

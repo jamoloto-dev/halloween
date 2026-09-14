@@ -9,7 +9,7 @@ A Progressive Web App (PWA) version of the Halloween Quiz game. This standalone 
 - **Offline Support**: Service worker caches all assets for offline play
 - **Same Quiz Logic**: Uses the same questions.json as the Streamlit app
 - **Timer & Scoring**: Full countdown timer with auto-advance on timeout
-- **Background Music**: Optional looping background music during gameplay
+- **Horror Ambience**: Optional looping, low-volume ambience during gameplay
 - **Progressive Enhancement**: Works without JavaScript but is enhanced with it
 
 ## How to Use
@@ -50,7 +50,7 @@ python -m http.server 8000
    - Check answer and update score
    - Auto-advance on timeout or selection
 4. **Game Over**: Show final score with "Play Again" button
-5. **Background Music**: Optional looping audio if user enables it
+5. **Horror Ambience**: Optional looping audio if the player enables it
 
 ## Installation (Home Screen)
 
@@ -96,6 +96,7 @@ The app is now live at `https://your-site.netlify.app/` and installable on mobil
 ## Notes
 
 - Icons (192x192 and 512x512 PNGs) should be placed in the root of the deployed site
-- Background music requires `../assets/sounds/background.mp3`
+- Horror ambience is loaded from `/sounds/horror-ambience.mp3` when served by
+  the FastAPI application. For a standalone PWA deployment, place an original
+  ambience file at that URL (or update the path in `app.js`).
 - Questions must be in `../assets/questions.json` with the same schema as Streamlit app
-

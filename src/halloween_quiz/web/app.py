@@ -1,12 +1,13 @@
 """FastAPI Application Factory for Halloween Quiz."""
 
+import json
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from halloween_quiz.core.engine import QuestionBank
@@ -94,7 +95,12 @@ def create_app() -> FastAPI:
     async def index(request: Request):
         index_file = templates_dir / "index.html"
         if index_file.exists():
-            return FileResponse(index_file)
+            # The browser can render categories immediately even if the
+            # follow-up API request is interrupted or an older asset cache is
+            # present. The API remains the source of truth after load.
+            category_json = json.dumps(request.app.state.question_bank.get_categories()).replace("</", "<\\/")
+            page = index_file.read_text(encoding="utf-8").replace("__CATEGORY_DATA__", category_json)
+            return HTMLResponse(page, headers={"Cache-Control": "no-store"})
         return HTMLResponse("<h1>🎃 Halloween Quiz API Running</h1>")
 
     return app

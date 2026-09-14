@@ -205,7 +205,15 @@ class HalloweenQuizWeb:
                     all_questions.extend(self.questions[category])
         
         random.shuffle(all_questions)
-        return all_questions[:10]  # 10 questions per game
+        selected = []
+        for question in all_questions[:10]:
+            # Copy before shuffling so the source question bank and its
+            # correct_answer field remain untouched.
+            question_view = dict(question)
+            question_view['options'] = list(question['options'])
+            random.shuffle(question_view['options'])
+            selected.append(question_view)
+        return selected
 
 def play_sound(sound_type):
     """Play sound using python-vlc when available, otherwise fall back to system player.
@@ -294,7 +302,7 @@ def start():
 
         start_filename = pick_sound('start')
         congrats_filename = pick_sound('congrats')
-        background_filename = pick_sound('background')
+        background_filename = pick_sound('horror-ambience')
         correct_filename = pick_sound('correct') or 'correct.mp3'
         incorrect_filename = pick_sound('incorrect') or 'incorrect.mp3'
         return render_template_string(TEMPLATE, start_filename=start_filename, congrats_filename=congrats_filename, background_filename=background_filename, correct_filename=correct_filename, incorrect_filename=incorrect_filename)
@@ -311,7 +319,7 @@ def start():
 
     start_filename = pick_sound('start')
     congrats_filename = pick_sound('congrats')
-    background_filename = pick_sound('background')
+    background_filename = pick_sound('horror-ambience')
     correct_filename = pick_sound('correct') or 'correct.mp3'
     incorrect_filename = pick_sound('incorrect') or 'incorrect.mp3'
 
@@ -377,7 +385,7 @@ def answer():
             return None
 
         congrats_filename = pick_sound('congrats')
-        background_filename = pick_sound('background')
+        background_filename = pick_sound('horror-ambience')
         correct_filename = pick_sound('correct') or 'correct.mp3'
         incorrect_filename = pick_sound('incorrect') or 'incorrect.mp3'
         return render_template_string(TEMPLATE, feedback=feedback, play_congrats=True, play_background=False, start_filename=None, congrats_filename=congrats_filename, background_filename=background_filename, correct_filename=correct_filename, incorrect_filename=incorrect_filename)

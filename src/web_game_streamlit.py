@@ -76,7 +76,7 @@ class HalloweenQuizStreamlit:
         """Initialize sound players."""
         sound_dir = os.path.join(os.path.dirname(__file__), '../assets/sounds')
         # include start and congrats so they can be played when appropriate
-        for sound_type in ['correct', 'incorrect', 'background', 'start', 'congrats']:
+        for sound_type in ['correct', 'incorrect', 'horror-ambience', 'start', 'congrats']:
             # prefer mp3, fall back to wav
             sound_file = None
             for ext in ('.mp3', '.wav'):
@@ -105,7 +105,7 @@ class HalloweenQuizStreamlit:
 
     def start_background(self):
         """Start background music if available."""
-        player = self.sound_players.get('background')
+        player = self.sound_players.get('horror-ambience')
         if player is None:
             return
         try:
@@ -116,7 +116,7 @@ class HalloweenQuizStreamlit:
 
     def stop_background(self):
         """Stop background music if playing."""
-        player = self.sound_players.get('background')
+        player = self.sound_players.get('horror-ambience')
         if player is None:
             return
         try:
@@ -159,7 +159,13 @@ class HalloweenQuizStreamlit:
                     all_questions.extend(self.questions[category])
         
         random.shuffle(all_questions)
-        return all_questions[:10]  # 10 questions per game
+        selected = []
+        for question in all_questions[:10]:
+            question_view = dict(question)
+            question_view['options'] = list(question['options'])
+            random.shuffle(question_view['options'])
+            selected.append(question_view)
+        return selected
 
 def initialize_session_state():
     """Initialize Streamlit session state variables."""
@@ -270,7 +276,7 @@ def render_background_audio_if_needed():
     if not st.session_state.get('music_enabled', True):
         return
     try:
-        bg = _pick_sound_file('background')
+        bg = _pick_sound_file('horror-ambience')
         if not bg:
             return
         with open(bg, 'rb') as f:
@@ -285,7 +291,7 @@ def render_background_audio_if_needed():
             <script>
               setTimeout(() => {{
                 const a = document.getElementById('bgm');
-                if (a) {{ a.muted = false; a.volume = 0.6; a.play().catch(() => {{}}); }}
+                if (a) {{ a.muted = false; a.volume = 0.28; a.play().catch(() => {{}}); }}
               }}, 300);
             </script>
             """,
@@ -327,7 +333,7 @@ def main():
                     selected_categories.append(cat_id)
             
             st.write("### Settings:")
-            enable_music = st.checkbox("🎵 Enable background music", value=True)
+            enable_music = st.checkbox("🎵 Enable horror ambience", value=True)
 
             # Start button should be shown once (outside the category loop)
             if st.button("Start Game") and player_name and selected_categories:
@@ -381,10 +387,9 @@ def main():
         with col2:
             # Display options as buttons
             for i, option in enumerate(current_q['options']):
-                if st.button(option, key=f"opt_{i}"):
+                if st.button(f"{chr(65 + i)}. {option}", key=f"opt_{i}"):
                     # Check answer
-                    correct_answer = current_q['options'].index(current_q['correct_answer'])
-                    if i == correct_answer:
+                    if option == current_q['correct_answer']:
                         points = {'easy': 1, 'medium': 2, 'hard': 3}
                         st.session_state.score += points.get(st.session_state.difficulty, 1)
                         st.session_state.quiz.play_sound('correct')

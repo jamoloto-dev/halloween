@@ -159,6 +159,10 @@ class QuizSession:
         self.started_at: datetime = datetime.now(timezone.utc)
         self.completed_at: datetime | None = None
         self.history: list[dict] = []
+        # Keep a single randomized display order for each question in this
+        # session.  A status refresh must never move an answer after the
+        # player has seen it.
+        self._display_options: dict[str, list[str]] = {}
 
     @property
     def total_questions(self) -> int:
@@ -189,6 +193,12 @@ class QuizSession:
             q.difficulty, 30
         )
 
+        options = self._display_options.get(q.id)
+        if options is None:
+            options = list(q.options)
+            random.shuffle(options)
+            self._display_options[q.id] = options
+
         return QuestionView(
             id=q.id,
             index=self.current_index + 1,
@@ -198,7 +208,7 @@ class QuizSession:
             category_icon=meta["icon"],
             difficulty=q.difficulty,
             question=q.question,
-            options=q.options,
+            options=options,
             time_limit=time_limit,
         )
 
@@ -221,12 +231,14 @@ class QuizSession:
                 next_question=None,
             )
 
-        # Normalize answer: handle integer index or exact text
+        # Normalize answer: an index, when supplied, refers to the shuffled
+        # order the player was shown; browser clients submit the answer text.
         selected = answer.strip()
         if selected.isdigit():
             idx = int(selected)
-            if 0 <= idx < len(q.options):
-                selected = q.options[idx]
+            display_options = self._display_options.get(q.id, q.options)
+            if 0 <= idx < len(display_options):
+                selected = display_options[idx]
 
         is_correct = selected.lower() == q.correct_answer.strip().lower()
         points = 0

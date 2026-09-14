@@ -1,12 +1,13 @@
 // Service Worker for offline support and caching
-const CACHE_NAME = 'halloween-quiz-v1';
+const CACHE_NAME = 'halloween-quiz-v2';
 const urlsToCache = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './manifest.json',
-  './questions.json'
+  './questions.json',
+  '/sounds/horror-ambience.mp3'
 ];
 
 self.addEventListener('install', (event) => {
