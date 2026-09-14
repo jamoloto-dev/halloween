@@ -265,7 +265,9 @@ def test_profile_customization_from_start_screen(live_page: Page):
     expect(picker_modal).not_to_be_visible()
 
     # Start button avatar image updated
-    expect(live_page.locator("#start-avatar-img")).to_have_attribute("src", "/static/avatars/werewolf.svg")
+    expect(live_page.locator("#start-avatar-img")).to_have_attribute(
+        "src", "/static/avatars/werewolf.svg"
+    )
 
     # Verify profile updated
     profile_raw = live_page.evaluate("() => localStorage.getItem('spooky_player_profile')")
@@ -357,13 +359,16 @@ def test_leaderboard_modal(live_page: Page):
     expect(modal).not_to_be_visible()
 
 
-@pytest.mark.parametrize("width,height", [
-    (360, 740),
-    (390, 844),
-    (768, 1024),
-    (1366, 768),
-    (1920, 1080),
-])
+@pytest.mark.parametrize(
+    "width,height",
+    [
+        (360, 740),
+        (390, 844),
+        (768, 1024),
+        (1366, 768),
+        (1920, 1080),
+    ],
+)
 def test_responsive_layout_no_horizontal_overflow(live_page: Page, width: int, height: int):
     """Verify that layout does not horizontally overflow across different viewports."""
     live_page.set_viewport_size({"width": width, "height": height})
@@ -410,3 +415,89 @@ def test_endless_mode_hud_and_strikes(live_page: Page):
     expect(strikes_hud).to_be_visible()
     expect(live_page.locator("#strike-icons")).to_contain_text("💚 💚 💚")
     expect(live_page.locator("#q-mode-badge")).to_contain_text("Endless")
+
+
+def test_campaign_journey_modal_and_stage_selection(live_page: Page):
+    """Open the Haunted Journey campaign modal, inspect chapters, select stages, and view lore."""
+    live_page.locator("#btn-campaign-nav").click()
+    campaign_modal = live_page.locator("#modal-campaign")
+    expect(campaign_modal).to_be_visible()
+
+    # Verify 6 chapter tabs exist
+    tabs = campaign_modal.locator("#campaign-chapter-tabs .tab-btn")
+    expect(tabs).to_have_count(6)
+
+    # Verify active chapter banner
+    expect(campaign_modal.locator("#chapter-title")).to_be_visible()
+    expect(campaign_modal.locator("#stages-trail-list .stage-node-card")).to_have_count(4)
+
+    # Click first stage node and verify details panel
+    first_stage = campaign_modal.locator("#stages-trail-list .stage-node-card").first
+    first_stage.click()
+    detail_panel = campaign_modal.locator("#stage-detail-panel")
+    expect(detail_panel).to_be_visible()
+    expect(campaign_modal.locator("#stage-detail-reward")).to_contain_text("💎")
+
+    # Read Chapter Story lore
+    campaign_modal.locator("#btn-read-chapter-story").click()
+    story_modal = live_page.locator("#modal-chapter-story")
+    expect(story_modal).to_be_visible()
+    expect(story_modal.locator("#story-text")).not_to_be_empty()
+    live_page.locator("#btn-close-story").click()
+    expect(story_modal).not_to_be_visible()
+
+    # Close campaign modal
+    live_page.locator("#btn-close-campaign").click()
+    expect(campaign_modal).not_to_be_visible()
+
+
+def test_witch_market_diamond_economy_and_purchases(live_page: Page):
+    """Open the Witch's Market, verify diamond wallet, purchase booster, switch tabs."""
+    # Verify top-nav diamond pill shows balance
+    diamond_pill = live_page.locator("#btn-market-open")
+    expect(diamond_pill).to_be_visible()
+    diamond_pill.click()
+
+    shop_modal = live_page.locator("#modal-shop")
+    expect(shop_modal).to_be_visible()
+    expect(shop_modal.locator("#shop-diamond-balance")).to_contain_text("50")
+
+    # Buy Hint Booster (💎 15)
+    hint_buy_btn = shop_modal.locator(".btn-buy-booster[data-type='hint']")
+    hint_buy_btn.click()
+
+    # Balance should decrease to 35 and owned count increment to 2
+    expect(shop_modal.locator("#shop-diamond-balance")).to_contain_text("35")
+    expect(shop_modal.locator("#shop-owned-hint")).to_have_text("2")
+
+    # Switch to Cosmetics Tab
+    shop_modal.locator("#tab-shop-cosmetics").click()
+    expect(shop_modal.locator("#shop-cosmetics-panel")).to_be_visible()
+    expect(shop_modal.locator("#shop-boosters-panel")).not_to_be_visible()
+
+    # Close market modal
+    live_page.locator("#btn-close-shop").click()
+    expect(shop_modal).not_to_be_visible()
+
+
+def test_haunted_duels_creation_and_traps(live_page: Page):
+    """Open Haunted Duels modal, configure match with traps, forge challenge code."""
+    live_page.locator("#btn-duels-nav").click()
+    duels_modal = live_page.locator("#modal-duels")
+    expect(duels_modal).to_be_visible()
+
+    # Verify trap options
+    traps = duels_modal.locator("input[name='duel_trap']")
+    expect(traps).to_have_count(4)
+
+    # Submit form to create duel
+    duels_modal.locator("#btn-submit-create-duel").click()
+
+    # Verify generated duel code card is displayed
+    share_card = duels_modal.locator("#duel-share-card")
+    expect(share_card).to_be_visible()
+    expect(duels_modal.locator("#display-duel-code")).to_contain_text("SPOOK-")
+
+    # Close duels modal
+    live_page.locator("#btn-close-duels").click()
+    expect(duels_modal).not_to_be_visible()

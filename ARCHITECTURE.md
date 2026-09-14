@@ -43,10 +43,15 @@ flowchart TD
 ## 2. Core Subsystems
 
 ### 2.1 Domain & State Machine (`src/halloween_quiz/core/`)
-- **`models.py`**: Pydantic v2 schemas defining immutable core data contracts (`Question`, `QuizConfig`, `AnswerResult`, `ScoreRecord`, `Difficulty`, `GameMode`). Implements CSV/formula injection sanitization on player names.
+- **`models.py`**: Pydantic v2 schemas defining immutable core data contracts (`Question`, `QuizConfig`, `AnswerResult`, `ScoreRecord`, `Difficulty`, `GameMode`, `BoosterType`, `ActiveTrap`, economy transactions). Implements CSV/formula injection sanitization on player names.
+- **`campaign.py`**: The Haunted Journey campaign domain model with 6 progressive chapters (`Abandoned Manor` through `Midnight Realm`), 24 curated stages, 3-star rating calculator (`calculate_stage_stars`), diamond rewards, and gothic narrative lore.
+- **`duels.py`**: Asynchronous PvP Haunted Duels engine with in-memory 48-hour TTL `DuelRegistry`, match trap decorators (`ghost_fog`, `cursed_clock`, `swarm`, `flickering_candle`), and server-authoritative tiebreaker engine prioritizing Score > Accuracy > Speed.
+- **`community.py`**: Daily Community Haunt registry tracking global participant and response counts with thread-safe UTC midnight rotation and idempotent diamond claiming.
+- **`audio_riddles.py`**: Procedural Web Audio riddle specifications with clip identifiers (`clip_werewolf`, `clip_ghost`, `clip_crypt_door`, `clip_witch`, `clip_bat_swarm`) and fully accessible transcript fallbacks.
+- **`adaptive.py`**: Dynamic Adaptive Difficulty engine featuring composite performance evaluation (accuracy 40%, speed 20%, streak 20%, difficulty 20%) and smooth difficulty stepping thresholds; strictly isolated from competitive and ranked modes.
 - **`engine.py`**:
-  - `QuestionBank`: Loads and validates trivia questions from JSON. Implements deterministic UTC-seeded pseudo-random selection for the global **Daily Haunt** mode (`select_daily_questions`).
-  - `QuizSession`: Encapsulates an active quiz run. Server-authoritative elapsed timing (`_question_presented_at` monotonic timestamps) prevents client speed exploits. Evaluates deterministic criteria for badges and manages strike counters for Endless mode.
+  - `QuestionBank`: Loads and validates trivia questions from JSON. Implements deterministic UTC-seeded pseudo-random selection for the global **Daily Haunt** mode (`select_daily_questions`), campaign stage filtering (`select_stage_questions`), and duel question sets (`select_duel_questions`).
+  - `QuizSession`: Encapsulates an active quiz run. Server-authoritative elapsed timing (`_question_presented_at` monotonic timestamps) prevents client speed exploits. Evaluates deterministic criteria for badges, manages in-game booster activations (`activate_booster`), and maintains strike counters for Endless mode.
   - `SessionManager`: Thread-safe, in-memory session registry with TTL expiration (default 1 hour) and maximum session capacity bounds (1000 active sessions) to prevent memory exhaustion.
 - **`storage.py`**:
   - `ScoreRepository`: Abstracted persistence supporting SQLite WAL (Write-Ahead Logging) and PostgreSQL (`DATABASE_URL`). Automatically runs non-destructive schema migrations (e.g. adding `mode` and `max_streak` columns).

@@ -303,6 +303,137 @@
             }, duration);
         }
 
+        duckBackgroundDeep(duration = 3500) {
+            if (!this.bgmAudio || !this.bgmPlaying || !this.musicEnabled) return;
+            if (this.duckRestoreTimer) clearTimeout(this.duckRestoreTimer);
+            this.fadeBackgroundTo(this.musicVolume * 0.15, 180);
+            this.duckRestoreTimer = setTimeout(() => {
+                if (this.ambienceRequested && this.musicEnabled) {
+                    this.fadeBackgroundTo(this.musicVolume, 450);
+                }
+            }, duration);
+        }
+
+        playRiddleClip(clipId, onDone) {
+            this.unlock();
+            this.duckBackgroundDeep(3500);
+
+            if (!this.audioCtx) {
+                this.initAudioContext();
+            }
+            if (!this.audioCtx) {
+                if (onDone) onDone();
+                return;
+            }
+
+            try {
+                const now = this.audioCtx.currentTime;
+                const gain = this.audioCtx.createGain();
+                gain.connect(this.audioCtx.destination);
+                gain.gain.setValueAtTime(this.sfxVolume * 0.70, now);
+
+                if (clipId === "werewolf_howl") {
+                    const osc = this.audioCtx.createOscillator();
+                    osc.type = "sawtooth";
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.exponentialRampToValueAtTime(380, now + 1.2);
+                    osc.frequency.exponentialRampToValueAtTime(80, now + 3.2);
+
+                    const filter = this.audioCtx.createBiquadFilter();
+                    filter.type = "lowpass";
+                    filter.frequency.setValueAtTime(450, now);
+                    filter.frequency.exponentialRampToValueAtTime(1100, now + 1.2);
+                    filter.frequency.exponentialRampToValueAtTime(280, now + 3.2);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 3.4);
+                    osc.start(now);
+                    osc.stop(now + 3.4);
+                    setTimeout(() => { if (onDone) onDone(); }, 3400);
+
+                } else if (clipId === "ghost_wail") {
+                    const osc1 = this.audioCtx.createOscillator();
+                    const osc2 = this.audioCtx.createOscillator();
+                    osc1.type = "sine";
+                    osc2.type = "sine";
+                    osc1.frequency.setValueAtTime(440, now);
+                    osc1.frequency.linearRampToValueAtTime(560, now + 1.4);
+                    osc1.frequency.linearRampToValueAtTime(360, now + 3.0);
+                    osc2.frequency.setValueAtTime(446, now);
+                    osc2.frequency.linearRampToValueAtTime(568, now + 1.4);
+                    osc2.frequency.linearRampToValueAtTime(365, now + 3.0);
+
+                    osc1.connect(gain);
+                    osc2.connect(gain);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 3.1);
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 3.1);
+                    osc2.stop(now + 3.1);
+                    setTimeout(() => { if (onDone) onDone(); }, 3100);
+
+                } else if (clipId === "crypt_door") {
+                    const osc = this.audioCtx.createOscillator();
+                    osc.type = "sawtooth";
+                    osc.frequency.setValueAtTime(85, now);
+                    osc.frequency.linearRampToValueAtTime(30, now + 2.3);
+
+                    const filter = this.audioCtx.createBiquadFilter();
+                    filter.type = "bandpass";
+                    filter.frequency.setValueAtTime(190, now);
+                    filter.Q.setValueAtTime(7, now);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.gain.setValueAtTime(this.sfxVolume * 0.75, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+                    osc.start(now);
+                    osc.stop(now + 2.5);
+                    setTimeout(() => { if (onDone) onDone(); }, 2500);
+
+                } else if (clipId === "witch_cackle") {
+                    const notes = [650, 840, 620, 920, 710, 1040, 790, 580];
+                    notes.forEach((f, i) => {
+                        const noteTime = now + (i * 0.28);
+                        const osc = this.audioCtx.createOscillator();
+                        const noteGain = this.audioCtx.createGain();
+                        osc.type = "triangle";
+                        osc.frequency.setValueAtTime(f, noteTime);
+                        noteGain.connect(this.audioCtx.destination);
+                        osc.connect(noteGain);
+                        noteGain.gain.setValueAtTime(this.sfxVolume * 0.45, noteTime);
+                        noteGain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.24);
+                        osc.start(noteTime);
+                        osc.stop(noteTime + 0.24);
+                    });
+                    setTimeout(() => { if (onDone) onDone(); }, 2500);
+
+                } else if (clipId === "bat_swarm") {
+                    for (let i = 0; i < 14; i++) {
+                        const chirpTime = now + (Math.random() * 2.2);
+                        const osc = this.audioCtx.createOscillator();
+                        const chirpGain = this.audioCtx.createGain();
+                        osc.type = "sine";
+                        osc.frequency.setValueAtTime(2800 + Math.random() * 1600, chirpTime);
+                        chirpGain.connect(this.audioCtx.destination);
+                        osc.connect(chirpGain);
+                        chirpGain.gain.setValueAtTime(this.sfxVolume * 0.30, chirpTime);
+                        chirpGain.gain.exponentialRampToValueAtTime(0.001, chirpTime + 0.08);
+                        osc.start(chirpTime);
+                        osc.stop(chirpTime + 0.08);
+                    }
+                    setTimeout(() => { if (onDone) onDone(); }, 2400);
+                } else {
+                    this.playSynthFallback("start");
+                    setTimeout(() => { if (onDone) onDone(); }, 800);
+                }
+            } catch (err) {
+                console.warn("Riddle sound error:", err);
+                if (onDone) onDone();
+            }
+        }
+
         stopBackgroundAmbience(reset = false, fadeDuration = 0) {
             if (!this.bgmAudio) return;
             this.ambienceRequested = false;
@@ -632,10 +763,112 @@
                 btnPlayAgain: document.getElementById("btn-play-again"),
                 btnViewBoardFinish: document.getElementById("btn-view-board-finish"),
                 btnViewMasteryFinish: document.getElementById("btn-view-mastery-finish"),
+
+                // Diamond Economy & Top Nav
+                btnMarketOpen: document.getElementById("btn-market-open"),
+                headerDiamondCount: document.getElementById("header-diamond-count"),
+                btnCampaignNav: document.getElementById("btn-campaign-nav"),
+                btnDuelsNav: document.getElementById("btn-duels-nav"),
+
+                // Community Haunt
+                btnHeroJourney: document.getElementById("btn-hero-journey"),
+                commProgressBar: document.getElementById("comm-progress-bar"),
+                commProgressStats: document.getElementById("comm-progress-stats"),
+                commGoalTitle: document.getElementById("comm-goal-title"),
+                commPlayersCount: document.getElementById("comm-players-count"),
+                commCountdownTimer: document.getElementById("comm-countdown-timer"),
+                btnClaimCommunity: document.getElementById("btn-claim-community"),
+
+                // Boosters HUD & Audio Riddles & Traps
+                boosterHudBar: document.getElementById("booster-hud-bar"),
+                boosterHint: document.getElementById("booster-hint"),
+                boosterTime: document.getElementById("booster-time"),
+                boosterDouble: document.getElementById("booster-double"),
+                boosterShield: document.getElementById("booster-shield"),
+                countBoosterHint: document.getElementById("count-booster-hint"),
+                countBoosterTime: document.getElementById("count-booster-time"),
+                countBoosterDouble: document.getElementById("count-booster-double"),
+                countBoosterShield: document.getElementById("count-booster-shield"),
+                audioRiddlePanel: document.getElementById("audio-riddle-panel"),
+                audioWaveVisualizer: document.getElementById("audio-wave-visualizer"),
+                btnPlayRiddleClip: document.getElementById("btn-play-riddle-clip"),
+                btnToggleTranscript: document.getElementById("btn-toggle-transcript"),
+                riddleTranscriptBox: document.getElementById("riddle-accessible-transcript"),
+                riddleTranscriptText: document.getElementById("riddle-transcript-text"),
+                duelTrapBanner: document.getElementById("duel-trap-banner"),
+                duelTrapIcon: document.getElementById("duel-trap-icon"),
+                duelTrapText: document.getElementById("duel-trap-text"),
+
+                // Campaign Modal
+                modalCampaign: document.getElementById("modal-campaign"),
+                btnCloseCampaign: document.getElementById("btn-close-campaign"),
+                campaignChapterTabs: document.getElementById("campaign-chapter-tabs"),
+                chapterIcon: document.getElementById("chapter-icon"),
+                chapterTitle: document.getElementById("chapter-title"),
+                chapterSubtitle: document.getElementById("chapter-subtitle"),
+                chapterDesc: document.getElementById("chapter-desc"),
+                btnReadChapterStory: document.getElementById("btn-read-chapter-story"),
+                stagesTrailList: document.getElementById("stages-trail-list"),
+                stageDetailPanel: document.getElementById("stage-detail-panel"),
+                stageDetailTitle: document.getElementById("stage-detail-title"),
+                stageDetailDiff: document.getElementById("stage-detail-diff"),
+                stageDetailDesc: document.getElementById("stage-detail-desc"),
+                stageDetailQcount: document.getElementById("stage-detail-qcount"),
+                stageDetailReward: document.getElementById("stage-detail-reward"),
+                stageDetailStars: document.getElementById("stage-detail-stars"),
+                btnStartStage: document.getElementById("btn-start-stage"),
+                campaignStarsCount: document.getElementById("campaign-stars-count"),
+
+                // Story Modal
+                modalChapterStory: document.getElementById("modal-chapter-story"),
+                btnCloseStory: document.getElementById("btn-close-story"),
+                btnCloseStorySecondary: document.getElementById("btn-close-story-secondary"),
+                storyEmblem: document.getElementById("story-emblem"),
+                storyChapterTitle: document.getElementById("story-chapter-title"),
+                storyText: document.getElementById("story-text"),
+                btnEnterChapterFromStory: document.getElementById("btn-enter-chapter-from-story"),
+
+                // Market / Shop Modal
+                modalShop: document.getElementById("modal-shop"),
+                btnCloseShop: document.getElementById("btn-close-shop"),
+                shopDiamondBalance: document.getElementById("shop-diamond-balance"),
+                tabShopBoosters: document.getElementById("tab-shop-boosters"),
+                tabShopCosmetics: document.getElementById("tab-shop-cosmetics"),
+                shopBoostersPanel: document.getElementById("shop-boosters-panel"),
+                shopCosmeticsPanel: document.getElementById("shop-cosmetics-panel"),
+
+                // Duels Modal
+                modalDuels: document.getElementById("modal-duels"),
+                btnCloseDuels: document.getElementById("btn-close-duels"),
+                tabDuelCreate: document.getElementById("tab-duel-create"),
+                tabDuelJoin: document.getElementById("tab-duel-join"),
+                duelCreatePanel: document.getElementById("duel-create-panel"),
+                duelJoinPanel: document.getElementById("duel-join-panel"),
+                formCreateDuel: document.getElementById("form-create-duel"),
+                duelShareCard: document.getElementById("duel-share-card"),
+                displayDuelCode: document.getElementById("display-duel-code"),
+                btnCopyDuelCode: document.getElementById("btn-copy-duel-code"),
+                btnPlayCreatedDuel: document.getElementById("btn-play-created-duel"),
+                formJoinDuel: document.getElementById("form-join-duel"),
+                inputJoinDuelCode: document.getElementById("input-join-duel-code"),
+                duelInspectCard: document.getElementById("duel-inspect-card"),
+                btnAcceptAndPlayDuel: document.getElementById("btn-accept-and-play-duel"),
             };
 
             this.noticeTimer = null;
             this.selectedOnboardingAvatar = "pumpkin_hunter";
+
+            // Expansion State
+            this.campaignChapters = [];
+            this.activeChapterId = "ch1_abandoned_manor";
+            this.selectedStageId = null;
+            this.currentStageId = null;
+            this.activeDuelCode = null;
+            this.isDuelCreator = false;
+            this.activeDuelTraps = [];
+            this.activeRiddleClip = null;
+            this.boosterDoublePointsActive = false;
+            this.boosterShieldActive = false;
 
             // Initialize Player Profile & Migration
             this.profile = this.initPlayerProfile();
@@ -646,6 +879,20 @@
             this.sound.onBgmStateChange = () => this.syncSettingsUi();
             this.loadCategories();
             this.applyProfileToUi();
+            this.updateDiamondDisplays();
+            this.updateBoosterHud();
+            this.fetchCommunityStats();
+            this.loadCampaignData();
+        }
+
+        escapeHtml(str) {
+            if (str === null || str === undefined) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         // ==========================================
@@ -657,6 +904,19 @@
                 if (storedRaw) {
                     const parsed = JSON.parse(storedRaw);
                     if (parsed && parsed.player_id) {
+                        if (typeof parsed.diamonds !== "number") parsed.diamonds = 50;
+                        if (!parsed.boosters) parsed.boosters = { hint: 1, time_extension: 1, double_points: 0, shield: 0 };
+                        if (!parsed.cosmetics_unlocked) parsed.cosmetics_unlocked = ["pumpkin_hunter", "ghost"];
+                        if (!parsed.campaign) {
+                            parsed.campaign = {
+                                completed_stages: {},
+                                claimed_stage_rewards: {},
+                                claimed_chapter_rewards: {},
+                            };
+                        }
+                        if (!parsed.claimed_community_goals) parsed.claimed_community_goals = {};
+                        if (!parsed.diamond_ledger) parsed.diamond_ledger = [];
+
                         this.sound.applyPreferences(parsed.preferences);
                         return parsed;
                     }
@@ -685,6 +945,18 @@
                 player_id: generateUuid(),
                 nickname: "Ghost Hunter",
                 avatar_id: "pumpkin_hunter",
+                diamonds: 50,
+                boosters: { hint: 1, time_extension: 1, double_points: 0, shield: 0 },
+                cosmetics_unlocked: ["pumpkin_hunter", "ghost"],
+                campaign: {
+                    completed_stages: {},
+                    claimed_stage_rewards: {},
+                    claimed_chapter_rewards: {},
+                },
+                claimed_community_goals: {},
+                diamond_ledger: [
+                    { timestamp: new Date().toISOString(), amount: 50, reason: "Welcome Hunter Bounty", refId: "welcome" }
+                ],
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 stats: {
@@ -997,6 +1269,116 @@
                 if (e.target === this.dom.modalAvatarPicker) this.closeAvatarPicker();
             });
 
+            // Diamond Market / Shop
+            this.dom.btnMarketOpen?.addEventListener("click", () => this.openShop());
+            this.dom.btnCloseShop?.addEventListener("click", () => this.closeShop());
+            this.dom.modalShop?.addEventListener("click", (e) => {
+                if (e.target === this.dom.modalShop) this.closeShop();
+            });
+            this.dom.tabShopBoosters?.addEventListener("click", () => {
+                this.dom.tabShopBoosters.classList.add("active");
+                this.dom.tabShopCosmetics.classList.remove("active");
+                this.dom.shopBoostersPanel.classList.remove("hidden");
+                this.dom.shopCosmeticsPanel.classList.add("hidden");
+            });
+            this.dom.tabShopCosmetics?.addEventListener("click", () => {
+                this.dom.tabShopCosmetics.classList.add("active");
+                this.dom.tabShopBoosters.classList.remove("active");
+                this.dom.shopCosmeticsPanel.classList.remove("hidden");
+                this.dom.shopBoostersPanel.classList.add("hidden");
+            });
+            this.dom.modalShop?.addEventListener("click", (e) => {
+                const buyBoosterBtn = e.target.closest(".btn-buy-booster");
+                if (buyBoosterBtn) {
+                    const type = buyBoosterBtn.getAttribute("data-type");
+                    const price = parseInt(buyBoosterBtn.getAttribute("data-price"), 10);
+                    this.buyBooster(type, price);
+                    return;
+                }
+                const buyCosmeticBtn = e.target.closest(".btn-buy-cosmetic");
+                if (buyCosmeticBtn) {
+                    const id = buyCosmeticBtn.getAttribute("data-id");
+                    const price = parseInt(buyCosmeticBtn.getAttribute("data-price"), 10);
+                    this.buyCosmetic(id, price);
+                }
+            });
+
+            // Campaign: The Haunted Journey
+            this.dom.btnCampaignNav?.addEventListener("click", () => this.openCampaign());
+            this.dom.btnHeroJourney?.addEventListener("click", () => this.openCampaign());
+            this.dom.btnCloseCampaign?.addEventListener("click", () => this.closeCampaign());
+            this.dom.modalCampaign?.addEventListener("click", (e) => {
+                if (e.target === this.dom.modalCampaign) this.closeCampaign();
+            });
+            this.dom.btnReadChapterStory?.addEventListener("click", () => this.openStory(this.activeChapterId));
+            this.dom.btnStartStage?.addEventListener("click", () => {
+                if (this.selectedStageId) this.startStageGame(this.selectedStageId);
+            });
+
+            // Chapter Story Modal
+            this.dom.btnCloseStory?.addEventListener("click", () => this.closeStory());
+            this.dom.btnCloseStorySecondary?.addEventListener("click", () => this.closeStory());
+            this.dom.btnEnterChapterFromStory?.addEventListener("click", () => {
+                this.closeStory();
+                this.openCampaign();
+            });
+            this.dom.modalChapterStory?.addEventListener("click", (e) => {
+                if (e.target === this.dom.modalChapterStory) this.closeStory();
+            });
+
+            // Community Haunt Claim
+            this.dom.btnClaimCommunity?.addEventListener("click", () => this.claimCommunityReward());
+
+            // In-Game Boosters HUD
+            this.dom.boosterHint?.addEventListener("click", () => this.useBooster("hint"));
+            this.dom.boosterTime?.addEventListener("click", () => this.useBooster("time_extension"));
+            this.dom.boosterDouble?.addEventListener("click", () => this.useBooster("double_points"));
+            this.dom.boosterShield?.addEventListener("click", () => this.useBooster("shield"));
+
+            // Audio Riddles Panel
+            this.dom.btnPlayRiddleClip?.addEventListener("click", () => this.playActiveRiddleSound());
+            this.dom.btnToggleTranscript?.addEventListener("click", () => this.toggleRiddleTranscript());
+
+            // Haunted Duels
+            this.dom.btnDuelsNav?.addEventListener("click", () => this.openDuels());
+            this.dom.btnCloseDuels?.addEventListener("click", () => this.closeDuels());
+            this.dom.modalDuels?.addEventListener("click", (e) => {
+                if (e.target === this.dom.modalDuels) this.closeDuels();
+            });
+            this.dom.tabDuelCreate?.addEventListener("click", () => {
+                this.dom.tabDuelCreate.classList.add("active");
+                this.dom.tabDuelJoin.classList.remove("active");
+                this.dom.duelCreatePanel.classList.remove("hidden");
+                this.dom.duelJoinPanel.classList.add("hidden");
+            });
+            this.dom.tabDuelJoin?.addEventListener("click", () => {
+                this.dom.tabDuelJoin.classList.add("active");
+                this.dom.tabDuelCreate.classList.remove("active");
+                this.dom.duelJoinPanel.classList.remove("hidden");
+                this.dom.duelCreatePanel.classList.add("hidden");
+            });
+            this.dom.formCreateDuel?.addEventListener("submit", (e) => {
+                e.preventDefault();
+                this.handleCreateDuel();
+            });
+            this.dom.btnCopyDuelCode?.addEventListener("click", () => {
+                if (this.activeDuelCode && navigator.clipboard) {
+                    navigator.clipboard.writeText(this.activeDuelCode);
+                    this.showToast("Duel Code Copied", this.activeDuelCode, "📋");
+                }
+            });
+            this.dom.btnPlayCreatedDuel?.addEventListener("click", () => {
+                this.closeDuels();
+                this.startDuelGame(this.activeDuelCode, true);
+            });
+            this.dom.formJoinDuel?.addEventListener("submit", (e) => {
+                e.preventDefault();
+                this.handleInspectDuel();
+            });
+            this.dom.btnAcceptAndPlayDuel?.addEventListener("click", () => {
+                this.handleAcceptAndPlayDuel();
+            });
+
             // Global Keyboard Shortcuts
             document.addEventListener("keydown", (e) => {
                 if (e.key === "Escape") {
@@ -1005,6 +1387,10 @@
                     this.closeMastery();
                     this.closeAvatarPicker();
                     this.closeOnboarding();
+                    this.closeCampaign();
+                    this.closeStory();
+                    this.closeShop();
+                    this.closeDuels();
                     return;
                 }
 
@@ -1475,6 +1861,8 @@
             this.isAnswerPending = false;
             this.isFeedbackActive = false;
             this.selectedAnswerIndex = null;
+            this.boosterDoublePointsActive = false;
+            this.boosterShieldActive = false;
 
             // Status HUD
             const counterText = this.gameMode === "endless"
@@ -1487,6 +1875,66 @@
 
             // Question Text
             this.dom.questionText.textContent = qView.question;
+            this.dom.questionText.classList.remove("fog-active", "fog-reduced-motion");
+
+            // Audio Riddle Handling
+            if (qView.audio_clip_id) {
+                this.activeRiddleClip = qView.audio_clip_id;
+                this.dom.audioRiddlePanel?.classList.remove("hidden");
+                if (this.dom.riddleTranscriptText) {
+                    this.dom.riddleTranscriptText.textContent = qView.accessible_transcript || "Listen to identify the spectral presence.";
+                }
+                this.dom.riddleTranscriptBox?.classList.add("hidden");
+            } else {
+                this.activeRiddleClip = null;
+                this.dom.audioRiddlePanel?.classList.add("hidden");
+            }
+
+            // Duel Trap Handling
+            const activeTrap = qView.active_trap || (this.activeDuelTraps && this.activeDuelTraps.length > 0 ? this.activeDuelTraps[(qView.index - 1) % this.activeDuelTraps.length] : null);
+            if (activeTrap && this.dom.duelTrapBanner) {
+                this.dom.duelTrapBanner.classList.remove("hidden");
+                const trapNames = {
+                    ghost_fog: { icon: "👻", name: "Ghost Fog", desc: "Question text will fade after 2s" },
+                    cursed_clock: { icon: "⏰", name: "Cursed Clock", desc: "Sands of time drain faster!" },
+                    swarm: { icon: "🦇", name: "Bat Swarm", desc: "Answers scattered by the swarm" },
+                    flickering_candle: { icon: "🕯️", name: "Flickering Candle", desc: "Lighting fluctuates" },
+                };
+                const meta = trapNames[activeTrap] || { icon: "💀", name: "Active Trap", desc: "" };
+                if (this.dom.duelTrapIcon) this.dom.duelTrapIcon.textContent = meta.icon;
+                if (this.dom.duelTrapText) this.dom.duelTrapText.textContent = `Active Trap: ${meta.name} — ${meta.desc}`;
+
+                if (activeTrap === "ghost_fog") {
+                    const isReduced = this.profile?.preferences?.reduced_motion;
+                    if (isReduced) {
+                        this.dom.questionText.classList.add("fog-reduced-motion");
+                    } else {
+                        setTimeout(() => {
+                            if (!this.isAnswerPending && !this.isFeedbackActive && this.dom.questionText) {
+                                this.dom.questionText.classList.add("fog-active");
+                            }
+                        }, 2000);
+                    }
+                } else if (activeTrap === "swarm") {
+                    setTimeout(() => {
+                        if (!this.isAnswerPending && !this.isFeedbackActive && this.dom.optionsGrid) {
+                            const btns = Array.from(this.dom.optionsGrid.children);
+                            btns.sort(() => Math.random() - 0.5);
+                            btns.forEach((b) => this.dom.optionsGrid.appendChild(b));
+                        }
+                    }, 1200);
+                }
+            } else {
+                this.dom.duelTrapBanner?.classList.add("hidden");
+            }
+
+            // Boosters HUD
+            if (this.gameMode === "daily" || this.gameMode === "duel") {
+                this.dom.boosterHudBar?.classList.add("hidden");
+            } else {
+                this.dom.boosterHudBar?.classList.remove("hidden");
+                this.updateBoosterHud();
+            }
 
             // Render Options
             this.dom.optionsGrid.innerHTML = "";
@@ -1817,6 +2265,66 @@
 
                 this.sound.play("congrats");
                 this.confetti.burst();
+
+                // Economy: award 5 diamonds for completing any round
+                this.addDiamonds(5, "Round Completed", `round_${this.sessionId}`);
+
+                // Campaign Stage Completion Handling
+                if (this.gameMode === "campaign" && this.currentStageId) {
+                    const accuracyPct = summary.percentage || 0;
+                    let stars = 1;
+                    if (accuracyPct >= 90) stars = 3;
+                    else if (accuracyPct >= 75) stars = 2;
+
+                    const stageReward = 25;
+                    if (!this.profile.campaign.claimed_stage_rewards[this.currentStageId]) {
+                        this.profile.campaign.claimed_stage_rewards[this.currentStageId] = true;
+                        this.addDiamonds(stageReward, `Stage Cleared: ${this.currentStageId}`, `stage_${this.currentStageId}`);
+                    }
+
+                    const prev = this.profile.campaign.completed_stages[this.currentStageId] || {};
+                    this.profile.campaign.completed_stages[this.currentStageId] = {
+                        stars: Math.max(stars, prev.stars || 0),
+                        score: Math.max(data.score, prev.score || 0),
+                        completed_at: new Date().toISOString(),
+                    };
+                    this.saveProfile();
+                    this.showToast("Stage Complete!", `Awarded ${stars} ⭐ and 💎 ${stageReward}`, "🗺️");
+                }
+
+                // Haunted Duel Submission Handling
+                if (this.gameMode === "duel" && this.activeDuelCode) {
+                    try {
+                        const duelPayload = {
+                            player_id: this.profile.player_id,
+                            player_name: this.profile.nickname,
+                            avatar_id: this.profile.avatar_id,
+                            score: data.score,
+                            accuracy: summary.percentage || 0,
+                            streak: summary.max_streak || 0,
+                            time_taken_seconds: 25.0,
+                            is_creator: this.isDuelCreator,
+                        };
+                        const duelRes = await fetch(`/api/duels/${this.activeDuelCode}/submit`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(duelPayload),
+                        });
+                        if (duelRes.ok) {
+                            const duelData = await duelRes.json();
+                            if (duelData.winner_id) {
+                                const won = duelData.winner_id === this.profile.player_id;
+                                this.showToast(won ? "⚔️ Duel Victory!" : "💀 Duel Defeat", duelData.reason, won ? "🏆" : "💀");
+                            } else {
+                                this.showToast("Duel Score Recorded!", "Awaiting rival hunter's round.", "⏳");
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Duel score submit error:", e);
+                    }
+                }
+
+                this.fetchCommunityStats();
                 this.showScreen("gameover");
             } catch (err) {
                 console.error("Error loading finish summary:", err);
@@ -2041,12 +2549,575 @@
             }
         }
 
-        escapeHtml(str) {
-            if (!str) return "";
-            const div = document.createElement("div");
-            div.textContent = str;
-            return div.innerHTML;
+        // ==========================================
+        // DIAMOND ECONOMY & THE WITCH'S MARKET
+        // ==========================================
+        getDiamonds() {
+            return this.profile?.diamonds || 0;
         }
+
+        addDiamonds(amount, reason, refId = null) {
+            if (!this.profile) return false;
+            if (refId) {
+                const alreadyRecorded = (this.profile.diamond_ledger || []).some((item) => item.refId === refId);
+                if (alreadyRecorded) return false;
+            }
+            this.profile.diamonds = (this.profile.diamonds || 0) + amount;
+            if (!this.profile.diamond_ledger) this.profile.diamond_ledger = [];
+            this.profile.diamond_ledger.push({
+                timestamp: new Date().toISOString(),
+                amount,
+                reason,
+                refId,
+            });
+            this.saveProfile();
+            this.updateDiamondDisplays();
+            this.showToast(`+${amount} 💎`, reason, "💎");
+            return true;
+        }
+
+        spendDiamonds(amount, reason) {
+            if (!this.profile) return false;
+            if (this.getDiamonds() < amount) {
+                this.showToast("Not Enough Diamonds!", "Earn more in the Haunted Journey and Community Haunt.", "💎");
+                return false;
+            }
+            this.profile.diamonds -= amount;
+            if (!this.profile.diamond_ledger) this.profile.diamond_ledger = [];
+            this.profile.diamond_ledger.push({
+                timestamp: new Date().toISOString(),
+                amount: -amount,
+                reason,
+                refId: null,
+            });
+            this.saveProfile();
+            this.updateDiamondDisplays();
+            return true;
+        }
+
+        updateDiamondDisplays() {
+            const balance = this.getDiamonds();
+            if (this.dom.headerDiamondCount) this.dom.headerDiamondCount.textContent = balance;
+            if (this.dom.shopDiamondBalance) this.dom.shopDiamondBalance.textContent = balance;
+        }
+
+        updateBoosterHud() {
+            if (!this.profile) return;
+            const boosters = this.profile.boosters || { hint: 0, time_extension: 0, double_points: 0, shield: 0 };
+            if (this.dom.countBoosterHint) this.dom.countBoosterHint.textContent = boosters.hint || 0;
+            if (this.dom.countBoosterTime) this.dom.countBoosterTime.textContent = boosters.time_extension || 0;
+            if (this.dom.countBoosterDouble) this.dom.countBoosterDouble.textContent = boosters.double_points || 0;
+            if (this.dom.countBoosterShield) this.dom.countBoosterShield.textContent = boosters.shield || 0;
+
+            const shopHint = document.getElementById("shop-owned-hint");
+            const shopTime = document.getElementById("shop-owned-time");
+            const shopDouble = document.getElementById("shop-owned-double");
+            const shopShield = document.getElementById("shop-owned-shield");
+            if (shopHint) shopHint.textContent = boosters.hint || 0;
+            if (shopTime) shopTime.textContent = boosters.time_extension || 0;
+            if (shopDouble) shopDouble.textContent = boosters.double_points || 0;
+            if (shopShield) shopShield.textContent = boosters.shield || 0;
+
+            // Sync cosmetic unlock states in market
+            const unlockedCosmetics = this.profile.cosmetics_unlocked || ["pumpkin_hunter", "ghost"];
+            ["vampire", "werewolf", "witch", "zombie"].forEach((id) => {
+                const statusEl = document.getElementById(`status-cosmetic-${id}`);
+                const btnEl = document.querySelector(`.btn-buy-cosmetic[data-id="${id}"]`);
+                if (unlockedCosmetics.includes(id)) {
+                    if (statusEl) statusEl.textContent = this.profile.avatar_id === id ? "Equipped" : "Unlocked";
+                    if (btnEl) btnEl.textContent = this.profile.avatar_id === id ? "Active" : "Equip";
+                } else {
+                    if (statusEl) statusEl.textContent = "Locked";
+                    if (btnEl) btnEl.textContent = "Unlock";
+                }
+            });
+        }
+
+        openShop() {
+            this.updateDiamondDisplays();
+            this.updateBoosterHud();
+            this.dom.modalShop?.classList.remove("hidden");
+        }
+
+        closeShop() {
+            this.dom.modalShop?.classList.add("hidden");
+        }
+
+        buyBooster(type, price) {
+            if (this.spendDiamonds(price, `Purchased ${type} booster`)) {
+                if (!this.profile.boosters) this.profile.boosters = {};
+                this.profile.boosters[type] = (this.profile.boosters[type] || 0) + 1;
+                this.saveProfile();
+                this.updateBoosterHud();
+                this.sound.playUiSound();
+                this.showToast("Power-Up Acquired!", `+1 ${type}`, "⚡");
+            }
+        }
+
+        buyCosmetic(avatarId, price) {
+            if (!this.profile.cosmetics_unlocked) this.profile.cosmetics_unlocked = ["pumpkin_hunter", "ghost"];
+            if (this.profile.cosmetics_unlocked.includes(avatarId)) {
+                this.updateAvatar(avatarId);
+                this.updateBoosterHud();
+                return;
+            }
+            if (this.spendDiamonds(price, `Unlocked ${avatarId} avatar`)) {
+                this.profile.cosmetics_unlocked.push(avatarId);
+                this.updateAvatar(avatarId);
+                this.updateBoosterHud();
+                this.sound.play("achievement");
+                this.showToast("Cosmetic Unlocked!", `Equipped ${avatarId}`, "🎭");
+            }
+        }
+
+        async useBooster(type) {
+            if (this.gameMode === "daily" || this.gameMode === "duel") {
+                this.showToast("Boosters Disabled", "Power-ups cannot be used in ranked or duel modes.", "⚠️");
+                return;
+            }
+            const count = (this.profile?.boosters && this.profile.boosters[type]) || 0;
+            if (count <= 0) {
+                this.showToast("No Boosters Left", "Visit The Witch's Market to replenish.", "🔮");
+                return;
+            }
+            if (this.isAnswerPending || this.isFeedbackActive || !this.currentQuestion) return;
+
+            try {
+                const res = await fetch(`/api/quiz/${this.sessionId}/booster`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ booster_type: type }),
+                });
+                if (!res.ok) throw new Error("Booster rejected");
+                const data = await res.json();
+
+                this.profile.boosters[type] -= 1;
+                this.saveProfile();
+                this.updateBoosterHud();
+
+                if (type === "hint" && data.eliminated_options) {
+                    const btns = this.dom.optionsGrid.querySelectorAll(".option-btn");
+                    btns.forEach((btn) => {
+                        const opt = btn.getAttribute("data-answer");
+                        if (data.eliminated_options.includes(opt)) {
+                            btn.classList.add("option-eliminated");
+                            btn.disabled = true;
+                        }
+                    });
+                    this.showToast("Ghost Whisper", "Eliminated 2 incorrect options", "💡");
+                } else if (type === "time_extension") {
+                    this.timeRemaining += 10;
+                    this.timeLimit += 10;
+                    this.updateTimerUi();
+                    this.showToast("Hourglass Inverted", "+10s countdown extension", "⏳");
+                } else if (type === "double_points") {
+                    this.boosterDoublePointsActive = true;
+                    this.showToast("Jack-o'-Lantern Surge", "2x points active for this question", "⚡");
+                } else if (type === "shield") {
+                    this.boosterShieldActive = true;
+                    this.showToast("Spectral Ward", "Streak protected against one wrong answer", "🛡️");
+                }
+
+                this.sound.playSynthFallback("achievement");
+            } catch (err) {
+                console.warn("Booster activation error:", err);
+            }
+        }
+
+        // ==========================================
+        // THE HAUNTED JOURNEY (CAMPAIGN MODE)
+        // ==========================================
+        async loadCampaignData() {
+            try {
+                const res = await fetch("/api/campaign/chapters");
+                if (!res.ok) return;
+                const data = await res.json();
+                this.campaignChapters = data.chapters || [];
+                this.renderChapterTabs();
+                this.renderChapterStages(this.activeChapterId);
+            } catch (err) {
+                console.warn("Campaign load warning:", err);
+            }
+        }
+
+        openCampaign() {
+            this.dom.modalCampaign?.classList.remove("hidden");
+            if (!this.campaignChapters || this.campaignChapters.length === 0) {
+                this.loadCampaignData();
+            } else {
+                this.renderChapterTabs();
+                this.renderChapterStages(this.activeChapterId);
+            }
+        }
+
+        closeCampaign() {
+            this.dom.modalCampaign?.classList.add("hidden");
+        }
+
+        renderChapterTabs() {
+            if (!this.dom.campaignChapterTabs) return;
+            this.dom.campaignChapterTabs.innerHTML = "";
+
+            let totalStars = 0;
+            const completedStages = (this.profile && this.profile.campaign && this.profile.campaign.completed_stages) || {};
+            Object.values(completedStages).forEach((s) => {
+                totalStars += s.stars || 0;
+            });
+            if (this.dom.campaignStarsCount) {
+                this.dom.campaignStarsCount.textContent = totalStars;
+            }
+
+            this.campaignChapters.forEach((ch, idx) => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = `tab-btn ${ch.id === this.activeChapterId ? "active" : ""}`;
+
+                // Unlock check: Ch 1 unlocked. Ch N requires Ch N-1 boss completed
+                let isUnlocked = idx === 0;
+                if (idx > 0 && this.campaignChapters[idx - 1]) {
+                    const prevBossId = this.campaignChapters[idx - 1].stages.find((s) => s.stage_type === "boss")?.id;
+                    if (prevBossId && completedStages[prevBossId]) {
+                        isUnlocked = true;
+                    }
+                }
+
+                btn.disabled = !isUnlocked;
+                btn.innerHTML = `${ch.icon} Ch ${ch.chapter_number}${!isUnlocked ? " 🔒" : ""}`;
+                btn.addEventListener("click", () => {
+                    this.activeChapterId = ch.id;
+                    this.renderChapterTabs();
+                    this.renderChapterStages(ch.id);
+                });
+                this.dom.campaignChapterTabs.appendChild(btn);
+            });
+        }
+
+        renderChapterStages(chapterId) {
+            const ch = this.campaignChapters.find((c) => c.id === chapterId) || this.campaignChapters[0];
+            if (!ch) return;
+
+            if (this.dom.chapterIcon) this.dom.chapterIcon.textContent = ch.icon;
+            if (this.dom.chapterTitle) this.dom.chapterTitle.textContent = ch.title;
+            if (this.dom.chapterSubtitle) this.dom.chapterSubtitle.textContent = ch.subtitle;
+            if (this.dom.chapterDesc) this.dom.chapterDesc.textContent = ch.description;
+
+            if (!this.dom.stagesTrailList) return;
+            this.dom.stagesTrailList.innerHTML = "";
+
+            const completedStages = (this.profile && this.profile.campaign && this.profile.campaign.completed_stages) || {};
+
+            ch.stages.forEach((st, idx) => {
+                const node = document.createElement("button");
+                node.type = "button";
+                node.className = "stage-node-card";
+                node.setAttribute("data-stage-id", st.id);
+
+                const isCompleted = Boolean(completedStages[st.id]);
+                const stars = (completedStages[st.id] && completedStages[st.id].stars) || 0;
+                let isUnlocked = true;
+                if (st.unlock_requirement && !completedStages[st.unlock_requirement]) {
+                    isUnlocked = false;
+                }
+
+                if (isCompleted) node.classList.add("completed");
+                if (!isUnlocked) node.classList.add("locked");
+                if (st.id === this.selectedStageId) node.classList.add("selected");
+
+                const starIcons = stars === 3 ? "⭐⭐⭐" : stars === 2 ? "⭐⭐" : stars === 1 ? "⭐" : "";
+
+                node.innerHTML = `
+                    <div class="stage-node-num">${isUnlocked ? st.stage_number : "🔒"}</div>
+                    <div class="stage-node-info">
+                        <strong>${this.escapeHtml(st.title)}</strong>
+                        <small>${st.stage_type === "boss" ? "💀 Boss Trial" : `${st.question_count} Questions · ${st.difficulty}`}</small>
+                    </div>
+                    <div class="stage-node-stars">${isCompleted ? starIcons : `💎 ${st.reward_diamonds}`}</div>
+                `;
+
+                if (isUnlocked) {
+                    node.addEventListener("click", () => this.selectStage(st));
+                }
+
+                this.dom.stagesTrailList.appendChild(node);
+            });
+
+            // Pre-select first available stage in chapter
+            const firstAvailable = ch.stages.find((s) => !s.unlock_requirement || completedStages[s.unlock_requirement]) || ch.stages[0];
+            if (firstAvailable) this.selectStage(firstAvailable);
+        }
+
+        selectStage(stage) {
+            this.selectedStageId = stage.id;
+            const completedStages = (this.profile && this.profile.campaign && this.profile.campaign.completed_stages) || {};
+            const stars = (completedStages[stage.id] && completedStages[stage.id].stars) || 0;
+
+            if (this.dom.stageDetailPanel) this.dom.stageDetailPanel.classList.remove("hidden");
+            if (this.dom.stageDetailTitle) this.dom.stageDetailTitle.textContent = `${stage.title} (${stage.stage_type.toUpperCase()})`;
+            if (this.dom.stageDetailDiff) this.dom.stageDetailDiff.textContent = stage.difficulty.toUpperCase();
+            if (this.dom.stageDetailDesc) this.dom.stageDetailDesc.textContent = stage.description;
+            if (this.dom.stageDetailQcount) this.dom.stageDetailQcount.textContent = stage.question_count;
+            if (this.dom.stageDetailReward) this.dom.stageDetailReward.textContent = `💎 ${stage.reward_diamonds}`;
+            if (this.dom.stageDetailStars) {
+                this.dom.stageDetailStars.textContent = stars > 0 ? `${stars} ⭐` : "Unconquered";
+            }
+
+            // Highlight in DOM
+            this.dom.stagesTrailList?.querySelectorAll(".stage-node-card").forEach((btn) => {
+                btn.classList.remove("selected");
+            });
+            const selectedBtn = this.dom.stagesTrailList?.querySelector(`[data-stage-id="${stage.id}"]`);
+            if (selectedBtn) selectedBtn.classList.add("selected");
+        }
+
+        startStageGame(stageId) {
+            this.closeCampaign();
+            this.currentStageId = stageId;
+            this.gameMode = "campaign";
+            this.startGameWithParams({ stage_id: stageId, mode: "campaign" });
+        }
+
+        openStory(chapterId) {
+            const ch = this.campaignChapters.find((c) => c.id === chapterId) || this.campaignChapters[0];
+            if (!ch) return;
+            if (this.dom.storyEmblem) this.dom.storyEmblem.textContent = ch.icon;
+            if (this.dom.storyChapterTitle) this.dom.storyChapterTitle.textContent = `${ch.title} — Lore`;
+            if (this.dom.storyText) this.dom.storyText.textContent = ch.story_intro;
+            this.dom.modalChapterStory?.classList.remove("hidden");
+        }
+
+        closeStory() {
+            this.dom.modalChapterStory?.classList.add("hidden");
+        }
+
+        // ==========================================
+        // DAILY COMMUNITY HAUNT
+        // ==========================================
+        async fetchCommunityStats() {
+            try {
+                const res = await fetch("/api/community");
+                if (!res.ok) return;
+                const data = await res.json();
+
+                if (this.dom.commPlayersCount) {
+                    this.dom.commPlayersCount.textContent = `${data.players_entered} Hunters Entered Today`;
+                }
+
+                if (data.goal) {
+                    if (this.dom.commGoalTitle) this.dom.commGoalTitle.textContent = data.goal.title;
+                    const pct = Math.min(100, Math.round((data.goal.current_count / Math.max(1, data.goal.target_count)) * 100));
+                    if (this.dom.commProgressBar) this.dom.commProgressBar.style.width = `${pct}%`;
+                    if (this.dom.commProgressStats) {
+                        this.dom.commProgressStats.textContent = `${data.goal.current_count.toLocaleString()} / ${data.goal.target_count.toLocaleString()} Questions (${pct}%)`;
+                    }
+
+                    const claimedGoals = (this.profile && this.profile.claimed_community_goals) || {};
+                    const isClaimed = Boolean(claimedGoals[data.goal.goal_id]);
+
+                    if (data.goal.is_achieved && !isClaimed && this.dom.btnClaimCommunity) {
+                        this.dom.btnClaimCommunity.classList.remove("hidden");
+                        this.dom.btnClaimCommunity.setAttribute("data-goal-id", data.goal.goal_id);
+                        this.dom.btnClaimCommunity.setAttribute("data-reward", data.goal.reward_diamonds);
+                    } else if (this.dom.btnClaimCommunity) {
+                        this.dom.btnClaimCommunity.classList.add("hidden");
+                    }
+                }
+            } catch (err) {
+                console.warn("Community stats fetch error:", err);
+            }
+        }
+
+        async claimCommunityReward() {
+            const goalId = this.dom.btnClaimCommunity?.getAttribute("data-goal-id");
+            const reward = parseInt(this.dom.btnClaimCommunity?.getAttribute("data-reward") || "20", 10);
+            if (!goalId) return;
+
+            try {
+                const res = await fetch("/api/community/claim", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        player_id: this.profile.player_id,
+                        goal_id: goalId,
+                    }),
+                });
+                if (!res.ok) throw new Error("Claim failed");
+                if (!this.profile.claimed_community_goals) this.profile.claimed_community_goals = {};
+                this.profile.claimed_community_goals[goalId] = true;
+                this.addDiamonds(reward, "Community Haunt Goal Claimed", goalId);
+                this.dom.btnClaimCommunity?.classList.add("hidden");
+                this.showToast("Bounty Claimed!", `+${reward} 💎 Community Goal Reward`, "🌐");
+            } catch (err) {
+                console.warn("Claim community reward error:", err);
+            }
+        }
+
+        // ==========================================
+        // HAUNTED DUELS (ASYNCHRONOUS PVP)
+        // ==========================================
+        openDuels() {
+            this.dom.modalDuels?.classList.remove("hidden");
+        }
+
+        closeDuels() {
+            this.dom.modalDuels?.classList.add("hidden");
+        }
+
+        async handleCreateDuel() {
+            const diff = document.getElementById("duel-diff")?.value || "medium";
+            const trapInputs = document.querySelectorAll("input[name='duel_trap']:checked");
+            const traps = Array.from(trapInputs).map((i) => i.value);
+
+            try {
+                const res = await fetch("/api/duels", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        creator_id: this.profile.player_id,
+                        creator_name: this.profile.nickname,
+                        creator_avatar: this.profile.avatar_id,
+                        difficulty: diff,
+                        num_questions: 5,
+                        traps: traps,
+                    }),
+                });
+                if (!res.ok) throw new Error("Failed to create duel");
+                const duel = await res.json();
+                this.activeDuelCode = duel.duel_code;
+                this.activeDuelTraps = duel.traps || [];
+                this.isDuelCreator = true;
+
+                if (this.dom.displayDuelCode) this.dom.displayDuelCode.textContent = duel.duel_code;
+                this.dom.duelShareCard?.classList.remove("hidden");
+                this.showToast("Challenge Forged!", `Duel Code: ${duel.duel_code}`, "⚔️");
+            } catch (err) {
+                console.warn("Create duel error:", err);
+            }
+        }
+
+        async handleInspectDuel() {
+            const code = (this.dom.inputJoinDuelCode?.value || "").trim().toUpperCase();
+            if (!code) return;
+
+            try {
+                const res = await fetch(`/api/duels/${encodeURIComponent(code)}`);
+                if (!res.ok) {
+                    this.showToast("Duel Not Found", "Check code and try again.", "⚠️");
+                    return;
+                }
+                const duel = await res.json();
+                this.activeDuelCode = duel.duel_code;
+                this.activeDuelTraps = duel.traps || [];
+                this.isDuelCreator = false;
+
+                const creatorEl = document.getElementById("duel-inspect-creator");
+                const diffEl = document.getElementById("duel-inspect-diff");
+                const trapsEl = document.getElementById("duel-inspect-traps-list");
+                if (creatorEl) creatorEl.innerHTML = `Challenger: <strong>${this.escapeHtml(duel.creator_name)}</strong>`;
+                if (diffEl) diffEl.innerHTML = `Difficulty: <strong>${duel.difficulty.toUpperCase()}</strong>`;
+                if (trapsEl) trapsEl.textContent = (duel.traps && duel.traps.length > 0) ? duel.traps.join(", ") : "None";
+
+                this.dom.duelInspectCard?.classList.remove("hidden");
+            } catch (err) {
+                console.warn("Inspect duel error:", err);
+            }
+        }
+
+        async handleAcceptAndPlayDuel() {
+            if (!this.activeDuelCode) return;
+            try {
+                const res = await fetch(`/api/duels/${this.activeDuelCode}/accept`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        challenger_id: this.profile.player_id,
+                        challenger_name: this.profile.nickname,
+                        challenger_avatar: this.profile.avatar_id,
+                    }),
+                });
+                if (res.ok) {
+                    this.closeDuels();
+                    this.startDuelGame(this.activeDuelCode, false);
+                }
+            } catch (err) {
+                console.warn("Accept duel error:", err);
+            }
+        }
+
+        startDuelGame(duelCode, isCreator) {
+            this.activeDuelCode = duelCode;
+            this.isDuelCreator = isCreator;
+            this.gameMode = "duel";
+            this.startGameWithParams({ duel_code: duelCode, mode: "duel" });
+        }
+
+        // ==========================================
+        // AUDIO RIDDLES PLAYER
+        // ==========================================
+        playActiveRiddleSound() {
+            if (!this.activeRiddleClip) return;
+            const viz = this.dom.audioWaveVisualizer;
+            viz?.classList.add("animating");
+            this.sound.playRiddleClip(this.activeRiddleClip, () => {
+                viz?.classList.remove("animating");
+            });
+        }
+
+        toggleRiddleTranscript() {
+            this.dom.riddleTranscriptBox?.classList.toggle("hidden");
+        }
+
+        // ==========================================
+        // UNIVERSAL GAME LAUNCHER WITH PARAMS
+        // ==========================================
+        async startGameWithParams(extraParams = {}) {
+            this.sound.unlock();
+            this.sound.startBackgroundAmbience();
+
+            const playerName = this.profile?.nickname || "Ghost Hunter";
+            const payload = {
+                player_name: playerName,
+                mode: extraParams.mode || this.gameMode,
+                difficulty: extraParams.difficulty || "medium",
+                ...extraParams,
+            };
+
+            try {
+                const res = await fetch("/api/quiz/start", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.detail || "Failed to start quiz session");
+                }
+
+                const data = await res.json();
+                this.sessionId = data.session_id;
+                this.currentScore = 0;
+                this.currentStreak = 0;
+                this.roundCorrect = 0;
+                this.roundAnswered = 0;
+                this.gameMode = data.mode;
+                this.strikesRemaining = 3;
+
+                this.dom.qModeBadge.textContent = data.mode.toUpperCase();
+                if (this.gameMode === "endless") {
+                    this.dom.hudStrikes.classList.remove("hidden");
+                    this.updateStrikesUi();
+                } else {
+                    this.dom.hudStrikes.classList.add("hidden");
+                }
+
+                this.showScreen("quiz");
+                this.renderQuestion(data.first_question);
+            } catch (err) {
+                console.error("Start game with params error:", err);
+                this.showNotice(err.message || "Failed to start round. Please try again.");
+            }
+        }
+
     }
 
     // Initialize application when DOM is ready

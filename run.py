@@ -15,11 +15,13 @@ if __name__ == "__main__":
     # If invoked with --cli flag, launch the rich terminal game
     if len(sys.argv) > 1 and sys.argv[1] in ("--cli", "-c", "cli"):
         from halloween_quiz.cli.main import cli
+
         # Forward any remaining arguments
         sys.argv.pop(1)
         cli()
     else:
         import uvicorn
+
         port = int(os.getenv("PORT", 5000))
         host = os.getenv("HOST", "0.0.0.0")
         reload = os.getenv("ENVIRONMENT", "development").lower() == "development"

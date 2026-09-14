@@ -7,6 +7,15 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 
+from halloween_quiz.core.campaign import (
+    CAMPAIGN_CHAPTERS,
+    get_stage_by_id,
+)
+from halloween_quiz.core.community import community_registry
+from halloween_quiz.core.duels import (
+    PlayerDuelResult,
+    duel_registry,
+)
 from halloween_quiz.core.engine import QuestionBank, QuizSession, SessionManager
 from halloween_quiz.core.models import (
     AnswerResult,
@@ -31,11 +40,46 @@ class StartQuizRequest(BaseModel):
     player_name: str = Field(default="Ghost Hunter", min_length=1, max_length=40)
     difficulty: str = Field(default="medium")
     mode: str = Field(default="classic")
-    categories: list[str] = Field(
-        default_factory=lambda: [c.value for c in Category]
-    )
+    categories: list[str] = Field(default_factory=lambda: [c.value for c in Category])
     num_questions: int = Field(default=10, ge=1, le=50)
     time_limit_per_question: int = Field(default=30, ge=5, le=120)
+    stage_id: str | None = None
+    duel_code: str | None = None
+
+
+class ClaimCommunityRewardRequest(BaseModel):
+    player_id: str
+    goal_id: str
+
+
+class ActivateBoosterRequest(BaseModel):
+    booster_type: str
+
+
+class CreateDuelRequest(BaseModel):
+    creator_id: str
+    creator_name: str = Field(default="Ghost Hunter", min_length=1, max_length=40)
+    creator_avatar: str = Field(default="pumpkin_hunter")
+    difficulty: str = Field(default="medium")
+    num_questions: int = Field(default=5, ge=3, le=15)
+    traps: list[str] = Field(default_factory=list)
+
+
+class AcceptDuelRequest(BaseModel):
+    challenger_id: str
+    challenger_name: str = Field(default="Wandering Spirit", min_length=1, max_length=40)
+    challenger_avatar: str = Field(default="ghost")
+
+
+class SubmitDuelRequest(BaseModel):
+    player_id: str
+    player_name: str
+    avatar_id: str = Field(default="pumpkin_hunter")
+    score: int
+    accuracy: float
+    streak: int
+    time_taken_seconds: float
+    is_creator: bool = False
 
 
 class StartQuizResponse(BaseModel):
@@ -142,7 +186,10 @@ def get_daily_haunt_info():
     today_str = now_utc.strftime("%Y-%m-%d")
     # Time until next UTC midnight
     seconds_until_tomorrow = int(
-        (datetime(now_utc.year, now_utc.month, now_utc.day, 23, 59, 59, tzinfo=timezone.utc) - now_utc).total_seconds()
+        (
+            datetime(now_utc.year, now_utc.month, now_utc.day, 23, 59, 59, tzinfo=timezone.utc)
+            - now_utc
+        ).total_seconds()
     )
     return {
         "date": today_str,
@@ -176,7 +223,42 @@ def start_quiz(
         time_limit_per_question=payload.time_limit_per_question,
     )
 
-    if mode_enum == GameMode.DAILY:
+    if payload.stage_id:
+        stage = get_stage_by_id(payload.stage_id)
+        if stage:
+            config.difficulty = stage.difficulty
+            config.categories = stage.categories
+            config.num_questions = stage.question_count
+            if "time_limit" in stage.special_rules:
+                config.time_limit_per_question = stage.special_rules["time_limit"]
+            questions = bank.select_stage_questions(payload.stage_id)
+        else:
+            questions = bank.select_questions(
+                categories=config.categories,
+                difficulty=config.difficulty,
+                count=config.num_questions,
+            )
+    elif payload.duel_code:
+        duel = duel_registry.get_duel(payload.duel_code)
+        if not duel:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Duel '{payload.duel_code}' not found or expired.",
+            )
+        config.difficulty = duel.difficulty
+        config.num_questions = duel.num_questions
+        if "cursed_clock" in duel.traps:
+            config.time_limit_per_question = 10
+        raw_questions = bank.select_duel_questions(
+            seed=duel.question_seed,
+            count=duel.num_questions,
+            difficulty=duel.difficulty,
+        )
+        questions = []
+        for idx, q in enumerate(raw_questions):
+            assigned_trap = duel.traps[idx % len(duel.traps)] if duel.traps else None
+            questions.append(q.model_copy(update={"active_trap": assigned_trap}))
+    elif mode_enum == GameMode.DAILY:
         questions = bank.select_daily_questions(count=payload.num_questions)
     elif mode_enum == GameMode.QUICK:
         questions = bank.select_questions(
@@ -211,7 +293,9 @@ def start_quiz(
 
     session = QuizSession(config, questions)
     sessions.add(session)
-    logger.info(f"Quiz started: session={session.session_id}, mode={mode_enum.value}, player={config.player_name}")
+    logger.info(
+        f"Quiz started: session={session.session_id}, mode={mode_enum.value}, player={config.player_name}"
+    )
 
     return StartQuizResponse(
         session_id=session.session_id,
@@ -243,7 +327,9 @@ def get_quiz_status(
         player_name=session.config.player_name,
         difficulty=session.config.difficulty.value,
         mode=session.config.mode.value,
-        current_index=session.current_index + 1 if not session.is_completed else session.total_questions,
+        current_index=session.current_index + 1
+        if not session.is_completed
+        else session.total_questions,
         total_questions=session.total_questions,
         score=session.score,
         streak=session.streak,
@@ -298,8 +384,14 @@ def submit_answer(
             logger.info(
                 f"Session completed and saved: session={session_id}, score={session.score}, mode={session.config.mode.value}"
             )
+            community_registry.record_run(
+                score=session.score,
+                is_completed=True,
+                is_perfect=(session.percentage >= 100.0),
+                questions_answered=session.total_questions,
+            )
         except Exception as e:
-            logger.warning(f"Failed to save score for session {session_id}: {e}")
+            logger.warning(f"Failed to save score or community stats for session {session_id}: {e}")
 
     return result
 
@@ -344,8 +436,14 @@ def timeout_question(
             logger.info(
                 f"Session completed via timeout and saved: session={session_id}, score={session.score}, mode={session.config.mode.value}"
             )
+            community_registry.record_run(
+                score=session.score,
+                is_completed=True,
+                is_perfect=(session.percentage >= 100.0),
+                questions_answered=session.total_questions,
+            )
         except Exception as e:
-            logger.warning(f"Failed to save score for session {session_id}: {e}")
+            logger.warning(f"Failed to save score or community stats for session {session_id}: {e}")
 
     return result
 
@@ -353,7 +451,9 @@ def timeout_question(
 @router.get("/api/leaderboard", response_model=LeaderboardResponse)
 def get_leaderboard(
     difficulty: str | None = Query(None, description="Filter by difficulty: easy, medium, hard"),
-    mode: str | None = Query(None, description="Filter by game mode: classic, daily, panic, endless"),
+    mode: str | None = Query(
+        None, description="Filter by game mode: classic, daily, panic, endless"
+    ),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     repo: ScoreRepository = Depends(get_score_repo),
@@ -390,3 +490,202 @@ def record_score_manually(
         mode=getattr(payload, "mode", "classic") or "classic",
         max_streak=getattr(payload, "max_streak", 0) or 0,
     )
+
+
+# ---------------------------------------------------------------------------
+# Boosters & In-Game Power-Ups
+# ---------------------------------------------------------------------------
+
+
+@router.post("/api/quiz/{session_id}/booster")
+def activate_quiz_booster(
+    session_id: str,
+    payload: ActivateBoosterRequest,
+    sessions: SessionManager = Depends(get_active_sessions),
+):
+    """Activate an in-game booster power-up on the current question."""
+    session = sessions.get(session_id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Quiz session '{session_id}' not found or expired.",
+        )
+    if session.is_completed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot activate booster on a completed session.",
+        )
+    if session.config.mode in (GameMode.DAILY, GameMode.DUEL):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Boosters are strictly prohibited in competitive modes.",
+        )
+
+    result = session.activate_booster(payload.booster_type)
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result.get("error", "Failed to activate booster."),
+        )
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Campaign ("The Haunted Journey") Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/api/campaign/chapters")
+def get_campaign_chapters():
+    """Return all campaign chapters, stages, and story narratives."""
+    return {"chapters": CAMPAIGN_CHAPTERS}
+
+
+@router.get("/api/campaign/stages/{stage_id}")
+def get_campaign_stage(stage_id: str):
+    """Retrieve stage details by stage id."""
+    stage = get_stage_by_id(stage_id)
+    if not stage:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Stage '{stage_id}' not found.",
+        )
+    return stage
+
+
+# ---------------------------------------------------------------------------
+# Community Haunt Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/api/community")
+def get_community_stats():
+    """Retrieve today's global Community Haunt stats and active goal."""
+    stats = community_registry.get_today_stats()
+    return {
+        "date": stats.date_str,
+        "players_entered": stats.players_entered,
+        "total_completed": stats.total_completed,
+        "completion_rate": stats.completion_rate,
+        "average_score": stats.average_score,
+        "perfect_runs": stats.perfect_runs,
+        "goal": {
+            "goal_id": stats.goal.goal_id,
+            "title": stats.goal.title,
+            "target_count": stats.goal.target_count,
+            "current_count": stats.goal.current_count,
+            "reward_diamonds": stats.goal.reward_diamonds,
+            "is_achieved": stats.goal.is_achieved,
+        },
+    }
+
+
+@router.post("/api/community/claim")
+def claim_community_reward(payload: ClaimCommunityRewardRequest):
+    """Claim diamonds for achieved daily community goal (idempotent validation)."""
+    stats = community_registry.get_today_stats()
+    if payload.goal_id != stats.goal.goal_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Goal ID does not match today's community goal.",
+        )
+    if not stats.goal.is_achieved:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Community goal has not yet been achieved.",
+        )
+
+    return {
+        "success": True,
+        "goal_id": stats.goal.goal_id,
+        "diamonds_awarded": stats.goal.reward_diamonds,
+        "message": f"Claimed {stats.goal.reward_diamonds} Diamonds for community goal achievement!",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Haunted Duels Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/api/duels")
+def create_duel(payload: CreateDuelRequest):
+    """Create a new Haunted Duel challenge with selected traps."""
+    diff = Difficulty.from_str(payload.difficulty)
+    duel = duel_registry.create_duel(
+        creator_id=payload.creator_id,
+        creator_name=payload.creator_name,
+        creator_avatar=payload.creator_avatar,
+        difficulty=diff,
+        num_questions=payload.num_questions,
+        traps=payload.traps,
+    )
+    return duel
+
+
+@router.get("/api/duels/{code}")
+def get_duel(code: str):
+    """Retrieve challenge state for a Haunted Duel code."""
+    duel = duel_registry.get_duel(code)
+    if not duel:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Duel '{code}' not found or expired.",
+        )
+    return duel
+
+
+@router.post("/api/duels/{code}/accept")
+def accept_duel(code: str, payload: AcceptDuelRequest):
+    """Accept an invitation to a Haunted Duel."""
+    duel = duel_registry.accept_duel(
+        duel_code=code,
+        challenger_id=payload.challenger_id,
+        challenger_name=payload.challenger_name,
+        challenger_avatar=payload.challenger_avatar,
+    )
+    if not duel:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Duel '{code}' not found or expired.",
+        )
+    return duel
+
+
+@router.post("/api/duels/{code}/submit")
+def submit_duel(code: str, payload: SubmitDuelRequest):
+    """Submit a completed duel run and resolve tiebreaker hierarchy if match is finished."""
+    result = PlayerDuelResult(
+        player_id=payload.player_id,
+        player_name=payload.player_name,
+        avatar_id=payload.avatar_id,
+        score=payload.score,
+        accuracy=payload.accuracy,
+        streak=payload.streak,
+        time_taken_seconds=payload.time_taken_seconds,
+    )
+    if payload.is_creator:
+        updated = duel_registry.record_creator_result(code, result)
+        if not updated:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Duel '{code}' not found or expired.",
+            )
+        return {
+            "duel": updated,
+            "winner_id": None,
+            "reason": "Waiting for challenger to complete their round.",
+        }
+    else:
+        res = duel_registry.submit_challenger_result(code, result)
+        if not res:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Could not resolve duel '{code}'. Please ensure creator has completed their run.",
+            )
+        updated_duel, winner_id, reason = res
+        return {
+            "duel": updated_duel,
+            "winner_id": winner_id,
+            "reason": reason,
+        }

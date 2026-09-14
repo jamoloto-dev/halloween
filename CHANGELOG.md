@@ -6,6 +6,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2026-09-14
+
+### Added
+- **The Haunted Journey (Story Campaign Engine)**:
+  - 6 distinct gothic chapters (`ch1_abandoned_manor` to `ch6_midnight_realm`) spanning 24 progressive stages.
+  - Stage difficulty tiers, question counts, diamond rewards, and 3-star performance ratings (`calculate_stage_stars`).
+  - Chapter Lore parchment narrative modal featuring atmospheric gothic typography.
+- **Diamond Economy & The Witch's Market**:
+  - In-game diamond bounty wallet displayed via top-nav glowing pill (`.nav-diamond-pill`).
+  - Four consumable power-up boosters: `Ghost Whisper` (Hint: eliminates 2 incorrect options), `Hourglass Inversion` (+10s countdown extension), `Jack-o'-Lantern Surge` (2x points), and `Spectral Ward` (Shield: protects streak against one wrong response).
+  - Avatar cosmetic shop with unlockable skins (`vampire`, `werewolf`, `witch`, `zombie`).
+  - Idempotent transaction ledger (`diamond_ledger`, `claimed_stage_rewards`, `claimed_community_goals`) preventing double claims on reload.
+  - Fairness protection: Power-ups strictly prohibited in ranked and competitive modes (`daily`, `duel`).
+- **Daily Community Haunt**:
+  - Global collaborative daily challenge with UTC-date automatic rotation (`/api/community`).
+  - Real-time community progress bar track and participant counter.
+  - One-click reward claim endpoint (`/api/community/claim`) with idempotency guards.
+- **Haunted Duels (Asynchronous PvP Engine)**:
+  - Match challenge creator and joiner flow with 48-hour TTL challenge registry (`/api/duels`).
+  - Spooky Traps system: `Ghost Fog` (fades question text after 2s), `Cursed Clock` (strict 10s timer), `Bat Swarm` (scatters answer order), and `Flickering Candle` (atmospheric candlelight fluctuations).
+  - Server-authoritative tiebreaker engine prioritizing Score > Accuracy > Speed.
+- **Procedural Web Audio API Riddles**:
+  - Five procedural audio synthesizers for werewolf howl, spectral whisper, creaking crypt door, cackling witch, and fluttering bat swarm.
+  - Zero external CDN audio dependencies; fully synthesized via Web Audio oscillators, noise buffers, and bandpass filters.
+  - Accessible clue transcript box with screen-reader accessible attributes.
+  - Dynamic ambience ducking (ducking background horror ambience to 15% volume during riddle synthesis).
+- **Dynamic Adaptive Difficulty Tracker**:
+  - Composite real-time scoring engine (40% accuracy, 20% speed, 20% streak, 20% difficulty weight).
+  - Smooth stepping thresholds (>= 0.70 promotes to next difficulty, <= 0.40 steps down).
+  - Strictly locked to standard fixed difficulty in ranked/competitive modes.
+- **UI & Accessibility Enhancements**:
+  - Ancient carved stone marker inputs with inset texture and glowing focus ring.
+  - Prominent tactile "Select All" and "Clear All" category buttons.
+  - Custom Halloween purple and orange dropdown select styling with custom chevron.
+  - Fully responsive across desktop (1920px, 1366px), tablet (768px), and mobile viewports (390px, 360px) with 0 horizontal overflow.
+- **Automated Verification Suite**:
+  - 57 automated tests passing with 100% green status (38 backend unit/integration tests + 19 Playwright browser E2E tests).
+  - Strict type checking clean via `mypy src` and lint clean via `ruff check .`.
+
+---
+
 ## [2.2.0] - 2026-09-14
 
 ### Added

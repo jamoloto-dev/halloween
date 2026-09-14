@@ -75,6 +75,27 @@ class QuestionBank:
                 loaded.append(question_obj)
                 idx += 1
 
+        # Also load curated audio riddles
+        try:
+            from halloween_quiz.core.audio_riddles import get_all_audio_riddles
+
+            for riddle in get_all_audio_riddles():
+                r_obj = Question(
+                    id=riddle.id,
+                    category=riddle.category,
+                    difficulty=riddle.difficulty,
+                    question=riddle.question,
+                    options=riddle.options,
+                    correct_answer=riddle.correct_answer,
+                    explanation=riddle.explanation,
+                    question_type="audio_riddle",
+                    audio_clip_id=riddle.audio_clip_id,
+                    accessible_transcript=riddle.accessible_transcript,
+                )
+                loaded.append(r_obj)
+        except Exception:
+            pass
+
         self.questions = loaded
         self._by_category = {}
         for q in self.questions:
@@ -89,16 +110,17 @@ class QuestionBank:
         cats = []
         for cat_key, items in self._by_category.items():
             meta = CATEGORY_METADATA.get(
-                cat_key,
-                {"name": cat_key.capitalize(), "icon": "🎃", "description": ""}
+                cat_key, {"name": cat_key.capitalize(), "icon": "🎃", "description": ""}
             )
-            cats.append({
-                "id": cat_key,
-                "name": meta["name"],
-                "icon": meta["icon"],
-                "description": meta["description"],
-                "question_count": len(items)
-            })
+            cats.append(
+                {
+                    "id": cat_key,
+                    "name": meta["name"],
+                    "icon": meta["icon"],
+                    "description": meta["description"],
+                    "question_count": len(items),
+                }
+            )
         return cats
 
     def select_questions(
@@ -134,7 +156,9 @@ class QuestionBank:
         random.shuffle(unique_eligible)
         return unique_eligible[:count]
 
-    def select_daily_questions(self, date_str: str | None = None, count: int = 10) -> list[Question]:
+    def select_daily_questions(
+        self, date_str: str | None = None, count: int = 10
+    ) -> list[Question]:
         """Return a deterministic daily challenge question batch seeded by UTC date."""
         if not self.questions:
             return []
@@ -162,6 +186,37 @@ class QuestionBank:
         # Shuffle final sequence deterministically
         rng.shuffle(picked)
         return picked[:count]
+
+    def select_stage_questions(self, stage_id: str) -> list[Question]:
+        """Select questions for a campaign stage matching its categories, difficulty, and count."""
+        from halloween_quiz.core.campaign import get_stage_by_id
+
+        stage = get_stage_by_id(stage_id)
+        if not stage:
+            return self.select_questions(count=5)
+
+        return self.select_questions(
+            categories=stage.categories,
+            difficulty=stage.difficulty,
+            count=stage.question_count,
+        )
+
+    def select_duel_questions(
+        self,
+        seed: int,
+        count: int = 5,
+        difficulty: Difficulty | None = None,
+    ) -> list[Question]:
+        """Return a deterministic challenge batch seeded for both players in a duel."""
+        if not self.questions:
+            return []
+        rng = random.Random(seed)
+        eligible = [q for q in self.questions if (difficulty is None or q.difficulty == difficulty)]
+        if len(eligible) < count:
+            eligible = list(self.questions)
+        pool = list(eligible)
+        rng.shuffle(pool)
+        return pool[:count]
 
 
 class QuizSession:
@@ -197,6 +252,9 @@ class QuizSession:
         self.unlocked_achievements: list[str] = []
         self._display_options: dict[str, list[str]] = {}
         self._question_presented_at: float = time.monotonic()
+        self.multiplier: int = 1
+        self.shield_active: bool = False
+        self.active_trap: str | None = getattr(config, "active_trap", None)
 
     @property
     def total_questions(self) -> int:
@@ -223,8 +281,7 @@ class QuizSession:
         self.last_activity = datetime.now(timezone.utc)
 
         meta = CATEGORY_METADATA.get(
-            q.category,
-            {"name": q.category.capitalize(), "icon": "🎃", "description": ""}
+            q.category, {"name": q.category.capitalize(), "icon": "🎃", "description": ""}
         )
 
         # In Panic mode, enforce high-pressure 10 second timer
@@ -252,7 +309,39 @@ class QuizSession:
             question=q.question,
             options=options,
             time_limit=time_limit,
+            question_type=getattr(q, "question_type", "multiple_choice"),
+            audio_clip_id=getattr(q, "audio_clip_id", None),
+            accessible_transcript=getattr(q, "accessible_transcript", None),
+            active_trap=self.active_trap,
         )
+
+    def activate_booster(self, booster_type: str) -> dict:
+        """Activate an in-game booster power-up on the current question."""
+        q = self.get_current_question()
+        if not q or self.is_completed:
+            return {"success": False, "error": "No active question"}
+
+        if booster_type == "hint":
+            display_opts = self._display_options.get(q.id, list(q.options))
+            wrong = [
+                o for o in display_opts if o.strip().lower() != q.correct_answer.strip().lower()
+            ]
+            eliminated = random.sample(wrong, min(2, len(wrong)))
+            return {"success": True, "booster": "hint", "eliminated_options": eliminated}
+
+        elif booster_type == "time_extension":
+            self._question_presented_at += 10.0
+            return {"success": True, "booster": "time_extension", "seconds_added": 10}
+
+        elif booster_type == "double_points":
+            self.multiplier = 2
+            return {"success": True, "booster": "double_points", "multiplier": 2}
+
+        elif booster_type == "shield":
+            self.shield_active = True
+            return {"success": True, "booster": "shield", "shield_active": True}
+
+        return {"success": False, "error": f"Unknown booster: {booster_type}"}
 
     def _check_new_achievements(self, is_correct: bool, effective_time: float) -> str | None:
         """Evaluate deterministic conditions for newly unlocked achievements."""
@@ -305,7 +394,10 @@ class QuizSession:
             )
 
         # Calculate server-authoritative elapsed time
-        server_elapsed = max(0.1, round(time.monotonic() - getattr(self, "_question_presented_at", time.monotonic()), 2))
+        server_elapsed = max(
+            0.1,
+            round(time.monotonic() - getattr(self, "_question_presented_at", time.monotonic()), 2),
+        )
         # Validate client time_taken: accept only if plausible, otherwise enforce server timing
         if 0.1 <= time_taken <= server_elapsed + 1.5:
             effective_time = time_taken
@@ -331,6 +423,9 @@ class QuizSession:
                 q.difficulty, 30
             )
 
+        shield_absorbed = False
+        applied_multiplier = 1
+
         if is_correct:
             self.correct_count += 1
             self.streak += 1
@@ -349,23 +444,33 @@ class QuizSession:
                 bonus_mult = 1.0 if getattr(self.config, "mode", None) == GameMode.PANIC else 0.5
                 time_bonus = int(base_pts * time_ratio * bonus_mult)
 
-            points = int(base_pts * streak_mult) + time_bonus
+            applied_multiplier = self.multiplier
+            points = int((base_pts * streak_mult) + time_bonus) * applied_multiplier
+            self.multiplier = 1  # Reset multiplier after consumption
             self.score += points
         else:
             self.streak = 0
-            if getattr(self.config, "mode", None) == GameMode.ENDLESS:
-                self.strikes += 1
+            if self.shield_active:
+                self.shield_active = False
+                shield_absorbed = True
+            else:
+                if getattr(self.config, "mode", None) == GameMode.ENDLESS:
+                    self.strikes += 1
 
-        self.history.append({
-            "question_id": q.id,
-            "question": q.question,
-            "selected_answer": selected,
-            "correct_answer": q.correct_answer,
-            "is_correct": is_correct,
-            "points": points,
-            "time_bonus": time_bonus,
-            "time_taken": effective_time,
-        })
+        self.history.append(
+            {
+                "question_id": q.id,
+                "question": q.question,
+                "selected_answer": selected,
+                "correct_answer": q.correct_answer,
+                "is_correct": is_correct,
+                "points": points,
+                "time_bonus": time_bonus,
+                "time_taken": effective_time,
+                "shield_absorbed": shield_absorbed,
+                "points_multiplier": applied_multiplier,
+            }
+        )
 
         self.current_index += 1
 
@@ -393,11 +498,17 @@ class QuizSession:
             is_game_over=self.is_completed,
             next_question=next_q,
             achievement_unlocked=unlocked_badge,
+            shield_absorbed=shield_absorbed,
+            points_multiplier=applied_multiplier,
         )
 
     def timeout_current_question(self) -> AnswerResult:
         """Triggered when the question timer expires without an answer."""
-        time_limit = 10 if getattr(self.config, "mode", None) == GameMode.PANIC else float(self.config.time_limit_per_question or 20)
+        time_limit = (
+            10
+            if getattr(self.config, "mode", None) == GameMode.PANIC
+            else float(self.config.time_limit_per_question or 20)
+        )
         return self.submit_answer(
             answer="__TIMEOUT__",
             time_taken=time_limit,

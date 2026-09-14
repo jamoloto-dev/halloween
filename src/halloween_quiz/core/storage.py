@@ -38,7 +38,9 @@ class HighScoreDB(Base):
     total_questions: Mapped[int] = mapped_column(Integer, nullable=False, default=10)
     percentage: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     max_streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
 
     def to_model(self) -> ScoreRecord:
         dt = self.created_at
@@ -118,9 +120,17 @@ class ScoreRepository:
                     ]
                     if cols:
                         if "mode" not in cols:
-                            conn.execute(text("ALTER TABLE high_scores ADD COLUMN mode VARCHAR(30) DEFAULT 'classic'"))
+                            conn.execute(
+                                text(
+                                    "ALTER TABLE high_scores ADD COLUMN mode VARCHAR(30) DEFAULT 'classic'"
+                                )
+                            )
                         if "max_streak" not in cols:
-                            conn.execute(text("ALTER TABLE high_scores ADD COLUMN max_streak INTEGER DEFAULT 0"))
+                            conn.execute(
+                                text(
+                                    "ALTER TABLE high_scores ADD COLUMN max_streak INTEGER DEFAULT 0"
+                                )
+                            )
                         conn.commit()
         except Exception:
             # Non-fatal if table doesn't exist yet or already has columns
@@ -144,7 +154,9 @@ class ScoreRepository:
         clean_name = clean_name[:100] or "Anonymous Ghost"
 
         if percentage is None:
-            percentage = round((score / (total_questions * 100)) * 100, 1) if total_questions > 0 else 0.0
+            percentage = (
+                round((score / (total_questions * 100)) * 100, 1) if total_questions > 0 else 0.0
+            )
 
         if created_at is None:
             created_at = datetime.now(timezone.utc)
@@ -184,7 +196,11 @@ class ScoreRepository:
             if mode and mode.lower() != "all":
                 stmt = stmt.where(HighScoreDB.mode == mode.lower())
 
-            stmt = stmt.order_by(desc(HighScoreDB.score), HighScoreDB.created_at.asc()).offset(offset).limit(limit)
+            stmt = (
+                stmt.order_by(desc(HighScoreDB.score), HighScoreDB.created_at.asc())
+                .offset(offset)
+                .limit(limit)
+            )
             results = session.execute(stmt).scalars().all()
             return [row.to_model() for row in results]
 

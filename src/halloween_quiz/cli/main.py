@@ -119,7 +119,9 @@ def leaderboard(difficulty, limit):
 
     for idx, e in enumerate(entries, 1):
         medal = "🥇" if idx == 1 else "🥈" if idx == 2 else "🥉" if idx == 3 else str(idx)
-        diff_color = "green" if e.difficulty == "easy" else "yellow" if e.difficulty == "medium" else "red"
+        diff_color = (
+            "green" if e.difficulty == "easy" else "yellow" if e.difficulty == "medium" else "red"
+        )
         date_str = e.created_at.strftime("%Y-%m-%d %H:%M") if e.created_at else "-"
         table.add_row(
             medal,
@@ -151,7 +153,9 @@ def stats():
 
     console.print(table)
     console.print(f"\n[bold]Total Questions:[/bold] [green]{bank.total_count}[/green]")
-    console.print(f"[bold]Total High Scores Recorded:[/bold] [yellow]{repo.count_scores()}[/yellow]\n")
+    console.print(
+        f"[bold]Total High Scores Recorded:[/bold] [yellow]{repo.count_scores()}[/yellow]\n"
+    )
 
 
 def play_game(player_name: str | None = None, diff_str: str | None = None, count: int = 10):
@@ -164,12 +168,16 @@ def play_game(player_name: str | None = None, diff_str: str | None = None, count
     repo = ScoreRepository(db_path)
 
     if bank.total_count == 0:
-        console.print("[red bold]Error:[/red bold] Question database is empty! Please verify questions.json.")
+        console.print(
+            "[red bold]Error:[/red bold] Question database is empty! Please verify questions.json."
+        )
         return
 
     # Interactive setup prompts if options not provided via CLI flags
     if not player_name:
-        player_name = Prompt.ask("[bold yellow]Enter your Ghost Hunter name[/bold yellow]", default="Ghost Hunter")
+        player_name = Prompt.ask(
+            "[bold yellow]Enter your Ghost Hunter name[/bold yellow]", default="Ghost Hunter"
+        )
 
     if not diff_str:
         diff_str = Prompt.ask(
@@ -179,7 +187,9 @@ def play_game(player_name: str | None = None, diff_str: str | None = None, count
         )
 
     difficulty = Difficulty.from_str(diff_str)
-    time_limit = 30 if difficulty == Difficulty.EASY else 15 if difficulty == Difficulty.HARD else 20
+    time_limit = (
+        30 if difficulty == Difficulty.EASY else 15 if difficulty == Difficulty.HARD else 20
+    )
 
     config = QuizConfig(
         player_name=player_name,
@@ -223,7 +233,9 @@ def play_game(player_name: str | None = None, diff_str: str | None = None, count
 
         console.print(f"\n[dim]⏱ You have {time_limit} seconds to answer (Enter 1-4):[/dim]")
 
-        user_input, elapsed = timed_input("[bold yellow]Your choice ➔ [/bold yellow]", timeout_seconds=float(time_limit))
+        user_input, elapsed = timed_input(
+            "[bold yellow]Your choice ➔ [/bold yellow]", timeout_seconds=float(time_limit)
+        )
 
         if user_input is None:
             console.print("\n[bold red]⌛ TIME IS UP! The specters claimed this round.[/bold red]")
@@ -277,9 +289,14 @@ def play_game(player_name: str | None = None, diff_str: str | None = None, count
     summary_panel = Text()
     summary_panel.append(f"{rank_title}\n\n", style="bold yellow")
     summary_panel.append(f"Hunter: {session.config.player_name}\n", style="bold white")
-    summary_panel.append(f"Difficulty: {session.config.difficulty.value.upper()}\n", style="magenta")
+    summary_panel.append(
+        f"Difficulty: {session.config.difficulty.value.upper()}\n", style="magenta"
+    )
     summary_panel.append(f"Final Score: {session.score:,} points\n", style="bold green")
-    summary_panel.append(f"Accuracy: {session.correct_count}/{session.total_questions} ({session.percentage}%)\n", style="cyan")
+    summary_panel.append(
+        f"Accuracy: {session.correct_count}/{session.total_questions} ({session.percentage}%)\n",
+        style="cyan",
+    )
     summary_panel.append(f"Longest Streak: {summary['max_streak']}\n\n", style="bold red")
     summary_panel.append(saved_msg)
 

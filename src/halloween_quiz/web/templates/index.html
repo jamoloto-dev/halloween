@@ -27,6 +27,9 @@
             </div>
         </div>
         <nav class="nav-actions" aria-label="Game navigation">
+            <button id="btn-market-open" class="nav-btn nav-diamond-pill" title="Open The Witch's Market" aria-label="Diamonds and Market">💎 <span id="header-diamond-count">0</span></button>
+            <button id="btn-campaign-nav" class="nav-btn" title="The Haunted Journey Campaign Map" aria-label="Campaign Journey">🗺️ Journey</button>
+            <button id="btn-duels-nav" class="nav-btn" title="Haunted Duels PvP" aria-label="Haunted Duels">⚔️ Duels</button>
             <button id="btn-pwa-install" class="nav-btn hidden" title="Install Spooky Master App" aria-label="Install App">📲 Install</button>
             <button id="btn-mastery-open" class="nav-btn" title="View Player Profile & Progress" aria-label="View Progress">📜 Progress</button>
             <button id="btn-leaderboard-open" class="nav-btn" title="View High Scores" aria-label="View Leaderboard">🏆 Leaderboard</button>
@@ -59,58 +62,96 @@
                                 <img id="start-avatar-img" class="hunter-avatar-badge" src="/static/avatars/pumpkin_hunter.svg" alt="Hunter Avatar" width="40" height="40">
                                 <span class="avatar-edit-icon" aria-hidden="true">✏️</span>
                             </button>
-                            <input type="text" id="player-name" name="player_name" maxlength="30" value="Ghost Hunter" required placeholder="Enter your spooky nickname" autocomplete="nickname">
+                            <input type="text" id="player-name" name="player_name" class="stone-input" maxlength="30" value="Ghost Hunter" required placeholder="Carve your spooky nickname" autocomplete="nickname">
                         </div>
                     </div>
 
-                    <!-- Game Mode Selection -->
-                    <div class="form-group">
-                        <label id="mode-label">Game Mode:</label>
-                        <div class="mode-options" role="radiogroup" aria-labelledby="mode-label">
-                            <label class="mode-chip">
-                                <input type="radio" name="mode" value="classic" checked>
-                                <span class="mode-content">
-                                    <strong>🎃 Classic Crypt</strong>
-                                    <small>Standard 10-round challenge</small>
-                                </span>
-                            </label>
-                            <label class="mode-chip">
-                                <input type="radio" name="mode" value="quick">
-                                <span class="mode-content">
-                                    <strong>⚡ Quick Bite</strong>
-                                    <small>5 quick casual questions</small>
-                                </span>
-                            </label>
-                            <label class="mode-chip">
-                                <input type="radio" name="mode" value="deep">
-                                <span class="mode-content">
-                                    <strong>📖 Deep Dive</strong>
-                                    <small>15-round marathon</small>
-                                </span>
-                            </label>
-                            <label class="mode-chip">
-                                <input type="radio" name="mode" value="panic">
-                                <span class="mode-content">
-                                    <strong>⏳ Midnight Panic</strong>
-                                    <small>10s rush · High speed bonus</small>
-                                </span>
-                            </label>
-                            <label class="mode-chip">
-                                <input type="radio" name="mode" value="endless">
-                                <span class="mode-content">
-                                    <strong>💀 Endless Night</strong>
-                                    <small>Survive until 3 strikes</small>
-                                </span>
-                            </label>
-                            <label class="mode-chip">
-                                <input type="radio" name="mode" value="daily">
-                                <span class="mode-content">
-                                    <strong>🕯️ Daily Haunt</strong>
-                                    <small id="daily-badge-countdown">Today's global challenge</small>
-                                </span>
-                            </label>
-                        </div>
+                <!-- Campaign Mode Feature Banner -->
+                <div class="campaign-cta-banner">
+                    <div class="campaign-cta-content">
+                        <span class="campaign-cta-badge">STORY CAMPAIGN</span>
+                        <h2 class="campaign-cta-title">The Haunted Journey</h2>
+                        <p class="campaign-cta-desc">6 Gothic Chapters · 24 Haunting Stages · Earn Diamonds & Lore</p>
                     </div>
+                    <button type="button" id="btn-hero-journey" class="btn-cta btn-journey-cta">
+                        <span>🗺️ Explore Chapter Map</span>
+                    </button>
+                </div>
+
+                <!-- Daily Community Haunt Widget -->
+                <div class="community-haunt-widget" id="community-haunt-widget">
+                    <div class="community-widget-top">
+                        <div class="community-header-left">
+                            <span class="community-badge-pill">🌐 Global Community Haunt</span>
+                            <span class="community-active-players" id="comm-players-count">124 Hunters Entered Today</span>
+                        </div>
+                        <span class="community-countdown" id="comm-countdown-timer">Resets 23:59 UTC</span>
+                    </div>
+                    <p class="community-goal-desc" id="comm-goal-title">Answer 2,000 Spooky & Horror Questions Worldwide Today</p>
+                    <div class="community-progress-track">
+                        <div id="comm-progress-bar" class="community-progress-fill" style="width: 69%;"></div>
+                    </div>
+                    <div class="community-widget-bottom">
+                        <span class="community-progress-stats" id="comm-progress-stats">1,380 / 2,000 Questions (69%)</span>
+                        <button type="button" id="btn-claim-community" class="btn-claim-diamonds hidden">Claim 💎 20</button>
+                    </div>
+                </div>
+
+                <!-- Game Mode Selection -->
+                <div class="form-group">
+                    <label id="mode-label">Game Mode:</label>
+                    <div class="mode-options" role="radiogroup" aria-labelledby="mode-label">
+                        <label class="mode-chip">
+                            <input type="radio" name="mode" value="classic" checked>
+                            <span class="mode-content">
+                                <strong>🎃 Classic Crypt</strong>
+                                <small>Standard 10-round challenge</small>
+                            </span>
+                        </label>
+                        <label class="mode-chip">
+                            <input type="radio" name="mode" value="quick">
+                            <span class="mode-content">
+                                <strong>⚡ Quick Bite</strong>
+                                <small>5 quick casual questions</small>
+                            </span>
+                        </label>
+                        <label class="mode-chip">
+                            <input type="radio" name="mode" value="deep">
+                            <span class="mode-content">
+                                <strong>📖 Deep Dive</strong>
+                                <small>15-round marathon</small>
+                            </span>
+                        </label>
+                        <label class="mode-chip">
+                            <input type="radio" name="mode" value="panic">
+                            <span class="mode-content">
+                                <strong>⏳ Midnight Panic</strong>
+                                <small>10s rush · High speed bonus</small>
+                            </span>
+                        </label>
+                        <label class="mode-chip">
+                            <input type="radio" name="mode" value="endless">
+                            <span class="mode-content">
+                                <strong>💀 Endless Night</strong>
+                                <small>Survive until 3 strikes</small>
+                            </span>
+                        </label>
+                        <label class="mode-chip">
+                            <input type="radio" name="mode" value="daily">
+                            <span class="mode-content">
+                                <strong>🕯️ Daily Haunt</strong>
+                                <small id="daily-badge-countdown">Today's global challenge</small>
+                            </span>
+                        </label>
+                        <label class="mode-chip">
+                            <input type="radio" name="mode" value="adaptive">
+                            <span class="mode-content">
+                                <strong>🌀 Dynamic Realm</strong>
+                                <small>Adapts to your skill in real-time</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
 
                     <!-- Difficulty Selection -->
                     <div class="form-group">
@@ -145,9 +186,8 @@
                         <div class="category-header-wrap">
                             <label id="cat-label">Trivia Categories:</label>
                             <div class="cat-quick-actions">
-                                <button type="button" id="btn-select-all-cats" class="btn-link">Select All</button>
-                                <span>·</span>
-                                <button type="button" id="btn-clear-cats" class="btn-link">Clear</button>
+                                <button type="button" id="btn-select-all-cats" class="btn-cat-action btn-select-all" aria-label="Select all trivia categories">Select All</button>
+                                <button type="button" id="btn-clear-cats" class="btn-cat-action btn-clear-all" aria-label="Clear all trivia categories">Clear</button>
                             </div>
                         </div>
                         <div id="category-picker" class="category-grid" aria-labelledby="cat-label">
@@ -212,6 +252,60 @@
                     </div>
                     <div class="progress-track">
                         <div id="timer-bar" class="progress-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Active Duel Trap Banner -->
+                <div id="duel-trap-banner" class="duel-trap-banner hidden" role="status">
+                    <span id="duel-trap-icon" class="trap-icon">👻</span>
+                    <span id="duel-trap-text">Active Trap: Ghost Fog</span>
+                </div>
+
+                <!-- Audio Riddle Synthesizer & Player Panel -->
+                <div id="audio-riddle-panel" class="audio-riddle-panel hidden">
+                    <div class="audio-wave-visualizer" id="audio-wave-visualizer" aria-hidden="true">
+                        <span class="wave-bar"></span><span class="wave-bar"></span>
+                        <span class="wave-bar"></span><span class="wave-bar"></span>
+                        <span class="wave-bar"></span><span class="wave-bar"></span>
+                        <span class="wave-bar"></span><span class="wave-bar"></span>
+                    </div>
+                    <div class="audio-riddle-controls">
+                        <button type="button" id="btn-play-riddle-clip" class="btn-primary btn-play-audio">
+                            <span id="riddle-audio-icon">▶</span> <span id="riddle-audio-label">Listen to Midnight Riddle</span>
+                        </button>
+                        <button type="button" id="btn-toggle-transcript" class="btn-secondary btn-sm" aria-expanded="false">
+                            📜 Audio Clue
+                        </button>
+                    </div>
+                    <div id="riddle-accessible-transcript" class="riddle-transcript-box hidden" role="region" aria-label="Accessible audio description">
+                        <p id="riddle-transcript-text"></p>
+                    </div>
+                </div>
+
+                <!-- In-Game Booster Power-Ups HUD -->
+                <div class="booster-hud-bar" id="booster-hud-bar" role="toolbar" aria-label="Booster power-ups">
+                    <span class="booster-hud-label">Power-Ups:</span>
+                    <div class="booster-buttons">
+                        <button type="button" id="booster-hint" class="btn-booster" title="Eliminate 2 incorrect choices" aria-label="Use Hint Booster">
+                            <span class="booster-icon">💡</span>
+                            <span class="booster-name">Hint</span>
+                            <span class="booster-badge" id="count-booster-hint">0</span>
+                        </button>
+                        <button type="button" id="booster-time" class="btn-booster" title="+10s countdown extension" aria-label="Use Time Extension Booster">
+                            <span class="booster-icon">⏳</span>
+                            <span class="booster-name">+10s</span>
+                            <span class="booster-badge" id="count-booster-time">0</span>
+                        </button>
+                        <button type="button" id="booster-double" class="btn-booster" title="Double points for this question" aria-label="Use Double Points Booster">
+                            <span class="booster-icon">⚡</span>
+                            <span class="booster-name">2x Pts</span>
+                            <span class="booster-badge" id="count-booster-double">0</span>
+                        </button>
+                        <button type="button" id="booster-shield" class="btn-booster" title="Protect streak against one wrong answer" aria-label="Use Spooky Shield Booster">
+                            <span class="booster-icon">🛡️</span>
+                            <span class="booster-name">Shield</span>
+                            <span class="booster-badge" id="count-booster-shield">0</span>
+                        </button>
                     </div>
                 </div>
 
@@ -531,7 +625,7 @@
                     <div class="onboarding-section">
                         <label for="onboarding-hunter-name" class="section-label">2. Choose Your Hunter Name</label>
                         <div class="name-input-wrap">
-                            <input type="text" id="onboarding-hunter-name" maxlength="30" value="GhostHunter" placeholder="e.g. ShadowHunter, PumpkinKing" autocomplete="nickname">
+                            <input type="text" id="onboarding-hunter-name" class="stone-input" maxlength="30" value="GhostHunter" placeholder="Carve your spooky nickname (e.g. ShadowHunter)" autocomplete="nickname">
                             <div class="name-suggestions">
                                 <button type="button" class="btn-suggestion">ShadowHunter</button>
                                 <button type="button" class="btn-suggestion">PumpkinKing</button>
@@ -564,6 +658,314 @@
                 <div class="picker-body">
                     <div class="avatar-picker-grid" role="radiogroup" id="shared-avatar-grid">
                         <!-- Avatars populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 6: THE HAUNTED JOURNEY (CAMPAIGN MAP) -->
+        <div id="modal-campaign" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="campaign-title">
+            <div class="modal-card modal-campaign-card">
+                <div class="modal-header">
+                    <div class="campaign-header-left">
+                        <h2 id="campaign-title">🗺️ The Haunted Journey</h2>
+                        <span class="campaign-total-stars">Total Stars: <span id="campaign-stars-count">0</span>/72 ⭐</span>
+                    </div>
+                    <button id="btn-close-campaign" class="btn-close" aria-label="Close campaign map">✖</button>
+                </div>
+
+                <div class="campaign-body">
+                    <!-- Chapter Selector Tabs -->
+                    <div class="chapter-tabs" role="tablist" aria-label="Campaign chapters" id="campaign-chapter-tabs">
+                        <!-- Populated dynamically: Ch 1 to Ch 6 -->
+                    </div>
+
+                    <!-- Active Chapter Card -->
+                    <div class="chapter-banner" id="active-chapter-banner">
+                        <div class="chapter-banner-header">
+                            <span class="chapter-icon" id="chapter-icon">🏚️</span>
+                            <div class="chapter-banner-text">
+                                <h3 id="chapter-title" class="chapter-title">The Abandoned Manor</h3>
+                                <p id="chapter-subtitle" class="chapter-subtitle">Chapter 1 · Where the Shadows Linger</p>
+                            </div>
+                            <button type="button" id="btn-read-chapter-story" class="btn-secondary btn-sm">📜 Read Lore</button>
+                        </div>
+                        <p id="chapter-desc" class="chapter-desc">Explore the crumbling hallways and creaking floorboards of Blackwood Manor.</p>
+                    </div>
+
+                    <!-- Stage Progression Trail -->
+                    <div class="stages-trail-container">
+                        <h4 class="trail-heading">Chapter Stages</h4>
+                        <div class="stages-trail" id="stages-trail-list" role="list">
+                            <!-- Stage nodes populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Selected Stage Detail Card -->
+                    <div class="stage-detail-panel hidden" id="stage-detail-panel">
+                        <div class="stage-detail-header">
+                            <h4 id="stage-detail-title">Stage 1: The Wrought-Iron Gate</h4>
+                            <span id="stage-detail-diff" class="badge">Easy</span>
+                        </div>
+                        <p id="stage-detail-desc" class="stage-detail-desc">Test your baseline knowledge of urban legends and ghost lore.</p>
+                        <div class="stage-detail-meta">
+                            <span>Questions: <strong id="stage-detail-qcount">5</strong></span>
+                            <span>Reward: <strong id="stage-detail-reward">💎 20</strong></span>
+                            <span>Best Stars: <strong id="stage-detail-stars">None</strong></span>
+                        </div>
+                        <div class="stage-detail-actions">
+                            <button type="button" id="btn-start-stage" class="btn-cta btn-full">
+                                <span>Begin Stage Challenge</span> ➔
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 7: CHAPTER STORY LORE MODAL -->
+        <div id="modal-chapter-story" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="story-modal-title">
+            <div class="modal-card modal-story-card">
+                <div class="modal-header">
+                    <h2 id="story-modal-title">📖 Chapter Narrative</h2>
+                    <button id="btn-close-story" class="btn-close" aria-label="Close story lore modal">✖</button>
+                </div>
+                <div class="story-body">
+                    <div class="story-emblem" id="story-emblem">🏚️</div>
+                    <h3 id="story-chapter-title" class="story-chapter-title">The Abandoned Manor</h3>
+                    <div class="story-scroll">
+                        <p id="story-text" class="story-parchment-text"></p>
+                    </div>
+                    <div class="story-actions">
+                        <button type="button" id="btn-enter-chapter-from-story" class="btn-cta">
+                            <span>Enter Chapter</span> ➔
+                        </button>
+                        <button type="button" id="btn-close-story-secondary" class="btn-secondary">Close Lore</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 8: THE WITCH'S MARKET (SHOP) -->
+        <div id="modal-shop" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="shop-title">
+            <div class="modal-card modal-shop-card">
+                <div class="modal-header">
+                    <div class="shop-header-left">
+                        <h2 id="shop-title">🔮 The Witch's Market</h2>
+                        <div class="shop-wallet-pill">
+                            <span>Wallet:</span>
+                            <strong>💎 <span id="shop-diamond-balance">0</span></strong>
+                        </div>
+                    </div>
+                    <button id="btn-close-shop" class="btn-close" aria-label="Close market modal">✖</button>
+                </div>
+
+                <div class="shop-body">
+                    <div class="shop-tabs" role="tablist" aria-label="Market categories">
+                        <button class="tab-btn active" id="tab-shop-boosters" role="tab" aria-selected="true">⚡ Boosters & Power-Ups</button>
+                        <button class="tab-btn" id="tab-shop-cosmetics" role="tab" aria-selected="false">🎭 Avatars & Cosmetics</button>
+                    </div>
+
+                    <!-- Boosters Tab Content -->
+                    <div id="shop-boosters-panel" class="shop-grid">
+                        <!-- Hint Booster -->
+                        <div class="shop-item-card" data-booster="hint">
+                            <div class="shop-item-icon">💡</div>
+                            <h4 class="shop-item-name">Ghost Whisper</h4>
+                            <p class="shop-item-desc">Eliminates 2 wrong answer choices on the current question.</p>
+                            <div class="shop-item-footer">
+                                <span class="shop-price">💎 15</span>
+                                <span class="shop-owned">Owned: <strong id="shop-owned-hint">0</strong></span>
+                                <button type="button" class="btn-secondary btn-sm btn-buy-booster" data-type="hint" data-price="15">Buy</button>
+                            </div>
+                        </div>
+
+                        <!-- Time Extension Booster -->
+                        <div class="shop-item-card" data-booster="time_extension">
+                            <div class="shop-item-icon">⏳</div>
+                            <h4 class="shop-item-name">Hourglass of Samhain</h4>
+                            <p class="shop-item-desc">Adds +10 seconds to the countdown timer on the current question.</p>
+                            <div class="shop-item-footer">
+                                <span class="shop-price">💎 15</span>
+                                <span class="shop-owned">Owned: <strong id="shop-owned-time">0</strong></span>
+                                <button type="button" class="btn-secondary btn-sm btn-buy-booster" data-type="time_extension" data-price="15">Buy</button>
+                            </div>
+                        </div>
+
+                        <!-- Double Points Booster -->
+                        <div class="shop-item-card" data-booster="double_points">
+                            <div class="shop-item-icon">⚡</div>
+                            <h4 class="shop-item-name">Jack-o'-Lantern Surge</h4>
+                            <p class="shop-item-desc">Doubles the points awarded for answering the active question correctly.</p>
+                            <div class="shop-item-footer">
+                                <span class="shop-price">💎 25</span>
+                                <span class="shop-owned">Owned: <strong id="shop-owned-double">0</strong></span>
+                                <button type="button" class="btn-secondary btn-sm btn-buy-booster" data-type="double_points" data-price="25">Buy</button>
+                            </div>
+                        </div>
+
+                        <!-- Shield Booster -->
+                        <div class="shop-item-card" data-booster="shield">
+                            <div class="shop-item-icon">🛡️</div>
+                            <h4 class="shop-item-name">Spectral Ward</h4>
+                            <p class="shop-item-desc">Protects your answer streak from resetting on an incorrect response.</p>
+                            <div class="shop-item-footer">
+                                <span class="shop-price">💎 30</span>
+                                <span class="shop-owned">Owned: <strong id="shop-owned-shield">0</strong></span>
+                                <button type="button" class="btn-secondary btn-sm btn-buy-booster" data-type="shield" data-price="30">Buy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cosmetics Tab Content -->
+                    <div id="shop-cosmetics-panel" class="shop-grid hidden">
+                        <div class="shop-item-card" data-cosmetic="vampire">
+                            <img class="shop-item-img" src="/static/avatars/vampire.svg" alt="Vampire Lord Avatar" width="48" height="48">
+                            <h4 class="shop-item-name">Vampire Lord</h4>
+                            <p class="shop-item-desc">Noble creature of the night with gothic flair.</p>
+                            <div class="shop-item-footer">
+                                <span class="shop-price">💎 100</span>
+                                <span class="shop-owned" id="status-cosmetic-vampire">Unlocked</span>
+                                <button type="button" class="btn-secondary btn-sm btn-buy-cosmetic" data-id="vampire" data-price="100">Equip</button>
+                            </div>
+                        </div>
+                        <div class="shop-item-card" data-cosmetic="werewolf">
+                            <img class="shop-item-img" src="/static/avatars/werewolf.svg" alt="Lunar Werewolf Avatar" width="48" height="48">
+                            <h4 class="shop-item-name">Lunar Werewolf</h4>
+                            <p class="shop-item-desc">Savage guardian of the midnight forest.</p>
+                            <div class="shop-item-footer">
+                                <span class="shop-price">💎 120</span>
+                                <span class="shop-owned" id="status-cosmetic-werewolf">Unlocked</span>
+                                <button type="button" class="btn-secondary btn-sm btn-buy-cosmetic" data-id="werewolf" data-price="120">Equip</button>
+                            </div>
+                        </div>
+                        <div class="shop-item-card" data-cosmetic="witch">
+                            <img class="shop-item-img" src="/static/avatars/witch.svg" alt="Midnight Witch Avatar" width="48" height="48">
+                            <h4 class="shop-item-name">Midnight Witch</h4>
+                            <p class="shop-item-desc">Keeper of arcane spells and brewing potions.</p>
+                            <div class="shop-item-footer">
+                                <span class="shop-price">💎 120</span>
+                                <span class="shop-owned" id="status-cosmetic-witch">Unlocked</span>
+                                <button type="button" class="btn-secondary btn-sm btn-buy-cosmetic" data-id="witch" data-price="120">Equip</button>
+                            </div>
+                        </div>
+                        <div class="shop-item-card" data-cosmetic="zombie">
+                            <img class="shop-item-img" src="/static/avatars/zombie.svg" alt="Crypt Zombie Avatar" width="48" height="48">
+                            <h4 class="shop-item-name">Crypt Zombie</h4>
+                            <p class="shop-item-desc">Relentless walker from the ancient catacombs.</p>
+                            <div class="shop-item-footer">
+                                <span class="shop-price">💎 150</span>
+                                <span class="shop-owned" id="status-cosmetic-zombie">Unlocked</span>
+                                <button type="button" class="btn-secondary btn-sm btn-buy-cosmetic" data-id="zombie" data-price="150">Equip</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 9: HAUNTED DUELS (PVP) -->
+        <div id="modal-duels" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="duels-title">
+            <div class="modal-card modal-duels-card">
+                <div class="modal-header">
+                    <h2 id="duels-title">⚔️ Haunted Duels (Asynchronous PvP)</h2>
+                    <button id="btn-close-duels" class="btn-close" aria-label="Close duels modal">✖</button>
+                </div>
+
+                <div class="duels-body">
+                    <div class="duels-tabs" role="tablist" aria-label="Duel actions">
+                        <button class="tab-btn active" id="tab-duel-create" role="tab" aria-selected="true">⚔️ Issue Challenge</button>
+                        <button class="tab-btn" id="tab-duel-join" role="tab" aria-selected="false">🛡️ Accept Challenge</button>
+                    </div>
+
+                    <!-- Create Duel Section -->
+                    <div id="duel-create-panel" class="duel-tab-panel">
+                        <form id="form-create-duel" novalidate>
+                            <div class="form-group">
+                                <label for="duel-diff">Match Difficulty:</label>
+                                <select id="duel-diff" class="select-styled">
+                                    <option value="easy">Easy (30s timer)</option>
+                                    <option value="medium" selected>Medium (20s timer)</option>
+                                    <option value="hard">Hard (15s timer)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Arm Match with Spooky Traps:</label>
+                                <div class="traps-picker-grid">
+                                    <label class="trap-checkbox-card">
+                                        <input type="checkbox" name="duel_trap" value="ghost_fog" checked>
+                                        <span class="trap-card-content">
+                                            <strong>👻 Ghost Fog</strong>
+                                            <small>Fades question text after 2s</small>
+                                        </span>
+                                    </label>
+                                    <label class="trap-checkbox-card">
+                                        <input type="checkbox" name="duel_trap" value="cursed_clock">
+                                        <span class="trap-card-content">
+                                            <strong>⏰ Cursed Clock</strong>
+                                            <small>Strict 10s countdown</small>
+                                        </span>
+                                    </label>
+                                    <label class="trap-checkbox-card">
+                                        <input type="checkbox" name="duel_trap" value="swarm">
+                                        <span class="trap-card-content">
+                                            <strong>🦇 Bat Swarm</strong>
+                                            <small>Randomizes answer positions</small>
+                                        </span>
+                                    </label>
+                                    <label class="trap-checkbox-card">
+                                        <input type="checkbox" name="duel_trap" value="flickering_candle">
+                                        <span class="trap-card-content">
+                                            <strong>🕯️ Flickering Candle</strong>
+                                            <small>Atmospheric lighting flicker</small>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="btn-submit-create-duel" class="btn-cta btn-full">
+                                <span>Forge Challenge Code</span> ➔
+                            </button>
+                        </form>
+
+                        <!-- Generated Code Card -->
+                        <div id="duel-share-card" class="duel-share-card hidden">
+                            <h3>Challenge Created!</h3>
+                            <p>Share this code or link with your rival hunter:</p>
+                            <div class="duel-code-display">
+                                <span id="display-duel-code" class="duel-code-text">SPOOK-XXXX</span>
+                                <button type="button" id="btn-copy-duel-code" class="btn-secondary btn-sm">📋 Copy Code</button>
+                            </div>
+                            <div class="duel-start-action">
+                                <button type="button" id="btn-play-created-duel" class="btn-cta btn-full">
+                                    <span>Play Your Round First</span> ➔
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Join Duel Section -->
+                    <div id="duel-join-panel" class="duel-tab-panel hidden">
+                        <form id="form-join-duel" novalidate>
+                            <div class="form-group">
+                                <label for="input-join-duel-code">Enter Duel Code:</label>
+                                <input type="text" id="input-join-duel-code" class="stone-input" placeholder="e.g. SPOOK-7429" maxlength="12" uppercase required>
+                            </div>
+                            <button type="submit" id="btn-lookup-duel" class="btn-cta btn-full">
+                                <span>Inspect Challenge</span> ➔
+                            </button>
+                        </form>
+
+                        <div id="duel-inspect-card" class="duel-inspect-card hidden">
+                            <h4>Challenge Details</h4>
+                            <p id="duel-inspect-creator">Challenger: <strong>Pumpkin King</strong></p>
+                            <p id="duel-inspect-diff">Difficulty: <strong>Medium</strong></p>
+                            <p id="duel-inspect-traps">Active Traps: <strong id="duel-inspect-traps-list">None</strong></p>
+                            <button type="button" id="btn-accept-and-play-duel" class="btn-cta btn-full">
+                                <span>Accept Challenge & Duel!</span> ➔
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

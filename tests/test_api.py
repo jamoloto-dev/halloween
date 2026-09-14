@@ -78,7 +78,9 @@ def test_quiz_flow(client):
     assert not timeout_data["is_correct"]
 
     # 5. Answer final question to complete session
-    final_res = client.post(f"/api/quiz/{session_id}/answer", json={"answer": "0", "time_taken": 2.0})
+    final_res = client.post(
+        f"/api/quiz/{session_id}/answer", json={"answer": "0", "time_taken": 2.0}
+    )
     assert final_res.status_code == 200
     final_data = final_res.json()
     assert final_data["is_game_over"] is True

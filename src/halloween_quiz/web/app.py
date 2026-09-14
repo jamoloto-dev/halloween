@@ -159,8 +159,12 @@ def create_app() -> FastAPI:
     async def index(request: Request):
         index_file = templates_dir / "index.html"
         if index_file.exists():
-            category_json = json.dumps(request.app.state.question_bank.get_categories()).replace("</", "<\\/")
-            page = index_file.read_text(encoding="utf-8").replace("__CATEGORY_DATA__", category_json)
+            category_json = json.dumps(request.app.state.question_bank.get_categories()).replace(
+                "</", "<\\/"
+            )
+            page = index_file.read_text(encoding="utf-8").replace(
+                "__CATEGORY_DATA__", category_json
+            )
             return HTMLResponse(page, headers={"Cache-Control": "no-store"})
         return HTMLResponse("<h1>🎃 Halloween Quiz API Running</h1>")
 
