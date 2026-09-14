@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <radialGradient id="vamp-skin" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f5e8f0"/>
+      <stop offset="100%" stop-color="#d9c2d1"/>
+    </radialGradient>
+  </defs>
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="46" fill="#180d19" stroke="#e11d48" stroke-width="3"/>
+  <!-- High Collar (Back) -->
+  <path d="M22 68 L14 32 L34 46 L66 46 L86 32 L78 68 Z" fill="#9f1239"/>
+  <path d="M20 70 L28 48 L72 48 L80 70 Z" fill="#1c0f1e"/>
+  <!-- Face -->
+  <path d="M34 36 C34 26, 66 26, 66 36 L66 52 C66 64, 50 72, 50 72 C50 72, 34 64, 34 52 Z" fill="url(#vamp-skin)"/>
+  <!-- Widow's Peak Hair -->
+  <path d="M32 36 C32 20, 68 20, 68 36 C68 36, 58 32, 50 38 C42 32, 32 36, 32 36 Z" fill="#0f0714"/>
+  <path d="M32 36 L34 46 L37 38 Z" fill="#0f0714"/>
+  <path d="M68 36 L66 46 L63 38 Z" fill="#0f0714"/>
+  <!-- Piercing Crimson Eyes -->
+  <ellipse cx="42" cy="46" rx="3.5" ry="2.5" fill="#e11d48"/>
+  <circle cx="42" cy="46" r="1.2" fill="#11050a"/>
+  <ellipse cx="58" cy="46" rx="3.5" ry="2.5" fill="#e11d48"/>
+  <circle cx="58" cy="46" r="1.2" fill="#11050a"/>
+  <!-- Arched Eyebrows -->
+  <path d="M38 41 Q43 39 46 42" stroke="#0f0714" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M62 41 Q57 39 54 42" stroke="#0f0714" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <!-- Subtle Nose -->
+  <path d="M50 47 L48 53 L52 53" stroke="#b08a9f" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Smirk with Fangs -->
+  <path d="M43 58 Q50 63 57 58" stroke="#881337" stroke-width="2" fill="none"/>
+  <!-- Fangs -->
+  <polygon points="45,58 47,58 46,62" fill="#ffffff"/>
+  <polygon points="53,58 55,58 54,62" fill="#ffffff"/>
+  <!-- Medallion -->
+  <circle cx="50" cy="76" r="4.5" fill="#ffd700" stroke="#b45309" stroke-width="1"/>
+  <circle cx="50" cy="76" r="2" fill="#e11d48"/>
+</svg>

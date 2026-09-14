@@ -1,9 +1,11 @@
 /**
- * 🎃 Halloween Quiz Game - Modern Client Engine v2.1.0
+ * 🎃 Spooky Master (Halloween Quiz) - Client Engine v2.2.0
  * Features: Pure client-side Web Audio API, Smooth zero-reload countdown timer,
- * Game modes (Classic, Quick, Deep, Panic, Endless, Daily Haunt),
- * Category Mastery tiers, Badges & Achievements, PWA Service Worker,
- * Web Share API, Accessible settings, and Leaderboard integrations.
+ * Six Game Modes (Classic, Quick, Deep, Panic, Endless, Daily Haunt),
+ * First-Launch Player Onboarding, Predefined Illustrated Avatar System,
+ * Local Player Profile & Seamless Migration, Centralized Settings Control Center,
+ * Interactive Category Cards, Category Mastery Tiers, Deterministic Badges,
+ * PWA Service Worker, Web Share API, and Full Accessibility.
  */
 
 (function () {
@@ -17,6 +19,22 @@
         candy: "Candy corn was originally marketed as 'Chicken Feed' in the late 1800s.",
         paranormal: "EMF meters are commonly used in ghost hunting, although readings can have many ordinary domestic causes.",
     };
+
+    const PREDEFINED_AVATARS = [
+        { id: "pumpkin_hunter", name: "Pumpkin Hunter", icon: "🎃", asset: "/static/avatars/pumpkin_hunter.svg", desc: "Vigilant guardian of the pumpkin patch" },
+        { id: "ghost", name: "Spectral Ghost", icon: "👻", asset: "/static/avatars/ghost.svg", desc: "Playful apparition wandering between realms" },
+        { id: "vampire", name: "Crimson Vampire", icon: "🧛", asset: "/static/avatars/vampire.svg", desc: "Nocturnal aristocrat with refined tastes" },
+        { id: "witch", name: "Mystic Witch", icon: "🧙", asset: "/static/avatars/witch.svg", desc: "Master of midnight brews and celestial spells" },
+        { id: "skeleton", name: "Crypt Skeleton", icon: "💀", asset: "/static/avatars/skeleton.svg", desc: "Ancient resident of the bone chambers" },
+        { id: "zombie", name: "Grave Walker", icon: "🧟", asset: "/static/avatars/zombie.svg", desc: "Stitched relentless crawler of the graveyard" },
+        { id: "werewolf", name: "Lunar Werewolf", icon: "🐺", asset: "/static/avatars/werewolf.svg", desc: "Fierce beast awakened by the full moon" },
+        { id: "night_bat", name: "Night Creature", icon: "🦇", asset: "/static/avatars/night_bat.svg", desc: "Obsidian shadow swooping through the mist" },
+    ];
+
+    const AVAILABLE_TRACKS = [
+        { id: "haunted_mansion", name: "Haunted Mansion (Default Ambience)", url: "/sounds/horror-ambience.mp3" },
+        { id: "silent", name: "Silent / No Music", url: null },
+    ];
 
     const ALL_BADGES = [
         { id: "ghost_hunter", name: "Ghost Hunter", icon: "👻", desc: "Reach a streak of 3 correct answers" },
@@ -45,14 +63,18 @@
         return MASTERY_TIERS[MASTERY_TIERS.length - 1];
     }
 
+    function generateUuid() {
+        if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+            return crypto.randomUUID();
+        }
+        return "sm-" + Math.random().toString(36).substring(2, 10) + "-" + Date.now().toString(36);
+    }
+
     // ==========================================
     // 1. CLIENT-SIDE WEB AUDIO ENGINE
     // ==========================================
     class SoundEngine {
         constructor() {
-            this.muted = localStorage.getItem("halloween_muted") === "true";
-            this.musicVolume = this.getStoredVolume("halloween_music_volume", 0.25);
-            this.sfxVolume = this.getStoredVolume("halloween_sfx_volume", 0.60);
             this.audioCtx = null;
             this.bgmAudio = document.getElementById("bgm-audio");
             this.bgmPlaying = false;
@@ -62,23 +84,36 @@
             this.duckRestoreTimer = null;
             this.soundCache = new Map();
 
-            // Preload standard HTML5 sound elements
+            // Default audio state (overwritten by profile initialization)
+            this.musicEnabled = true;
+            this.musicVolume = 0.25;
+            this.selectedTrack = "haunted_mansion";
+            this.sfxEnabled = true;
+            this.sfxVolume = 0.60;
+
+            // Audio balance levels (starting hierarchy)
+            this.soundLevels = {
+                ui: 0.20,
+                tick: 0.25,
+                correct: 0.60,
+                incorrect: 0.60,
+                achievement: 0.65,
+                start: 0.70,
+                congrats: 0.70,
+            };
+
             this.soundUrls = {
                 start: "/sounds/start.mp3",
                 correct: "/sounds/correct.mp3",
                 incorrect: "/sounds/incorrect.mp3",
                 congrats: "/sounds/congrats.mp3",
             };
-            this.soundLevels = {
-                start: 0.80,
-                correct: 1.00,
-                incorrect: 1.00,
-                congrats: 1.17,
-            };
+
             this.duckDurations = {
                 correct: 900,
                 incorrect: 1100,
                 congrats: 1800,
+                achievement: 1200,
             };
 
             this.initAudioContext();
@@ -86,7 +121,7 @@
 
             if (this.bgmAudio) {
                 this.bgmAudio.addEventListener("error", () => {
-                    console.warn("Horror ambience could not be loaded; continuing without music.");
+                    console.warn("Horror ambience file error; continuing without background music.");
                     this.backgroundAvailable = false;
                     this.bgmPlaying = false;
                     this.notifyBgmStateChange();
@@ -99,11 +134,6 @@
             if (AudioContextClass) {
                 this.audioCtx = new AudioContextClass();
             }
-        }
-
-        getStoredVolume(key, fallback) {
-            const value = parseFloat(localStorage.getItem(key));
-            return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
         }
 
         preloadSoundEffects() {
@@ -129,39 +159,93 @@
             }
         }
 
+        applyPreferences(prefs) {
+            if (!prefs) return;
+            this.musicEnabled = prefs.music_enabled !== false;
+            this.musicVolume = Number.isFinite(prefs.music_volume) ? Math.max(0, Math.min(1, prefs.music_volume)) : 0.25;
+            this.selectedTrack = prefs.music_track || "haunted_mansion";
+            this.sfxEnabled = prefs.sfx_enabled !== false;
+            this.sfxVolume = Number.isFinite(prefs.sfx_volume) ? Math.max(0, Math.min(1, prefs.sfx_volume)) : 0.60;
+
+            if (this.bgmAudio) {
+                this.bgmAudio.muted = !this.musicEnabled;
+                if (this.bgmPlaying) {
+                    this.fadeBackgroundTo(this.musicVolume, 150);
+                }
+            }
+
+            this.setTrack(this.selectedTrack, false);
+        }
+
+        setMusicEnabled(enabled) {
+            this.musicEnabled = Boolean(enabled);
+            if (this.bgmAudio) {
+                this.bgmAudio.muted = !this.musicEnabled;
+            }
+            if (this.musicEnabled && this.ambienceRequested) {
+                this.startBackgroundAmbience();
+            } else if (!this.musicEnabled && this.bgmPlaying) {
+                this.stopBackgroundAmbience(false, 200);
+            }
+            this.notifyBgmStateChange();
+        }
+
         setMusicVolume(val) {
             const parsed = parseFloat(val);
             this.musicVolume = Number.isFinite(parsed) ? Math.max(0, Math.min(1, parsed)) : 0.25;
-            localStorage.setItem("halloween_music_volume", this.musicVolume.toString());
             if (this.bgmAudio && this.bgmPlaying) {
                 this.fadeBackgroundTo(this.musicVolume, 150);
             }
         }
 
+        setTrack(trackId, restartIfPlaying = true) {
+            this.selectedTrack = trackId;
+            const track = AVAILABLE_TRACKS.find((t) => t.id === trackId);
+            if (!track || !track.url || trackId === "silent") {
+                if (this.bgmAudio && this.bgmPlaying) {
+                    this.stopBackgroundAmbience(false, 250);
+                }
+                return;
+            }
+
+            if (this.bgmAudio) {
+                const wasPlaying = this.bgmPlaying;
+                this.bgmAudio.src = track.url;
+                if (wasPlaying && restartIfPlaying && this.musicEnabled) {
+                    this.startBackgroundAmbience();
+                }
+            }
+        }
+
+        setSfxEnabled(enabled) {
+            this.sfxEnabled = Boolean(enabled);
+        }
+
         setSfxVolume(val) {
             const parsed = parseFloat(val);
             this.sfxVolume = Number.isFinite(parsed) ? Math.max(0, Math.min(1, parsed)) : 0.60;
-            localStorage.setItem("halloween_sfx_volume", this.sfxVolume.toString());
         }
 
-        toggleMute() {
-            this.muted = !this.muted;
-            localStorage.setItem("halloween_muted", this.muted.toString());
-            if (this.bgmAudio) {
-                this.bgmAudio.muted = this.muted;
+        toggleBgm() {
+            if (!this.bgmAudio) return false;
+            if (this.bgmPlaying || !this.bgmAudio.paused) {
+                this.setMusicEnabled(false);
+                return false;
             }
-            this.soundCache.forEach((audio) => {
-                audio.muted = this.muted;
-            });
-            if (!this.muted && this.ambienceRequested) this.startBackgroundAmbience();
-            return this.muted;
+            this.setMusicEnabled(true);
+            return this.startBackgroundAmbience();
+        }
+
+        toggleSfx() {
+            this.sfxEnabled = !this.sfxEnabled;
+            return this.sfxEnabled;
         }
 
         startBackgroundAmbience() {
-            if (!this.bgmAudio || !this.backgroundAvailable) return false;
+            if (!this.bgmAudio || !this.backgroundAvailable || this.selectedTrack === "silent") return false;
             this.unlock();
             this.ambienceRequested = true;
-            if (this.muted) return false;
+            if (!this.musicEnabled) return false;
 
             if (!this.bgmAudio.paused) {
                 this.bgmPlaying = true;
@@ -209,11 +293,11 @@
         }
 
         duckBackground(duration = 1000) {
-            if (!this.bgmAudio || !this.bgmPlaying || this.muted || !this.ambienceRequested) return;
+            if (!this.bgmAudio || !this.bgmPlaying || !this.musicEnabled || !this.ambienceRequested) return;
             if (this.duckRestoreTimer) clearTimeout(this.duckRestoreTimer);
-            this.fadeBackgroundTo(this.musicVolume * 0.45, 120);
+            this.fadeBackgroundTo(this.musicVolume * 0.35, 120);
             this.duckRestoreTimer = setTimeout(() => {
-                if (this.ambienceRequested && !this.muted) {
+                if (this.ambienceRequested && this.musicEnabled) {
                     this.fadeBackgroundTo(this.musicVolume, 350);
                 }
             }, duration);
@@ -230,29 +314,22 @@
                 this.notifyBgmStateChange();
             };
             if (fadeDuration > 0 && !this.bgmAudio.paused) {
-                this.fadeBackgroundTo(0.08, fadeDuration, stop);
+                this.fadeBackgroundTo(0.05, fadeDuration, stop);
             } else {
                 stop();
             }
         }
 
-        toggleBgm() {
-            if (!this.bgmAudio) return false;
-            if (this.bgmPlaying || !this.bgmAudio.paused) {
-                this.stopBackgroundAmbience(false, 200);
-                return false;
-            }
-            return this.startBackgroundAmbience();
-        }
-
         play(soundKey) {
-            if (this.muted) return;
+            if (!this.sfxEnabled) return;
             this.unlock();
 
             const audio = this.soundCache.get(soundKey);
+            const targetVolume = Math.min(1, this.sfxVolume * (this.soundLevels[soundKey] || 1.0));
+
             if (audio) {
                 audio.muted = false;
-                audio.volume = Math.min(1, this.sfxVolume * (this.soundLevels[soundKey] || 1));
+                audio.volume = targetVolume;
                 audio.currentTime = 0;
                 audio.play().catch(() => {
                     this.playSynthFallback(soundKey);
@@ -260,17 +337,20 @@
             } else {
                 this.playSynthFallback(soundKey);
             }
-            if (this.duckDurations[soundKey]) this.duckBackground(this.duckDurations[soundKey]);
+
+            if (this.duckDurations[soundKey]) {
+                this.duckBackground(this.duckDurations[soundKey]);
+            }
         }
 
         playUiSound() {
-            if (this.muted) return;
+            if (!this.sfxEnabled) return;
             this.unlock();
             this.playSynthFallback("ui");
         }
 
         playSynthFallback(type) {
-            if (this.muted || !this.audioCtx) return;
+            if (!this.sfxEnabled || !this.audioCtx) return;
             try {
                 const now = this.audioCtx.currentTime;
                 const osc = this.audioCtx.createOscillator();
@@ -291,14 +371,14 @@
                     osc.type = "sawtooth";
                     osc.frequency.setValueAtTime(140, now);
                     osc.frequency.linearRampToValueAtTime(80, now + 0.35);
-                    gain.gain.setValueAtTime(this.sfxVolume * 0.30, now);
+                    gain.gain.setValueAtTime(this.sfxVolume * 0.32, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
                     osc.start(now);
                     osc.stop(now + 0.35);
                 } else if (type === "tick") {
                     osc.type = "triangle";
                     osc.frequency.setValueAtTime(950, now);
-                    gain.gain.setValueAtTime(this.sfxVolume * 0.15, now);
+                    gain.gain.setValueAtTime(this.sfxVolume * 0.18, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
                     osc.start(now);
                     osc.stop(now + 0.06);
@@ -310,6 +390,16 @@
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                     osc.start(now);
                     osc.stop(now + 0.08);
+                } else if (type === "achievement") {
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    osc.frequency.setValueAtTime(1046.50, now + 0.3); // C6
+                    gain.gain.setValueAtTime(this.sfxVolume * 0.40, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                    osc.start(now);
+                    osc.stop(now + 0.7);
                 } else if (type === "start" || type === "congrats") {
                     osc.type = "sine";
                     osc.frequency.setValueAtTime(440, now);
@@ -321,7 +411,7 @@
                     osc.stop(now + 0.6);
                 }
             } catch (err) {
-                console.warn("Audio synthesis error:", err);
+                console.warn("Web Audio synthesis warning:", err);
             }
         }
     }
@@ -428,13 +518,6 @@
             this.roundAnswered = 0;
             this.gameMode = "classic";
             this.strikesRemaining = 3;
-            this.hapticEnabled = localStorage.getItem("halloween_vibration") !== "false";
-            this.reducedMotion = localStorage.getItem("halloween_reduced_motion") === "true";
-
-            // Apply saved reduced motion state
-            if (this.reducedMotion) {
-                document.documentElement.classList.add("reduced-motion");
-            }
 
             // DOM Elements
             this.screens = {
@@ -444,9 +527,11 @@
             };
 
             this.dom = {
-                // Setup / Start
+                // Setup / Start Form
                 formStart: document.getElementById("form-start-quiz"),
                 playerName: document.getElementById("player-name"),
+                startAvatarImg: document.getElementById("start-avatar-img"),
+                btnStartChangeAvatar: document.getElementById("btn-start-change-avatar"),
                 categoryPicker: document.getElementById("category-picker"),
                 wrapNumQuestions: document.getElementById("wrap-num-questions"),
                 numQuestionsSelect: document.getElementById("num-questions"),
@@ -454,21 +539,17 @@
                 btnClearCats: document.getElementById("btn-clear-cats"),
                 dailyBadgeCountdown: document.getElementById("daily-badge-countdown"),
 
-                // In-App Notice Banner & Toasts
+                // In-App Notice & Toasts
                 appNotice: document.getElementById("app-notice"),
                 appNoticeText: document.getElementById("app-notice-text"),
                 btnNoticeDismiss: document.getElementById("btn-notice-dismiss"),
                 toastContainer: document.getElementById("toast-container"),
 
-                // Top Nav Buttons & Quick Controls
+                // Top Navigation Bar
                 btnPwaInstall: document.getElementById("btn-pwa-install"),
                 btnMasteryOpen: document.getElementById("btn-mastery-open"),
                 btnLeaderboard: document.getElementById("btn-leaderboard-open"),
                 btnSettingsOpen: document.getElementById("btn-settings-open"),
-                btnSoundToggle: document.getElementById("btn-sound-toggle"),
-                btnBgmToggle: document.getElementById("btn-bgm-toggle"),
-                musicVolumeSlider: document.getElementById("music-volume-slider"),
-                sfxVolumeSlider: document.getElementById("sfx-volume-slider"),
 
                 // Modals
                 modalLeaderboard: document.getElementById("modal-leaderboard"),
@@ -477,19 +558,46 @@
 
                 modalSettings: document.getElementById("modal-settings"),
                 btnCloseSettings: document.getElementById("btn-close-settings"),
+                settingsAvatarImg: document.getElementById("settings-avatar-img"),
+                settingsPlayerName: document.getElementById("settings-player-name"),
+                btnSettingsChangeAvatar: document.getElementById("btn-settings-change-avatar"),
                 modalBtnBgmToggle: document.getElementById("modal-btn-bgm-toggle"),
+                settingMusicTrack: document.getElementById("setting-music-track"),
                 modalMusicSlider: document.getElementById("modal-music-slider"),
+                musicVolVal: document.getElementById("music-vol-val"),
                 modalBtnSoundToggle: document.getElementById("modal-btn-sound-toggle"),
                 modalSfxSlider: document.getElementById("modal-sfx-slider"),
+                sfxVolVal: document.getElementById("sfx-vol-val"),
                 settingReducedMotion: document.getElementById("setting-reduced-motion"),
                 settingVibration: document.getElementById("setting-vibration"),
+                btnResetProgress: document.getElementById("btn-reset-progress"),
 
                 modalMastery: document.getElementById("modal-mastery"),
                 btnCloseMastery: document.getElementById("btn-close-mastery"),
+                dashboardAvatarImg: document.getElementById("dashboard-avatar-img"),
+                dashboardPlayerName: document.getElementById("dashboard-player-name"),
+                dashboardTierBadge: document.getElementById("dashboard-tier-badge"),
+                dashboardPlayerIdText: document.getElementById("dashboard-player-id-text"),
+                btnDashboardEditProfile: document.getElementById("btn-dashboard-edit-profile"),
+                dashStatGames: document.getElementById("dash-stat-games"),
+                dashStatBestScore: document.getElementById("dash-stat-best-score"),
+                dashStatBestStreak: document.getElementById("dash-stat-best-streak"),
+                dashStatBadges: document.getElementById("dash-stat-badges"),
+                badgesUnlockedCount: document.getElementById("badges-unlocked-count"),
                 badgesGrid: document.getElementById("badges-grid"),
                 masteryGrid: document.getElementById("mastery-grid"),
 
-                // Quiz HUD
+                modalOnboarding: document.getElementById("modal-onboarding"),
+                onboardingAvatarGrid: document.getElementById("onboarding-avatar-grid"),
+                onboardingHunterName: document.getElementById("onboarding-hunter-name"),
+                btnSaveOnboarding: document.getElementById("btn-save-onboarding"),
+                btnSkipOnboarding: document.getElementById("btn-skip-onboarding"),
+
+                modalAvatarPicker: document.getElementById("modal-avatar-picker"),
+                btnCloseAvatarPicker: document.getElementById("btn-close-avatar-picker"),
+                sharedAvatarGrid: document.getElementById("shared-avatar-grid"),
+
+                // Quiz HUD & Options
                 qCounter: document.getElementById("q-counter"),
                 qCategoryBadge: document.getElementById("q-category-badge"),
                 qModeBadge: document.getElementById("q-mode-badge"),
@@ -527,38 +635,200 @@
             };
 
             this.noticeTimer = null;
+            this.selectedOnboardingAvatar = "pumpkin_hunter";
+
+            // Initialize Player Profile & Migration
+            this.profile = this.initPlayerProfile();
+
             this.initEvents();
             this.initPwa();
             this.initDailyCountdown();
-            this.sound.onBgmStateChange = () => this.updateAudioControlsUi();
+            this.sound.onBgmStateChange = () => this.syncSettingsUi();
             this.loadCategories();
-            this.updateAudioControlsUi();
+            this.applyProfileToUi();
+        }
+
+        // ==========================================
+        // PLAYER PROFILE & MIGRATION SYSTEM
+        // ==========================================
+        initPlayerProfile() {
+            try {
+                const storedRaw = localStorage.getItem("spooky_player_profile");
+                if (storedRaw) {
+                    const parsed = JSON.parse(storedRaw);
+                    if (parsed && parsed.player_id) {
+                        this.sound.applyPreferences(parsed.preferences);
+                        return parsed;
+                    }
+                }
+            } catch (err) {
+                console.warn("Could not read spooky_player_profile:", err);
+            }
+
+            // Check for legacy storage to perform seamless upgrade
+            const legacyProgress = this.getLegacyProgress();
+            const hasLegacyData = Boolean(
+                localStorage.getItem("halloween_progress_v2") ||
+                localStorage.getItem("halloween_progress_v1") ||
+                localStorage.getItem("halloween_music_volume") ||
+                localStorage.getItem("halloween_muted")
+            );
+
+            const defaultMusicVol = parseFloat(localStorage.getItem("halloween_music_volume") || "0.25");
+            const defaultSfxVol = parseFloat(localStorage.getItem("halloween_sfx_volume") || "0.60");
+            const isMuted = localStorage.getItem("halloween_muted") === "true";
+            const isReducedMotion = localStorage.getItem("halloween_reduced_motion") === "true";
+            const isVibration = localStorage.getItem("halloween_vibration") !== "false";
+
+            const newProfile = {
+                profile_version: 1,
+                player_id: generateUuid(),
+                nickname: "Ghost Hunter",
+                avatar_id: "pumpkin_hunter",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                stats: {
+                    games_played: legacyProgress.games_played || 0,
+                    total_answered: legacyProgress.total_answered || 0,
+                    total_correct: legacyProgress.total_correct || 0,
+                    best_score: legacyProgress.best_score || 0,
+                    best_streak: legacyProgress.best_streak || 0,
+                    preferred_mode: "classic",
+                },
+                preferences: {
+                    music_enabled: !isMuted,
+                    music_volume: Number.isFinite(defaultMusicVol) ? defaultMusicVol : 0.25,
+                    music_track: "haunted_mansion",
+                    sfx_enabled: !isMuted,
+                    sfx_volume: Number.isFinite(defaultSfxVol) ? defaultSfxVol : 0.60,
+                    reduced_motion: isReducedMotion,
+                    vibration: isVibration,
+                },
+            };
+
+            this.sound.applyPreferences(newProfile.preferences);
+
+            if (hasLegacyData) {
+                // If existing legacy data, silently save upgraded profile
+                this.saveProfile(newProfile);
+            } else {
+                // If completely new player (no legacy data), trigger onboarding
+                this.openOnboarding();
+            }
+
+            return newProfile;
+        }
+
+        getLegacyProgress() {
+            try {
+                const p2 = JSON.parse(localStorage.getItem("halloween_progress_v2") || "null");
+                if (p2) return p2;
+                const p1 = JSON.parse(localStorage.getItem("halloween_progress_v1") || "null");
+                if (p1) return p1;
+            } catch (_) {}
+            return { mastery: {}, achievements: {} };
+        }
+
+        saveProfile(profile) {
+            this.profile = profile || this.profile;
+            this.profile.updated_at = new Date().toISOString();
+            try {
+                localStorage.setItem("spooky_player_profile", JSON.stringify(this.profile));
+                // Mirror legacy keys for external/test backward compatibility
+                localStorage.setItem("halloween_music_volume", this.profile.preferences.music_volume.toString());
+                localStorage.setItem("halloween_sfx_volume", this.profile.preferences.sfx_volume.toString());
+                localStorage.setItem("halloween_muted", (!this.profile.preferences.sfx_enabled).toString());
+                localStorage.setItem("halloween_reduced_motion", this.profile.preferences.reduced_motion.toString());
+                localStorage.setItem("halloween_vibration", this.profile.preferences.vibration.toString());
+            } catch (err) {
+                console.warn("Failed to persist player profile:", err);
+            }
+        }
+
+        applyProfileToUi() {
+            if (!this.profile) return;
+            const avatar = PREDEFINED_AVATARS.find((a) => a.id === this.profile.avatar_id) || PREDEFINED_AVATARS[0];
+
+            // Setup Form
+            if (this.dom.playerName) this.dom.playerName.value = this.profile.nickname;
+            if (this.dom.startAvatarImg) {
+                this.dom.startAvatarImg.src = avatar.asset;
+                this.dom.startAvatarImg.alt = avatar.name;
+            }
+
+            // Settings Modal
+            if (this.dom.settingsPlayerName) this.dom.settingsPlayerName.value = this.profile.nickname;
+            if (this.dom.settingsAvatarImg) {
+                this.dom.settingsAvatarImg.src = avatar.asset;
+                this.dom.settingsAvatarImg.alt = avatar.name;
+            }
+
+            // Dashboard Modal
+            if (this.dom.dashboardPlayerName) this.dom.dashboardPlayerName.textContent = this.profile.nickname;
+            if (this.dom.dashboardAvatarImg) {
+                this.dom.dashboardAvatarImg.src = avatar.asset;
+                this.dom.dashboardAvatarImg.alt = avatar.name;
+            }
+            if (this.dom.dashboardPlayerIdText) {
+                this.dom.dashboardPlayerIdText.textContent = this.profile.player_id.substring(0, 8);
+            }
+
+            // Reduced motion state
+            document.documentElement.classList.toggle("reduced-motion", Boolean(this.profile.preferences.reduced_motion));
+
             this.syncSettingsUi();
+        }
+
+        updateAvatar(avatarId) {
+            const avatar = PREDEFINED_AVATARS.find((a) => a.id === avatarId);
+            if (!avatar) return;
+            this.profile.avatar_id = avatar.id;
+            this.saveProfile();
+            this.applyProfileToUi();
+            this.showToast("Avatar Changed", `Selected ${avatar.name}`, avatar.icon);
+        }
+
+        updateNickname(name) {
+            const sanitized = (name || "").trim().substring(0, 30);
+            if (!sanitized) return;
+            this.profile.nickname = sanitized;
+            this.saveProfile();
+            this.applyProfileToUi();
         }
 
         // ==========================================
         // EVENT INITIALIZATION
         // ==========================================
         initEvents() {
-            // Unlock audio on any first interaction
+            // Unlock audio on any first user interaction
             document.addEventListener("click", () => this.sound.unlock(), { once: true });
             document.addEventListener("keydown", () => this.sound.unlock(), { once: true });
 
-            // UI click sound for all interactive buttons
+            // UI sound on interactive buttons
             document.addEventListener("click", (event) => {
                 const button = event.target.closest("button");
                 if (!button || button.disabled || button.id === "btn-start" || button.classList.contains("option-btn")) return;
                 this.sound.playUiSound();
             }, true);
 
-            // Audio click for radio and checkbox changes
+            // UI sound on form inputs
             document.addEventListener("change", (event) => {
                 if (event.target.matches("input[name='categories'], input[name='difficulty'], input[name='mode']")) {
                     this.sound.playUiSound();
                 }
             });
 
-            // Game Mode Radio Selection change handler
+            // Start screen avatar click to change avatar
+            this.dom.btnStartChangeAvatar?.addEventListener("click", () => {
+                this.openAvatarPicker();
+            });
+
+            // Start screen player name sync
+            this.dom.playerName?.addEventListener("change", (e) => {
+                this.updateNickname(e.target.value);
+            });
+
+            // Game Mode Radio change handler
             document.querySelectorAll("input[name='mode']").forEach((radio) => {
                 radio.addEventListener("change", (e) => {
                     this.onModeChange(e.target.value);
@@ -597,15 +867,15 @@
                 this.shareSurvivalCard();
             });
 
-            // Leaderboard Modal Open/Close
-            this.dom.btnLeaderboard.addEventListener("click", () => this.openLeaderboard());
-            this.dom.btnViewBoardFinish.addEventListener("click", () => this.openLeaderboard());
-            this.dom.btnCloseModal.addEventListener("click", () => this.closeLeaderboard());
-            this.dom.modalLeaderboard.addEventListener("click", (e) => {
+            // Navigation Buttons
+            this.dom.btnLeaderboard?.addEventListener("click", () => this.openLeaderboard());
+            this.dom.btnViewBoardFinish?.addEventListener("click", () => this.openLeaderboard());
+            this.dom.btnCloseModal?.addEventListener("click", () => this.closeLeaderboard());
+            this.dom.modalLeaderboard?.addEventListener("click", (e) => {
                 if (e.target === this.dom.modalLeaderboard) this.closeLeaderboard();
             });
 
-            // Leaderboard Tab Switching (Difficulty + Mode)
+            // Leaderboard Tabs
             const tabs = this.dom.modalLeaderboard.querySelectorAll(".tab-btn");
             tabs.forEach((tab) => {
                 tab.addEventListener("click", () => {
@@ -624,71 +894,107 @@
                 if (e.target === this.dom.modalSettings) this.closeSettings();
             });
 
-            // Mastery Modal Open/Close
-            this.dom.btnMasteryOpen?.addEventListener("click", () => this.openMastery());
-            this.dom.btnViewMasteryFinish?.addEventListener("click", () => this.openMastery());
-            this.dom.btnCloseMastery?.addEventListener("click", () => this.closeMastery());
-            this.dom.modalMastery?.addEventListener("click", (e) => {
-                if (e.target === this.dom.modalMastery) this.closeMastery();
+            // Settings: Change Avatar
+            this.dom.btnSettingsChangeAvatar?.addEventListener("click", () => {
+                this.openAvatarPicker();
             });
 
-            // Top Nav Sound Controls
-            this.dom.btnSoundToggle?.addEventListener("click", () => {
-                this.sound.toggleMute();
-                this.updateAudioControlsUi();
-                this.syncSettingsUi();
+            // Settings: Hunter Name change
+            this.dom.settingsPlayerName?.addEventListener("change", (e) => {
+                this.updateNickname(e.target.value);
             });
 
-            this.dom.btnBgmToggle?.addEventListener("click", () => {
-                this.sound.toggleBgm();
-                this.updateAudioControlsUi();
-                this.syncSettingsUi();
-            });
-
-            this.dom.musicVolumeSlider?.addEventListener("input", (e) => {
-                this.sound.setMusicVolume(e.target.value);
-                this.syncSettingsUi();
-            });
-
-            this.dom.sfxVolumeSlider?.addEventListener("input", (e) => {
-                this.sound.setSfxVolume(e.target.value);
-                this.syncSettingsUi();
-            });
-
-            // Settings Modal Audio & Preferences Controls
+            // Settings: Audio Controls
             this.dom.modalBtnBgmToggle?.addEventListener("click", () => {
                 this.sound.toggleBgm();
-                this.updateAudioControlsUi();
+                this.profile.preferences.music_enabled = this.sound.musicEnabled;
+                this.saveProfile();
                 this.syncSettingsUi();
             });
 
-            this.dom.modalBtnSoundToggle?.addEventListener("click", () => {
-                this.sound.toggleMute();
-                this.updateAudioControlsUi();
-                this.syncSettingsUi();
+            this.dom.settingMusicTrack?.addEventListener("change", (e) => {
+                this.sound.setTrack(e.target.value);
+                this.profile.preferences.music_track = e.target.value;
+                this.saveProfile();
             });
 
             this.dom.modalMusicSlider?.addEventListener("input", (e) => {
                 this.sound.setMusicVolume(e.target.value);
-                this.updateAudioControlsUi();
+                this.profile.preferences.music_volume = this.sound.musicVolume;
+                this.saveProfile();
+                if (this.dom.musicVolVal) {
+                    this.dom.musicVolVal.textContent = `${Math.round(this.sound.musicVolume * 100)}%`;
+                }
+            });
+
+            this.dom.modalBtnSoundToggle?.addEventListener("click", () => {
+                this.sound.toggleSfx();
+                this.profile.preferences.sfx_enabled = this.sound.sfxEnabled;
+                this.saveProfile();
+                this.syncSettingsUi();
             });
 
             this.dom.modalSfxSlider?.addEventListener("input", (e) => {
                 this.sound.setSfxVolume(e.target.value);
-                this.updateAudioControlsUi();
+                this.profile.preferences.sfx_volume = this.sound.sfxVolume;
+                this.saveProfile();
+                if (this.dom.sfxVolVal) {
+                    this.dom.sfxVolVal.textContent = `${Math.round(this.sound.sfxVolume * 100)}%`;
+                }
             });
 
+            // Settings: Accessibility Controls
             this.dom.settingReducedMotion?.addEventListener("change", (e) => {
-                this.reducedMotion = e.target.checked;
-                localStorage.setItem("halloween_reduced_motion", this.reducedMotion.toString());
-                document.documentElement.classList.toggle("reduced-motion", this.reducedMotion);
-                this.showToast("Preference Updated", `Reduced motion is ${this.reducedMotion ? "enabled" : "disabled"}.`, "⚙️");
+                this.profile.preferences.reduced_motion = e.target.checked;
+                this.saveProfile();
+                document.documentElement.classList.toggle("reduced-motion", e.target.checked);
+                this.showToast("Preference Updated", `Reduced motion is ${e.target.checked ? "enabled" : "disabled"}.`, "⚙️");
             });
 
             this.dom.settingVibration?.addEventListener("change", (e) => {
-                this.hapticEnabled = e.target.checked;
-                localStorage.setItem("halloween_vibration", this.hapticEnabled.toString());
-                this.showToast("Preference Updated", `Haptic feedback is ${this.hapticEnabled ? "enabled" : "disabled"}.`, "📳");
+                this.profile.preferences.vibration = e.target.checked;
+                this.saveProfile();
+                this.showToast("Preference Updated", `Haptic feedback is ${e.target.checked ? "enabled" : "disabled"}.`, "📳");
+            });
+
+            // Settings: Reset Data
+            this.dom.btnResetProgress?.addEventListener("click", () => {
+                this.resetProgressData();
+            });
+
+            // Mastery / Profile Modal Open/Close
+            this.dom.btnMasteryOpen?.addEventListener("click", () => this.openMastery());
+            this.dom.btnViewMasteryFinish?.addEventListener("click", () => this.openMastery());
+            this.dom.btnCloseMastery?.addEventListener("click", () => this.closeMastery());
+            this.dom.btnDashboardEditProfile?.addEventListener("click", () => {
+                this.closeMastery();
+                this.openSettings();
+            });
+            this.dom.modalMastery?.addEventListener("click", (e) => {
+                if (e.target === this.dom.modalMastery) this.closeMastery();
+            });
+
+            // Onboarding Avatar Grid and Name Suggestions
+            this.renderOnboardingAvatarGrid();
+            this.dom.btnSaveOnboarding?.addEventListener("click", () => {
+                this.completeOnboarding();
+            });
+            this.dom.btnSkipOnboarding?.addEventListener("click", () => {
+                this.completeOnboarding();
+            });
+            document.querySelectorAll(".btn-suggestion").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    if (this.dom.onboardingHunterName) {
+                        this.dom.onboardingHunterName.value = btn.textContent;
+                        this.sound.playUiSound();
+                    }
+                });
+            });
+
+            // Shared Avatar Picker Modal
+            this.dom.btnCloseAvatarPicker?.addEventListener("click", () => this.closeAvatarPicker());
+            this.dom.modalAvatarPicker?.addEventListener("click", (e) => {
+                if (e.target === this.dom.modalAvatarPicker) this.closeAvatarPicker();
             });
 
             // Global Keyboard Shortcuts
@@ -697,17 +1003,17 @@
                     this.closeLeaderboard();
                     this.closeSettings();
                     this.closeMastery();
+                    this.closeAvatarPicker();
+                    this.closeOnboarding();
                     return;
                 }
 
-                // If feedback is showing, Enter or Space advances
                 if (this.isFeedbackActive && (e.key === "Enter" || e.key === " " || e.key === "ArrowRight")) {
                     e.preventDefault();
                     this.advanceToNext();
                     return;
                 }
 
-                // During active question, keys 1-4 or A-D select answers
                 if (!this.isAnswerPending && !this.isFeedbackActive && this.screens.quiz.classList.contains("active")) {
                     const key = e.key.toUpperCase();
                     if (["1", "2", "3", "4", "A", "B", "C", "D"].includes(key)) {
@@ -722,7 +1028,96 @@
         }
 
         // ==========================================
-        // PWA REGISTRATION & PROMPT
+        // FIRST-LAUNCH ONBOARDING
+        // ==========================================
+        openOnboarding() {
+            this.dom.modalOnboarding?.classList.remove("hidden");
+            if (this.dom.onboardingHunterName) {
+                this.dom.onboardingHunterName.focus();
+            }
+        }
+
+        closeOnboarding() {
+            this.dom.modalOnboarding?.classList.add("hidden");
+        }
+
+        renderOnboardingAvatarGrid() {
+            if (!this.dom.onboardingAvatarGrid) return;
+            this.dom.onboardingAvatarGrid.innerHTML = "";
+
+            PREDEFINED_AVATARS.forEach((avatar, idx) => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = `avatar-option-card ${avatar.id === this.selectedOnboardingAvatar ? "selected" : ""}`;
+                btn.setAttribute("role", "radio");
+                btn.setAttribute("aria-checked", avatar.id === this.selectedOnboardingAvatar ? "true" : "false");
+                btn.setAttribute("aria-label", avatar.name);
+                btn.innerHTML = `
+                    <img src="${avatar.asset}" alt="${avatar.name}" class="avatar-card-img" width="56" height="56">
+                    <span class="avatar-card-name">${avatar.name}</span>
+                `;
+                btn.addEventListener("click", () => {
+                    this.selectedOnboardingAvatar = avatar.id;
+                    this.dom.onboardingAvatarGrid.querySelectorAll(".avatar-option-card").forEach((c) => {
+                        c.classList.remove("selected");
+                        c.setAttribute("aria-checked", "false");
+                    });
+                    btn.classList.add("selected");
+                    btn.setAttribute("aria-checked", "true");
+                    this.sound.playUiSound();
+                });
+                this.dom.onboardingAvatarGrid.appendChild(btn);
+            });
+        }
+
+        completeOnboarding() {
+            const rawName = (this.dom.onboardingHunterName?.value || "").trim();
+            const nickname = rawName || "GhostHunter";
+            this.profile.nickname = nickname;
+            this.profile.avatar_id = this.selectedOnboardingAvatar;
+            this.saveProfile();
+            this.applyProfileToUi();
+            this.closeOnboarding();
+            this.showToast("Welcome to Spooky Master!", `Identity established: ${nickname}`, "🎃");
+            this.sound.play("start");
+        }
+
+        // ==========================================
+        // SHARED AVATAR PICKER
+        // ==========================================
+        openAvatarPicker() {
+            if (!this.dom.sharedAvatarGrid) return;
+            this.dom.sharedAvatarGrid.innerHTML = "";
+
+            PREDEFINED_AVATARS.forEach((avatar) => {
+                const isCurrent = avatar.id === this.profile.avatar_id;
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = `avatar-option-card ${isCurrent ? "selected" : ""}`;
+                btn.setAttribute("role", "radio");
+                btn.setAttribute("aria-checked", isCurrent ? "true" : "false");
+                btn.setAttribute("aria-label", avatar.name);
+                btn.innerHTML = `
+                    <img src="${avatar.asset}" alt="${avatar.name}" class="avatar-card-img" width="56" height="56">
+                    <span class="avatar-card-name">${avatar.name}</span>
+                    <small class="avatar-card-desc">${avatar.desc}</small>
+                `;
+                btn.addEventListener("click", () => {
+                    this.updateAvatar(avatar.id);
+                    this.closeAvatarPicker();
+                });
+                this.dom.sharedAvatarGrid.appendChild(btn);
+            });
+
+            this.dom.modalAvatarPicker?.classList.remove("hidden");
+        }
+
+        closeAvatarPicker() {
+            this.dom.modalAvatarPicker?.classList.add("hidden");
+        }
+
+        // ==========================================
+        // PWA REGISTRATION
         // ==========================================
         initPwa() {
             if ("serviceWorker" in navigator) {
@@ -751,9 +1146,6 @@
             });
         }
 
-        // ==========================================
-        // DAILY RESET COUNTDOWN
-        // ==========================================
         initDailyCountdown() {
             const update = () => {
                 const now = new Date();
@@ -774,14 +1166,10 @@
             setInterval(update, 60000);
         }
 
-        // ==========================================
-        // MODE CHANGE HANDLER
-        // ==========================================
         onModeChange(mode) {
             this.gameMode = mode;
             if (!this.dom.wrapNumQuestions) return;
 
-            // In preset-count or dynamic modes, hide the question count picker
             if (["quick", "deep", "endless", "daily"].includes(mode)) {
                 this.dom.wrapNumQuestions.style.display = "none";
             } else {
@@ -793,13 +1181,17 @@
             const boxes = this.dom.categoryPicker.querySelectorAll("input[name='categories']");
             boxes.forEach((cb) => {
                 cb.checked = checked;
+                const card = cb.closest(".category-card");
+                if (card) {
+                    card.classList.toggle("selected", checked);
+                    card.setAttribute("aria-checked", checked ? "true" : "false");
+                    const checkBadge = card.querySelector(".cat-check-badge");
+                    if (checkBadge) checkBadge.textContent = checked ? "✓" : "○";
+                }
             });
             this.sound.playUiSound();
         }
 
-        // ==========================================
-        // IN-APP NOTICES & TOASTS
-        // ==========================================
         showNotice(message, type = "warning", duration = 5000) {
             if (!this.dom.appNotice || !this.dom.appNoticeText) return;
             this.hideNotice();
@@ -834,35 +1226,43 @@
         }
 
         // ==========================================
-        // UI & AUDIO CONTROLS SYNCHRONIZATION
+        // SETTINGS & UI SYNCHRONIZATION
         // ==========================================
-        updateAudioControlsUi() {
-            if (this.dom.btnSoundToggle) {
-                this.dom.btnSoundToggle.textContent = this.sound.muted ? "🔇 Muted" : "🔊 Sound";
-                this.dom.btnSoundToggle.classList.toggle("muted", this.sound.muted);
-            }
-
-            if (this.dom.btnBgmToggle) {
-                this.dom.btnBgmToggle.textContent = this.sound.bgmPlaying ? "🎵 Ambience: On" : "🎵 Ambience: Off";
-                this.dom.btnBgmToggle.classList.toggle("active", this.sound.bgmPlaying);
-            }
-
-            if (this.dom.musicVolumeSlider) this.dom.musicVolumeSlider.value = this.sound.musicVolume;
-            if (this.dom.sfxVolumeSlider) this.dom.sfxVolumeSlider.value = this.sound.sfxVolume;
-        }
-
         syncSettingsUi() {
+            // Music Controls
             if (this.dom.modalBtnBgmToggle) {
-                this.dom.modalBtnBgmToggle.textContent = this.sound.bgmPlaying ? "Turn Off" : "Turn On";
-                this.dom.modalBtnBgmToggle.classList.toggle("btn-active", this.sound.bgmPlaying);
+                this.dom.modalBtnBgmToggle.textContent = this.sound.musicEnabled ? "Music: On" : "Music: Off";
+                this.dom.modalBtnBgmToggle.classList.toggle("btn-active", this.sound.musicEnabled);
             }
+            if (this.dom.settingMusicTrack) {
+                this.dom.settingMusicTrack.value = this.sound.selectedTrack;
+            }
+            if (this.dom.modalMusicSlider) {
+                this.dom.modalMusicSlider.value = this.sound.musicVolume;
+            }
+            if (this.dom.musicVolVal) {
+                this.dom.musicVolVal.textContent = `${Math.round(this.sound.musicVolume * 100)}%`;
+            }
+
+            // SFX Controls
             if (this.dom.modalBtnSoundToggle) {
-                this.dom.modalBtnSoundToggle.textContent = this.sound.muted ? "Unmute" : "Mute";
+                this.dom.modalBtnSoundToggle.textContent = this.sound.sfxEnabled ? "Sound: On" : "Sound: Muted";
+                this.dom.modalBtnSoundToggle.classList.toggle("btn-active", this.sound.sfxEnabled);
             }
-            if (this.dom.modalMusicSlider) this.dom.modalMusicSlider.value = this.sound.musicVolume;
-            if (this.dom.modalSfxSlider) this.dom.modalSfxSlider.value = this.sound.sfxVolume;
-            if (this.dom.settingReducedMotion) this.dom.settingReducedMotion.checked = this.reducedMotion;
-            if (this.dom.settingVibration) this.dom.settingVibration.checked = this.hapticEnabled;
+            if (this.dom.modalSfxSlider) {
+                this.dom.modalSfxSlider.value = this.sound.sfxVolume;
+            }
+            if (this.dom.sfxVolVal) {
+                this.dom.sfxVolVal.textContent = `${Math.round(this.sound.sfxVolume * 100)}%`;
+            }
+
+            // Accessibility Controls
+            if (this.dom.settingReducedMotion) {
+                this.dom.settingReducedMotion.checked = Boolean(this.profile?.preferences?.reduced_motion);
+            }
+            if (this.dom.settingVibration) {
+                this.dom.settingVibration.checked = this.profile?.preferences?.vibration !== false;
+            }
         }
 
         showScreen(screenName) {
@@ -874,42 +1274,85 @@
         }
 
         // ==========================================
-        // CATEGORIES LOADER
+        // CATEGORIES (INTERACTIVE CARDS REDESIGN)
         // ==========================================
         async loadCategories() {
-            const renderCategories = (categories) => {
+            const renderCategoryCards = (categories) => {
                 if (!Array.isArray(categories) || categories.length === 0) return false;
                 this.dom.categoryPicker.innerHTML = "";
                 const progress = this.getProgress();
+
                 categories.forEach((cat) => {
                     const mastery = progress.mastery[cat.id];
                     const masteryPct = mastery && mastery.answered > 0
                         ? Math.round((mastery.correct / mastery.answered) * 100)
-                        : null;
-                    const tier = masteryPct !== null ? getMasteryTier(masteryPct) : null;
-                    const masteryLabel = tier ? `${tier.icon} ${tier.title}` : "New trail";
+                        : 0;
+                    const tier = getMasteryTier(masteryPct);
+                    const masteryLabel = mastery && mastery.answered > 0
+                        ? `${tier.icon} ${masteryPct}% (${tier.title})`
+                        : "New Trail";
 
-                    const label = document.createElement("label");
-                    label.className = "category-chip";
-                    label.innerHTML = `
+                    const card = document.createElement("label");
+                    card.className = "category-card category-chip selected";
+                    card.setAttribute("role", "checkbox");
+                    card.setAttribute("aria-checked", "true");
+                    card.setAttribute("tabindex", "0");
+                    card.innerHTML = `
                         <input type="checkbox" name="categories" value="${cat.id}" checked>
-                        <div class="cat-content">
-                            <span class="cat-icon">${cat.icon}</span>
-                            <span class="cat-name">${cat.name}</span>
-                            <small class="cat-count">${cat.question_count} Qs · ${masteryLabel}</small>
+                        <div class="card-inner">
+                            <div class="card-top-row">
+                                <span class="cat-icon">${cat.icon}</span>
+                                <span class="cat-check-badge" aria-hidden="true">✓</span>
+                            </div>
+                            <div class="card-text-body">
+                                <strong class="cat-name">${cat.name}</strong>
+                                <div class="cat-meta-row">
+                                    <span class="cat-qcount">${cat.question_count} Qs</span>
+                                    <span class="cat-mastery-tag">${masteryLabel}</span>
+                                </div>
+                                <div class="cat-progress-track">
+                                    <div class="cat-progress-bar" style="width: ${masteryPct}%;"></div>
+                                </div>
+                            </div>
                         </div>
                     `;
-                    this.dom.categoryPicker.appendChild(label);
+
+                    const input = card.querySelector("input[type='checkbox']");
+                    const checkBadge = card.querySelector(".cat-check-badge");
+
+                    const syncCardState = () => {
+                        const isChecked = input.checked;
+                        card.classList.toggle("selected", isChecked);
+                        card.setAttribute("aria-checked", isChecked ? "true" : "false");
+                        if (checkBadge) checkBadge.textContent = isChecked ? "✓" : "○";
+                    };
+
+                    input.addEventListener("change", () => {
+                        syncCardState();
+                        this.sound.playUiSound();
+                    });
+
+                    // Keyboard accessible toggling
+                    card.addEventListener("keydown", (e) => {
+                        if (e.key === " " || e.key === "Enter") {
+                            e.preventDefault();
+                            input.checked = !input.checked;
+                            syncCardState();
+                            input.dispatchEvent(new Event("change"));
+                        }
+                    });
+
+                    this.dom.categoryPicker.appendChild(card);
                 });
                 return true;
             };
 
-            renderCategories(window.__HALLOWEEN_CATEGORY_FALLBACK__);
+            renderCategoryCards(window.__HALLOWEEN_CATEGORY_FALLBACK__);
             try {
                 const res = await fetch("/api/categories");
                 if (!res.ok) throw new Error("Failed to load categories");
                 const data = await res.json();
-                renderCategories(data.categories);
+                renderCategoryCards(data.categories);
             } catch (err) {
                 if (!this.dom.categoryPicker.children.length) {
                     this.dom.categoryPicker.textContent = "Categories could not load. Please refresh the page.";
@@ -923,10 +1366,15 @@
         // ==========================================
         async startGame() {
             const formData = new FormData(this.dom.formStart);
-            const playerName = (formData.get("player_name") || "Ghost Hunter").trim();
+            const playerName = (formData.get("player_name") || this.profile.nickname || "Ghost Hunter").trim();
             const difficulty = formData.get("difficulty") || "medium";
             const mode = formData.get("mode") || "classic";
             this.gameMode = mode;
+
+            // Sync updated name into profile if changed
+            if (playerName !== this.profile.nickname) {
+                this.updateNickname(playerName);
+            }
 
             let numQuestions = parseInt(formData.get("num_questions") || "10", 10);
             if (mode === "quick") numQuestions = 5;
@@ -938,7 +1386,6 @@
 
             // Category Selection Guard
             if (selectedCategories.length === 0) {
-                // Keep alert for automated E2E test assertions
                 alert("Please select at least one category!");
                 this.showNotice("Please select at least one category to enter the crypt!", "warning");
                 return;
@@ -1057,10 +1504,7 @@
                 this.dom.optionsGrid.appendChild(btn);
             });
 
-            // Reset & Hide Feedback Panel
             this.dom.feedbackPanel.classList.add("hidden");
-
-            // Start Countdown Timer
             this.startTimer(qView.time_limit);
         }
 
@@ -1085,7 +1529,7 @@
 
                 this.updateTimerUi();
 
-                // Tick sound during final 5 seconds
+                // Warning sound during final 5 seconds
                 if (this.timeRemaining <= 5.0 && this.timeRemaining > 0) {
                     if (Math.floor(this.timeRemaining + deltaSec) !== Math.floor(this.timeRemaining)) {
                         this.sound.playSynthFallback("tick");
@@ -1181,7 +1625,6 @@
             this.nextQuestionData = result.next_question;
             this.isGameOver = result.is_game_over;
 
-            // Endless mode strike deduction
             if (this.gameMode === "endless" && !result.is_correct) {
                 this.strikesRemaining = Math.max(0, this.strikesRemaining - 1);
                 this.updateStrikesUi();
@@ -1232,13 +1675,14 @@
                 }
             }
 
-            // Server achievement + local achievements
+            // Unlocked badges feedback
             const allEarned = [...newAchievements];
             if (result.achievement_unlocked && !allEarned.includes(result.achievement_unlocked)) {
                 allEarned.push(result.achievement_unlocked);
             }
 
             if (allEarned.length > 0) {
+                this.sound.play("achievement");
                 this.dom.feedbackAchievement.textContent = `🏅 ${allEarned.join(" · ")}`;
                 this.dom.feedbackAchievement.classList.remove("hidden");
                 allEarned.forEach((badge) => this.showToast("Achievement Unlocked!", badge, "🏆"));
@@ -1254,7 +1698,7 @@
         }
 
         vibrate(pattern) {
-            if (!this.hapticEnabled) return;
+            if (!this.profile?.preferences?.vibration) return;
             if (window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
                 document.documentElement.classList.contains("reduced-motion")) {
                 return;
@@ -1284,6 +1728,13 @@
             this.roundAnswered += 1;
             if (result.is_correct) this.roundCorrect += 1;
 
+            // Profile stats update
+            this.profile.stats.total_answered += 1;
+            if (result.is_correct) this.profile.stats.total_correct += 1;
+            if (result.streak > this.profile.stats.best_streak) {
+                this.profile.stats.best_streak = result.streak;
+            }
+
             const unlocked = [];
             const unlock = (key, label) => {
                 if (!progress.achievements[key]) {
@@ -1307,6 +1758,7 @@
             }
 
             localStorage.setItem("halloween_progress_v2", JSON.stringify(progress));
+            this.saveProfile();
             return unlocked;
         }
 
@@ -1323,13 +1775,20 @@
         async finishGame() {
             this.stopTimer();
             this.sound.stopBackgroundAmbience(true, 450);
-            this.updateAudioControlsUi();
+            this.syncSettingsUi();
 
             try {
                 const res = await fetch(`/api/quiz/${this.sessionId}`);
                 if (!res.ok) throw new Error("Failed to load summary");
                 const data = await res.json();
                 const summary = data.summary || {};
+
+                // Update Profile Stats
+                this.profile.stats.games_played += 1;
+                if (data.score > this.profile.stats.best_score) {
+                    this.profile.stats.best_score = data.score;
+                }
+                this.saveProfile();
 
                 this.dom.statFinalScore.textContent = data.score;
                 this.dom.statAccuracy.textContent = `${summary.percentage || 0}%`;
@@ -1375,7 +1834,8 @@
             const maxStreak = this.dom.statMaxStreak.textContent;
             const mode = this.gameMode.toUpperCase();
 
-            const shareText = `🎃 Halloween Quiz Survival Card 🎃\n` +
+            const shareText = `🎃 Spooky Master Survival Card 🎃\n` +
+                `Hunter: ${this.profile.nickname}\n` +
                 `Score: ${score} pts | Accuracy: ${accuracy} (${correct})\n` +
                 `Max Streak: ${maxStreak} 🔥 | Mode: ${mode}\n` +
                 `Dare to enter the crypt: ${window.location.origin}`;
@@ -1383,14 +1843,12 @@
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: "Halloween Quiz Survival Card",
+                        title: "Spooky Master Survival Card",
                         text: shareText,
                         url: window.location.origin,
                     });
                     return;
-                } catch (_) {
-                    // User cancelled or share rejected; fallback to clipboard
-                }
+                } catch (_) {}
             }
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1399,7 +1857,7 @@
                     this.dom.shareFeedback.classList.remove("hidden");
                     setTimeout(() => this.dom.shareFeedback.classList.add("hidden"), 3000);
                 }
-                this.showToast("Card Copied to Clipboard!", "Share your score with fellow ghost hunters.", "📋");
+                this.showToast("Survival Card Copied!", "Share with fellow ghost hunters.", "📋");
             }
         }
 
@@ -1457,19 +1915,43 @@
         }
 
         // ==========================================
-        // SETTINGS & ACCESSIBILITY MODAL
+        // SETTINGS MODAL
         // ==========================================
         openSettings() {
             this.syncSettingsUi();
             this.dom.modalSettings?.classList.remove("hidden");
+            if (this.dom.settingsPlayerName) {
+                this.dom.settingsPlayerName.value = this.profile.nickname;
+            }
         }
 
         closeSettings() {
             this.dom.modalSettings?.classList.add("hidden");
         }
 
+        resetProgressData() {
+            const confirmed = confirm("Are you sure you want to reset your local stats, badges, and category mastery? Your chosen avatar and name will be kept.");
+            if (!confirmed) return;
+
+            localStorage.removeItem("halloween_progress_v2");
+            localStorage.removeItem("halloween_progress_v1");
+
+            this.profile.stats = {
+                games_played: 0,
+                total_answered: 0,
+                total_correct: 0,
+                best_score: 0,
+                best_streak: 0,
+                preferred_mode: "classic",
+            };
+            this.saveProfile();
+            this.loadCategories();
+            this.applyProfileToUi();
+            this.showToast("Progress Reset", "All local statistics and badges have been cleared.", "🧹");
+        }
+
         // ==========================================
-        // MASTERY & PROGRESSION MODAL
+        // PLAYER PROFILE & MASTERY DASHBOARD
         // ==========================================
         openMastery() {
             this.renderMasteryModal();
@@ -1483,11 +1965,29 @@
         renderMasteryModal() {
             const progress = this.getProgress();
 
+            // Profile Hero Stats
+            if (this.dom.dashStatGames) this.dom.dashStatGames.textContent = this.profile.stats.games_played || 0;
+            if (this.dom.dashStatBestScore) this.dom.dashStatBestScore.textContent = (this.profile.stats.best_score || 0).toLocaleString();
+            if (this.dom.dashStatBestStreak) this.dom.dashStatBestStreak.textContent = this.profile.stats.best_streak || 0;
+
+            // Compute overall mastery tier
+            const totalAnswered = this.profile.stats.total_answered || 0;
+            const totalCorrect = this.profile.stats.total_correct || 0;
+            const overallPct = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+            const currentTier = getMasteryTier(overallPct);
+
+            if (this.dom.dashboardTierBadge) {
+                this.dom.dashboardTierBadge.textContent = `${currentTier.title} ${currentTier.icon}`;
+            }
+
             // Render Badges
+            let unlockedCount = 0;
             if (this.dom.badgesGrid) {
                 this.dom.badgesGrid.innerHTML = "";
                 ALL_BADGES.forEach((badge) => {
                     const unlocked = Boolean(progress.achievements[badge.id]);
+                    if (unlocked) unlockedCount += 1;
+
                     const el = document.createElement("div");
                     el.className = `badge-item ${unlocked ? "unlocked" : "locked"}`;
                     el.innerHTML = `
@@ -1500,6 +2000,9 @@
                     this.dom.badgesGrid.appendChild(el);
                 });
             }
+
+            if (this.dom.dashStatBadges) this.dom.dashStatBadges.textContent = `${unlockedCount}/8`;
+            if (this.dom.badgesUnlockedCount) this.dom.badgesUnlockedCount.textContent = unlockedCount;
 
             // Render Category Masteries
             if (this.dom.masteryGrid) {
@@ -1523,7 +2026,7 @@
                     el.innerHTML = `
                         <div class="mastery-header">
                             <span class="mastery-name">${cat.icon} ${cat.name}</span>
-                            <span class="mastery-tier">${tier.icon} ${tier.title}</span>
+                            <span class="mastery-tier">${tier.icon} ${tier.title} (${pct}%)</span>
                         </div>
                         <div class="mastery-bar-wrap">
                             <div class="mastery-bar" style="width: ${pct}%;"></div>

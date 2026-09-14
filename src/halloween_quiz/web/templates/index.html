@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halloween Quiz 🎃 The Spooky Trivia Challenge</title>
+    <title>Spooky Master 🎃 Halloween Quiz Challenge</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff7518">
-    <meta name="description" content="Test your Halloween, horror, and paranormal knowledge in this interactive spooky trivia challenge with multiple game modes, achievements, and instant sound synthesis!">
+    <meta name="description" content="Spooky Master - Test your Halloween, horror, and paranormal knowledge with multiple game modes, player profiles, achievements, and instant sound synthesis!">
 </head>
 <body>
     <!-- Subtle spooky background fog layer -->
@@ -17,32 +17,20 @@
         <div class="fog-layer fog-two"></div>
     </div>
 
-    <!-- Navigation Bar -->
+    <!-- Top Navigation Bar (Simplified) -->
     <header class="top-nav" role="banner">
         <div class="nav-branding">
             <img class="brand-mark" src="/static/logo.svg" alt="Jack-o'-lantern Logo" width="36" height="36">
             <div>
-                <span class="brand-title">Halloween Quiz</span>
-                <span class="brand-kicker">Trivia after dark</span>
+                <span class="brand-title">🎃 Spooky Master</span>
+                <span class="brand-kicker">Halloween Trivia</span>
             </div>
         </div>
-        <nav class="nav-actions" aria-label="Game controls">
-            <button id="btn-pwa-install" class="nav-btn hidden" title="Install Halloween Quiz App" aria-label="Install App">📲 Install</button>
-            <button id="btn-mastery-open" class="nav-btn" title="View Badges & Category Mastery" aria-label="View Player Progress">📜 Progress</button>
+        <nav class="nav-actions" aria-label="Game navigation">
+            <button id="btn-pwa-install" class="nav-btn hidden" title="Install Spooky Master App" aria-label="Install App">📲 Install</button>
+            <button id="btn-mastery-open" class="nav-btn" title="View Player Profile & Progress" aria-label="View Progress">📜 Progress</button>
             <button id="btn-leaderboard-open" class="nav-btn" title="View High Scores" aria-label="View Leaderboard">🏆 Leaderboard</button>
-            <button id="btn-settings-open" class="nav-btn" title="Audio & Gameplay Settings" aria-label="Settings">⚙️ Settings</button>
-            <div class="audio-controls desktop-only" aria-label="Quick sound controls">
-                <button id="btn-bgm-toggle" class="nav-btn" title="Toggle Horror Ambience" aria-label="Toggle Ambience">🎵 Ambience: Off</button>
-                <button id="btn-sound-toggle" class="nav-btn" title="Mute / Unmute Sound Effects" aria-label="Toggle Sound">🔊 Sound</button>
-                <div class="volume-slider-wrap" title="Horror ambience volume">
-                    <label for="music-volume-slider">Music</label>
-                    <input type="range" id="music-volume-slider" min="0" max="1" step="0.05" value="0.25" aria-label="Music volume">
-                </div>
-                <div class="volume-slider-wrap" title="Sound effect volume">
-                    <label for="sfx-volume-slider">SFX</label>
-                    <input type="range" id="sfx-volume-slider" min="0" max="1" step="0.05" value="0.60" aria-label="SFX volume">
-                </div>
-            </div>
+            <button id="btn-settings-open" class="nav-btn" title="Settings & Preferences" aria-label="Settings">⚙️ Settings</button>
         </nav>
     </header>
 
@@ -59,14 +47,20 @@
                 <div class="card-header-art">
                     <div class="hero-emblem" aria-hidden="true">👻</div>
                     <p class="eyebrow">A midnight challenge</p>
-                    <h1 id="start-title" class="setup-heading">Dare to Enter the Spooky Quiz?</h1>
-                    <p class="subtitle">Test your knowledge of folklore, horror cinema, Halloween history and candy lore.</p>
+                    <h1 id="start-title" class="setup-heading">Dare to Enter the Spooky Crypt?</h1>
+                    <p class="subtitle">Test your knowledge of folklore, horror cinema, Halloween history, and candy lore.</p>
                 </div>
 
                 <form id="form-start-quiz" class="setup-form" novalidate>
                     <div class="form-group">
-                        <label for="player-name">Your Hunter Name:</label>
-                        <input type="text" id="player-name" name="player_name" maxlength="30" value="Ghost Hunter" required placeholder="Enter your spooky nickname" autocomplete="nickname">
+                        <label for="player-name">Your Hunter Identity:</label>
+                        <div class="hunter-identity-input-wrap">
+                            <button type="button" id="btn-start-change-avatar" class="btn-avatar-badge" title="Click to change your avatar">
+                                <img id="start-avatar-img" class="hunter-avatar-badge" src="/static/avatars/pumpkin_hunter.svg" alt="Hunter Avatar" width="40" height="40">
+                                <span class="avatar-edit-icon" aria-hidden="true">✏️</span>
+                            </button>
+                            <input type="text" id="player-name" name="player_name" maxlength="30" value="Ghost Hunter" required placeholder="Enter your spooky nickname" autocomplete="nickname">
+                        </div>
                     </div>
 
                     <!-- Game Mode Selection -->
@@ -146,7 +140,7 @@
                         </div>
                     </div>
 
-                    <!-- Trivia Categories -->
+                    <!-- Trivia Categories (Pressable Interactive Cards) -->
                     <div class="form-group">
                         <div class="category-header-wrap">
                             <label id="cat-label">Trivia Categories:</label>
@@ -182,7 +176,7 @@
             </div>
         </section>
 
-        <!-- SCREEN 2: ACTIVE QUESTION -->
+        <!-- SCREEN 2: ACTIVE QUIZ -->
         <section id="screen-quiz" class="game-screen" aria-labelledby="question-text">
             <div class="card quiz-card">
                 <!-- Status HUD -->
@@ -295,7 +289,7 @@
                 <div class="summary-actions">
                     <button id="btn-play-again" class="btn-cta">🎃 Play Another Round</button>
                     <button id="btn-view-board-finish" class="btn-secondary">🏆 View Leaderboard</button>
-                    <button id="btn-view-mastery-finish" class="btn-secondary">📜 View Mastery</button>
+                    <button id="btn-view-mastery-finish" class="btn-secondary">📜 View Profile & Mastery</button>
                 </div>
             </div>
         </section>
@@ -339,7 +333,7 @@
             </div>
         </div>
 
-        <!-- MODAL 2: SETTINGS & ACCESSIBILITY -->
+        <!-- MODAL 2: SETTINGS & PREFERENCES -->
         <div id="modal-settings" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
             <div class="modal-card modal-settings-card">
                 <div class="modal-header">
@@ -348,79 +342,229 @@
                 </div>
 
                 <div class="settings-content">
-                    <div class="setting-row">
-                        <div>
-                            <strong>Horror Ambience</strong>
-                            <p class="setting-desc">Looping procedural and musical horror atmosphere.</p>
+                    <!-- SECTION 1: PLAYER PROFILE -->
+                    <div class="settings-section">
+                        <h3 class="settings-sec-title">👤 Player Identity</h3>
+                        <div class="setting-profile-row">
+                            <img id="settings-avatar-img" class="avatar-display-md" src="/static/avatars/pumpkin_hunter.svg" alt="Active Avatar">
+                            <div class="profile-info-col">
+                                <label for="settings-player-name"><strong>Hunter Name</strong></label>
+                                <input type="text" id="settings-player-name" maxlength="30" class="input-styled-sm" autocomplete="nickname">
+                            </div>
+                            <button type="button" id="btn-settings-change-avatar" class="btn-secondary btn-sm">Change Avatar</button>
                         </div>
-                        <button id="modal-btn-bgm-toggle" class="btn-secondary btn-sm">Turn On</button>
                     </div>
 
-                    <div class="setting-row">
-                        <div>
-                            <label for="modal-music-slider"><strong>Music Volume</strong></label>
-                            <p class="setting-desc">Adjust background soundtrack intensity.</p>
+                    <!-- SECTION 2: AUDIO -->
+                    <div class="settings-section">
+                        <h3 class="settings-sec-title">🎵 Audio & Ambience</h3>
+
+                        <div class="setting-row">
+                            <div>
+                                <strong>Background Music</strong>
+                                <p class="setting-desc">Looping horror atmosphere and soundtrack.</p>
+                            </div>
+                            <button id="modal-btn-bgm-toggle" class="btn-secondary btn-sm">Turn On</button>
                         </div>
-                        <input type="range" id="modal-music-slider" min="0" max="1" step="0.05" value="0.25">
+
+                        <div class="setting-row">
+                            <div>
+                                <label for="setting-music-track"><strong>Ambience Track</strong></label>
+                                <p class="setting-desc">Choose your preferred Halloween soundscape.</p>
+                            </div>
+                            <select id="setting-music-track" class="select-styled-sm">
+                                <option value="haunted_mansion">Haunted Mansion (Default Ambience)</option>
+                                <option value="silent">Silent / No Music</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-row">
+                            <div>
+                                <label for="modal-music-slider"><strong>Music Volume</strong> (<span id="music-vol-val">25%</span>)</label>
+                                <p class="setting-desc">Adjust background soundtrack intensity.</p>
+                            </div>
+                            <input type="range" id="modal-music-slider" min="0" max="1" step="0.05" value="0.25" aria-label="Music volume">
+                        </div>
+
+                        <div class="setting-row">
+                            <div>
+                                <strong>Sound Effects (SFX)</strong>
+                                <p class="setting-desc">Interactive clicks, feedback chimes, timer ticks, and achievement fanfares.</p>
+                            </div>
+                            <button id="modal-btn-sound-toggle" class="btn-secondary btn-sm">Mute</button>
+                        </div>
+
+                        <div class="setting-row">
+                            <div>
+                                <label for="modal-sfx-slider"><strong>SFX Volume</strong> (<span id="sfx-vol-val">60%</span>)</label>
+                                <p class="setting-desc">Adjust feedback sound levels.</p>
+                            </div>
+                            <input type="range" id="modal-sfx-slider" min="0" max="1" step="0.05" value="0.60" aria-label="SFX volume">
+                        </div>
                     </div>
 
-                    <div class="setting-row">
-                        <div>
-                            <strong>Sound Effects (SFX)</strong>
-                            <p class="setting-desc">Interactive clicks, feedback chimes, and timer ticks.</p>
+                    <!-- SECTION 3: ACCESSIBILITY -->
+                    <div class="settings-section">
+                        <h3 class="settings-sec-title">👁️ Accessibility</h3>
+                        <div class="setting-row">
+                            <div>
+                                <label for="setting-reduced-motion"><strong>Reduced Motion</strong></label>
+                                <p class="setting-desc">Suppresses background fog, hovering, confetti, and animations.</p>
+                            </div>
+                            <input type="checkbox" id="setting-reduced-motion" class="toggle-styled">
                         </div>
-                        <button id="modal-btn-sound-toggle" class="btn-secondary btn-sm">Mute</button>
+
+                        <div class="setting-row">
+                            <div>
+                                <label for="setting-vibration"><strong>Haptic Feedback</strong></label>
+                                <p class="setting-desc">Vibrate device on answer submissions (mobile).</p>
+                            </div>
+                            <input type="checkbox" id="setting-vibration" class="toggle-styled" checked>
+                        </div>
                     </div>
 
-                    <div class="setting-row">
-                        <div>
-                            <label for="modal-sfx-slider"><strong>SFX Volume</strong></label>
-                            <p class="setting-desc">Adjust feedback sound levels.</p>
+                    <!-- SECTION 4: DATA & PRIVACY -->
+                    <div class="settings-section">
+                        <h3 class="settings-sec-title">💾 Data & Progression</h3>
+                        <div class="setting-row">
+                            <div>
+                                <strong>Reset Local Progress</strong>
+                                <p class="setting-desc">Clear local mastery scores and unlocked achievements.</p>
+                            </div>
+                            <button type="button" id="btn-reset-progress" class="btn-secondary btn-sm btn-danger-outline">Reset Data</button>
                         </div>
-                        <input type="range" id="modal-sfx-slider" min="0" max="1" step="0.05" value="0.60">
+                        <div class="setting-row">
+                            <div>
+                                <strong>Privacy Policy</strong>
+                                <p class="setting-desc">Review local storage and privacy commitments.</p>
+                            </div>
+                            <a href="/privacy" class="btn-secondary btn-sm" target="_blank" rel="noopener noreferrer">View Policy</a>
+                        </div>
                     </div>
 
-                    <div class="setting-row">
-                        <div>
-                            <strong>Reduced Motion</strong>
-                            <p class="setting-desc">Minimizes fog, shake, and floating animations.</p>
-                        </div>
-                        <input type="checkbox" id="setting-reduced-motion" class="toggle-styled">
-                    </div>
-
-                    <div class="setting-row">
-                        <div>
-                            <strong>Haptic Feedback</strong>
-                            <p class="setting-desc">Vibrate device on answer submissions (mobile).</p>
-                        </div>
-                        <input type="checkbox" id="setting-vibration" class="toggle-styled" checked>
+                    <!-- SECTION 5: FUTURE CLOUD SYNC -->
+                    <div class="settings-section settings-future-box">
+                        <div class="future-badge">☁️ Cloud Sync — Coming Later</div>
+                        <p class="future-text">Online accounts and multi-device synchronization are designed for a future release. All your progress is stored safely on this device.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- MODAL 3: PLAYER PROGRESS & MASTERY -->
+        <!-- MODAL 3: PLAYER PROFILE & PROGRESS DASHBOARD -->
         <div id="modal-mastery" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="mastery-title">
             <div class="modal-card modal-mastery-card">
                 <div class="modal-header">
-                    <h2 id="mastery-title">📜 Crypt Progression & Badges</h2>
+                    <h2 id="mastery-title">📜 Player Profile & Dashboard</h2>
                     <button id="btn-close-mastery" class="btn-close" aria-label="Close progression modal">✖</button>
                 </div>
 
                 <div class="mastery-content">
+                    <!-- PROFILE HERO BANNER -->
+                    <div class="profile-hero-card">
+                        <img id="dashboard-avatar-img" class="dashboard-avatar" src="/static/avatars/pumpkin_hunter.svg" alt="Player Avatar">
+                        <div class="dashboard-hero-info">
+                            <div class="dashboard-title-row">
+                                <h3 id="dashboard-player-name" class="dashboard-hunter-name">Ghost Hunter</h3>
+                                <span id="dashboard-tier-badge" class="badge badge-tier">Lost Soul 🌑</span>
+                            </div>
+                            <p class="dashboard-player-id">Hunter ID: <span id="dashboard-player-id-text">Local Guest</span></p>
+                        </div>
+                        <button type="button" id="btn-dashboard-edit-profile" class="btn-secondary btn-sm">Edit Identity</button>
+                    </div>
+
+                    <!-- STAT SUMMARY CARDS -->
+                    <div class="dashboard-stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="dash-stat-games">0</div>
+                            <div class="stat-label">Games Played</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="dash-stat-best-score">0</div>
+                            <div class="stat-label">Best Score</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="dash-stat-best-streak">0</div>
+                            <div class="stat-label">Best Streak</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="dash-stat-badges">0/8</div>
+                            <div class="stat-label">Badges Earned</div>
+                        </div>
+                    </div>
+
+                    <!-- ACHIEVEMENTS SECTION -->
                     <section class="achievements-section">
-                        <h3>🏆 Unlocked Badges</h3>
+                        <h3>🏆 Unlocked Badges (<span id="badges-unlocked-count">0</span>/8)</h3>
                         <div id="badges-grid" class="badges-grid">
                             <!-- Populated dynamically via JS -->
                         </div>
                     </section>
 
+                    <!-- CATEGORY MASTERY SECTION -->
                     <section class="category-mastery-section">
                         <h3>🔮 Category Mastery</h3>
                         <div id="mastery-grid" class="mastery-grid">
                             <!-- Populated dynamically via JS -->
                         </div>
                     </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 4: FIRST-LAUNCH ONBOARDING -->
+        <div id="modal-onboarding" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+            <div class="modal-card modal-onboarding-card">
+                <div class="modal-header">
+                    <h2 id="onboarding-title">🎃 Welcome to Spooky Master!</h2>
+                </div>
+                <div class="onboarding-body">
+                    <p class="onboarding-subtitle">Before you venture into the midnight crypt, establish your hunter identity.</p>
+
+                    <div class="onboarding-section">
+                        <label id="onboarding-avatar-label" class="section-label">1. Choose Your Halloween Avatar</label>
+                        <div class="avatar-picker-grid" role="radiogroup" aria-labelledby="onboarding-avatar-label" id="onboarding-avatar-grid">
+                            <!-- Predefined Avatars rendered by JS -->
+                        </div>
+                    </div>
+
+                    <div class="onboarding-section">
+                        <label for="onboarding-hunter-name" class="section-label">2. Choose Your Hunter Name</label>
+                        <div class="name-input-wrap">
+                            <input type="text" id="onboarding-hunter-name" maxlength="30" value="GhostHunter" placeholder="e.g. ShadowHunter, PumpkinKing" autocomplete="nickname">
+                            <div class="name-suggestions">
+                                <button type="button" class="btn-suggestion">ShadowHunter</button>
+                                <button type="button" class="btn-suggestion">PumpkinKing</button>
+                                <button type="button" class="btn-suggestion">GhostSlayer</button>
+                                <button type="button" class="btn-suggestion">NightWatcher</button>
+                            </div>
+                        </div>
+                        <small class="field-hint">Your Hunter Name will appear on leaderboard records.</small>
+                    </div>
+
+                    <div class="onboarding-actions">
+                        <button type="button" id="btn-save-onboarding" class="btn-cta btn-full">
+                            <span>Enter the Crypt</span><span aria-hidden="true">→</span>
+                        </button>
+                        <button type="button" id="btn-skip-onboarding" class="btn-skip-subtle">
+                            Skip for now & enter crypt
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 5: AVATAR SELECTOR (Shared Drawer) -->
+        <div id="modal-avatar-picker" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+            <div class="modal-card modal-picker-card">
+                <div class="modal-header">
+                    <h2 id="picker-title">Choose Your Halloween Avatar</h2>
+                    <button id="btn-close-avatar-picker" class="btn-close" aria-label="Close avatar selector">✖</button>
+                </div>
+                <div class="picker-body">
+                    <div class="avatar-picker-grid" role="radiogroup" id="shared-avatar-grid">
+                        <!-- Avatars populated dynamically -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -432,7 +576,7 @@
     <!-- Celebration confetti canvas -->
     <canvas id="confetti-canvas"></canvas>
 
-    <!-- Looping horror ambience element -->
+    <!-- Looping horror ambience audio element -->
     <audio id="bgm-audio" loop preload="none">
         <source src="/sounds/horror-ambience.mp3" type="audio/mpeg">
     </audio>
@@ -443,12 +587,12 @@
             <span>·</span>
             <a href="https://github.com/jamoloto-dev/halloween" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
             <span>·</span>
-            <span>Version 2.0.0</span>
+            <span>Version 2.1.0</span>
         </div>
-        <p class="footer-copy">Synthesized audio crafted via Web Audio API · SQLite WAL Persistence</p>
+        <p class="footer-copy">Procedural & Sampled Web Audio API · SQLite WAL Persistence · PWA Offline Capable</p>
     </footer>
 
     <script>window.__HALLOWEEN_CATEGORY_FALLBACK__ = __CATEGORY_DATA__;</script>
-    <script src="/static/app.js?v=20260914-production-release"></script>
+    <script src="/static/app.js?v=20260914-spooky-master-v2"></script>
 </body>
 </html>

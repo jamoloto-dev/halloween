@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bat-bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#311042"/>
+      <stop offset="70%" stop-color="#190724"/>
+      <stop offset="100%" stop-color="#0b0210"/>
+    </radialGradient>
+  </defs>
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="46" fill="url(#bat-bg)" stroke="#c084fc" stroke-width="3"/>
+  <!-- Bat Wings Outstretched -->
+  <path d="M50 56 C40 38, 18 36, 10 44 C8 56, 16 66, 26 64 C20 70, 32 76, 40 68 C44 72, 48 70, 50 68 C52 70, 56 72, 60 68 C68 76, 80 70, 74 64 C84 66, 92 56, 90 44 C82 36, 60 38, 50 56 Z" fill="#2e1065" stroke="#4c1d95" stroke-width="1.5"/>
+  <!-- Bat Head & Body -->
+  <ellipse cx="50" cy="54" rx="14" ry="16" fill="#1e1b4b"/>
+  <!-- Large Pointed Bat Ears -->
+  <path d="M42 42 L34 18 C38 24, 42 32, 46 36 Z" fill="#312e81"/>
+  <path d="M39 36 L36 24 C38 28, 40 32, 42 34 Z" fill="#c084fc"/>
+  <path d="M58 42 L66 18 C62 24, 58 32, 54 36 Z" fill="#312e81"/>
+  <path d="M61 36 L64 24 C62 28, 60 32, 58 34 Z" fill="#c084fc"/>
+  <!-- Glowing Violet Bat Eyes -->
+  <ellipse cx="44" cy="48" rx="3.5" ry="4" fill="#e879f9"/>
+  <circle cx="44" cy="48" r="1.5" fill="#ffffff"/>
+  <ellipse cx="56" cy="48" rx="3.5" ry="4" fill="#e879f9"/>
+  <circle cx="56" cy="48" r="1.5" fill="#ffffff"/>
+  <!-- Cute Snout & Tiny Fangs -->
+  <polygon points="48,54 52,54 50,57" fill="#c084fc"/>
+  <path d="M46 59 Q50 61 54 59" stroke="#c084fc" stroke-width="1.5" fill="none"/>
+  <polygon points="47,59 49,59 48,62" fill="#ffffff"/>
+  <polygon points="51,59 53,59 52,62" fill="#ffffff"/>
+</svg>

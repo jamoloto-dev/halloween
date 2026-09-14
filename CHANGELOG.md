@@ -6,6 +6,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2026-09-14
+
+### Added
+- **Vector Illustrated Avatar System**:
+  - 8 predefined SVG vector avatars (`pumpkin_hunter`, `ghost`, `vampire`, `witch`, `skeleton`, `zombie`, `werewolf`, `night_bat`) served locally with zero external CDN dependencies.
+  - Interactive avatar selection drawer accessible from start screen, onboarding, and settings.
+- **First-Launch Player Onboarding Flow**:
+  - Intuitive initial identity setup with avatar picker, hunter name suggestions, and skip action.
+  - Flow executes only on clean first visit and is automatically bypassed on subsequent visits or for legacy users.
+- **Local Player Profile & Migration Engine**:
+  - Unified `spooky_player_profile` schema with UUID, gameplay stats, preferences, and timestamps.
+  - Non-destructive migration of legacy localStorage keys (`halloween_progress_v2`, `halloween_progress_v1`, volume settings) preserving all player progress.
+- **Player Profile & Progress Dashboard Modal**:
+  - Dedicated player profile hero banner displaying avatar, nickname, hunter ID, and mastery tier.
+  - Comprehensive stats grid (games played, best score, best streak, badges unlocked count).
+  - Visual badges showcase and 6 category mastery progress bars with accuracy percentages.
+- **Centralized Settings Modal**:
+  - Grouped into dedicated sections: Profile, Audio, Accessibility, Data & Progression, and Future Cloud Sync.
+  - Background music toggle, track selector (`Haunted Mansion` vs `Silent`), music volume slider (0-100%), SFX toggle, and SFX volume slider.
+  - Data reset with safety confirmation prompt.
+- **Interactive Category Cards**:
+  - Large pressable cards with icons, category name, question count, mastery percentage, real-time progress bar, and check indicators (`✓` / `○`).
+  - Full keyboard accessibility with Space / Enter support.
+- **Audio Ducking & Balancing**:
+  - Calibrated volume hierarchy (ambience 25%, UI 20%, timer 25%, correct/incorrect 60%, achievement 65%, finish 70%).
+  - Smooth dynamic ducking of ambience music during sound effect playback.
+- **Comprehensive Browser E2E Test Suite**:
+  - 16 Playwright tests validating top nav, centralized settings, onboarding, migration, profile customization, dashboard, gameplay, endless strikes HUD, leaderboard, and responsive layouts across 5 viewports.
+
+### Changed
+- Streamlined top navigation bar to display only Brand (`🎃 Spooky Master`), `Progress`, `Leaderboard`, and `Settings` (and `Install` when available).
+- Removed audio buttons and volume sliders from the top nav, consolidating them into Settings.
+
+---
+
 ## [2.1.0] - 2026-09-14
 
 ### Added

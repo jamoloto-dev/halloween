@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <radialGradient id="zombie-skin" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="70%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </radialGradient>
+  </defs>
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="46" fill="#052e16" stroke="#4ade80" stroke-width="3"/>
+  <!-- Asymmetrical Head -->
+  <path d="M30 32 C30 20, 68 20, 70 32 C72 44, 74 58, 70 70 C66 78, 34 78, 30 70 C26 58, 28 44, 30 32 Z" fill="url(#zombie-skin)"/>
+  <!-- Hair Strands -->
+  <path d="M36 22 L34 14" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M48 20 L50 12" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M62 22 L66 15" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Forehead Stitches -->
+  <path d="M38 28 L62 30" stroke="#1c1917" stroke-width="2"/>
+  <line x1="42" y1="26" x2="42" y2="32" stroke="#1c1917" stroke-width="1.8"/>
+  <line x1="48" y1="27" x2="48" y2="33" stroke="#1c1917" stroke-width="1.8"/>
+  <line x1="54" y1="27" x2="54" y2="33" stroke="#1c1917" stroke-width="1.8"/>
+  <!-- Mismatched Eyes -->
+  <!-- Left Eye: Drooping yellowed -->
+  <ellipse cx="40" cy="46" rx="5" ry="6" fill="#fef08a"/>
+  <circle cx="41" cy="47" r="2" fill="#854d0e"/>
+  <!-- Right Eye: Swollen/X or blank -->
+  <ellipse cx="60" cy="44" rx="6.5" ry="5.5" fill="#fef08a"/>
+  <circle cx="59" cy="44" r="3.2" fill="#15803d"/>
+  <circle cx="59" cy="44" r="1.5" fill="#052e16"/>
+  <!-- Stitched/Crooked Jaw -->
+  <path d="M36 62 Q50 68 64 60" stroke="#1c1917" stroke-width="2.5" fill="none"/>
+  <!-- Protruding Teeth -->
+  <rect x="42" y="59" width="3.5" height="5" fill="#fef9c3" stroke="#1c1917" stroke-width="0.8"/>
+  <rect x="52" y="60" width="3.5" height="5" fill="#fef9c3" stroke="#1c1917" stroke-width="0.8"/>
+</svg>

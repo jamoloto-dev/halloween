@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <radialGradient id="p-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffb347"/>
+      <stop offset="60%" stop-color="#ff7518"/>
+      <stop offset="100%" stop-color="#b34700"/>
+    </radialGradient>
+    <radialGradient id="eye-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff5cc"/>
+      <stop offset="50%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#ff7518"/>
+    </radialGradient>
+  </defs>
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="46" fill="#1b1226" stroke="#ff7518" stroke-width="3"/>
+  <!-- Pumpkin Body -->
+  <ellipse cx="50" cy="58" rx="34" ry="28" fill="url(#p-glow)"/>
+  <ellipse cx="36" cy="58" rx="20" ry="26" fill="#d95d00" opacity="0.6"/>
+  <ellipse cx="64" cy="58" rx="20" ry="26" fill="#d95d00" opacity="0.6"/>
+  <!-- Hunter Hat -->
+  <path d="M22 38 C28 26, 72 26, 78 38 C88 40, 92 46, 76 46 L24 46 C8 46, 12 40, 22 38 Z" fill="#2d1d3f" stroke="#120c1a" stroke-width="1.5"/>
+  <path d="M34 38 C35 22, 65 22, 66 38 Z" fill="#3f2b57"/>
+  <rect x="33" y="36" width="34" height="4" fill="#ff7518" rx="1"/>
+  <polygon points="50,33 53,38 47,38" fill="#ffd700"/>
+  <!-- Glowing Carved Eyes -->
+  <polygon points="36,54 44,57 41,50" fill="url(#eye-glow)"/>
+  <polygon points="64,54 56,57 59,50" fill="url(#eye-glow)"/>
+  <!-- Nose -->
+  <polygon points="50,59 47,63 53,63" fill="url(#eye-glow)"/>
+  <!-- Wicked Grin -->
+  <path d="M34 68 Q50 78 66 68 Q58 74 50 74 Q42 74 34 68 Z" fill="#1b1226"/>
+  <polygon points="41,69 44,72 45,69" fill="url(#eye-glow)"/>
+  <polygon points="56,69 57,72 60,69" fill="url(#eye-glow)"/>
+  <polygon points="48,74 50,71 52,74" fill="url(#eye-glow)"/>
+</svg>
