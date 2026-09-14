@@ -40,6 +40,10 @@ dev = [
     "ruff>=0.3.0",
     "mypy>=1.9.0",
 ]
+e2e = [
+    "playwright>=1.40.0",
+    "pytest-playwright>=0.4.0",
+]
 
 [project.scripts]
 halloween-quiz = "halloween_quiz.cli.main:cli"
@@ -72,3 +76,6 @@ minversion = "7.0"
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-v"
+markers = [
+    "e2e: End-to-end browser tests requiring Playwright and running server",
+]
