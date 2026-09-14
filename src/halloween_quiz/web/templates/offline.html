@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline 🎃 Halloween Quiz</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/style.css">
+    <meta name="theme-color" content="#ff7518">
+    <style>
+        .offline-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+            padding: 2rem;
+        }
+        .offline-card {
+            max-width: 500px;
+            background: rgba(26, 9, 43, 0.95);
+            border: 2px solid #ff7518;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-card">
+            <div class="offline-icon" aria-hidden="true">🦇</div>
+            <h2>Wandered into the Dead Zone</h2>
+            <p>You appear to be offline. The ghosts cannot reach the server right now.</p>
+            <p style="color: #bfa8d8; font-size: 0.95rem; margin-top: 1rem;">
+                Check your network connection to rejoin the crypt and battle for the high score.
+            </p>
+            <button onclick="window.location.reload()" class="btn-cta" style="margin-top: 1.5rem;">
+                🔄 Try Again
+            </button>
+        </div>
+    </div>
+</body>
+</html>

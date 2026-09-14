@@ -1,22 +1,30 @@
 """FastAPI Application Factory for Halloween Quiz."""
 
 import json
+import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from halloween_quiz.core.engine import QuestionBank
+from halloween_quiz.core.engine import QuestionBank, SessionManager
 from halloween_quiz.core.storage import ScoreRepository
 from halloween_quiz.web.routes import router
 
+# Configure structured logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger("halloween_quiz.app")
+
 
 def init_app_state(app: FastAPI) -> None:
-    """Ensure app state is initialized with repositories and database."""
+    """Ensure app state is initialized with repositories, question bank, and session store."""
     if getattr(app.state, "_is_initialized", False):
         return
 
@@ -32,21 +40,29 @@ def init_app_state(app: FastAPI) -> None:
     if Path(csv_path).exists():
         migrated = score_repo.migrate_legacy_csv(csv_path)
         if migrated > 0:
-            print(f"🎃 Migrated {migrated} legacy score records into {db_path}")
+            logger.info(f"🎃 Migrated {migrated} legacy score records into {db_path}")
+
+    session_ttl = int(os.getenv("SESSION_TTL", "3600"))
+    max_sessions = int(os.getenv("MAX_SESSIONS", "1000"))
 
     app.state.question_bank = bank
     app.state.score_repo = score_repo
-    app.state.active_sessions = {}
+    app.state.active_sessions = SessionManager(ttl_seconds=session_ttl, max_sessions=max_sessions)
     app.state._is_initialized = True
+    logger.info(
+        f"Application state initialized: {bank.total_count} questions loaded, "
+        f"DB ready, SessionManager(ttl={session_ttl}s, max={max_sessions})"
+    )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan context: initialize databases and load assets."""
+    """Application lifespan context: initialize databases and clean up on shutdown."""
     init_app_state(app)
     yield
     if hasattr(app.state, "active_sessions"):
         app.state.active_sessions.clear()
+    logger.info("Application shutdown complete.")
 
 
 def create_app() -> FastAPI:
@@ -59,8 +75,20 @@ def create_app() -> FastAPI:
     )
     init_app_state(app)
 
-    # Enable CORS for local dev, standalone PWA, and external frontends
-    cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
+    # Safe CORS configuration
+    raw_cors = os.getenv("CORS_ORIGINS", "")
+    if raw_cors:
+        cors_origins = [o.strip() for o in raw_cors.split(",") if o.strip()]
+    else:
+        env = os.getenv("ENVIRONMENT", "development").lower()
+        if env == "production":
+            cors_origins = [
+                "https://halloween.jamoloto.dev",
+                "https://halloween-quiz.onrender.com",
+            ]
+        else:
+            cors_origins = ["*"]
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cors_origins,
@@ -87,6 +115,42 @@ def create_app() -> FastAPI:
     if pwa_dir.exists():
         app.mount("/pwa", StaticFiles(directory=str(pwa_dir), html=True), name="pwa")
 
+    # Root PWA routes
+    @app.get("/manifest.json")
+    async def get_manifest():
+        manifest_file = static_dir / "manifest.json"
+        if manifest_file.exists():
+            return FileResponse(manifest_file, media_type="application/manifest+json")
+        return HTMLResponse("{}", media_type="application/json")
+
+    @app.get("/sw.js")
+    async def get_service_worker():
+        sw_file = static_dir / "sw.js"
+        if sw_file.exists():
+            return FileResponse(
+                sw_file,
+                media_type="application/javascript",
+                headers={
+                    "Service-Worker-Allowed": "/",
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                },
+            )
+        return HTMLResponse("// SW not found", media_type="application/javascript")
+
+    @app.get("/offline.html", response_class=HTMLResponse)
+    async def get_offline():
+        offline_file = templates_dir / "offline.html"
+        if offline_file.exists():
+            return HTMLResponse(offline_file.read_text(encoding="utf-8"))
+        return HTMLResponse("<h1>Offline</h1><p>Check your internet connection.</p>")
+
+    @app.get("/privacy", response_class=HTMLResponse)
+    async def get_privacy():
+        privacy_file = templates_dir / "privacy.html"
+        if privacy_file.exists():
+            return HTMLResponse(privacy_file.read_text(encoding="utf-8"))
+        return HTMLResponse("<h1>Privacy Policy</h1>")
+
     # Include REST API routes
     app.include_router(router)
 
@@ -95,9 +159,6 @@ def create_app() -> FastAPI:
     async def index(request: Request):
         index_file = templates_dir / "index.html"
         if index_file.exists():
-            # The browser can render categories immediately even if the
-            # follow-up API request is interrupted or an older asset cache is
-            # present. The API remains the source of truth after load.
             category_json = json.dumps(request.app.state.question_bank.get_categories()).replace("</", "<\\/")
             page = index_file.read_text(encoding="utf-8").replace("__CATEGORY_DATA__", category_json)
             return HTMLResponse(page, headers={"Cache-Control": "no-store"})

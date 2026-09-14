@@ -20,6 +20,23 @@ class Difficulty(str, Enum):
         return cls.MEDIUM
 
 
+class GameMode(str, Enum):
+    CLASSIC = "classic"
+    QUICK = "quick"
+    DEEP = "deep"
+    PANIC = "panic"
+    ENDLESS = "endless"
+    DAILY = "daily"
+
+    @classmethod
+    def from_str(cls, value: str) -> "GameMode":
+        normalized = value.strip().lower()
+        for mode in cls:
+            if mode.value == normalized:
+                return mode
+        return cls.CLASSIC
+
+
 class Category(str, Enum):
     SPOOKY = "spooky"
     COSTUMES = "costumes"
@@ -94,6 +111,7 @@ class Question(BaseModel):
 class QuizConfig(BaseModel):
     player_name: str = Field(default="Ghost Hunter", min_length=1, max_length=50)
     difficulty: Difficulty = Difficulty.MEDIUM
+    mode: GameMode = GameMode.CLASSIC
     categories: list[str] = Field(
         default_factory=lambda: [c.value for c in Category]
     )
@@ -109,7 +127,7 @@ class QuizConfig(BaseModel):
             return "Spooky Player"
         while v and v[0] in ("=", "+", "-", "@", "\t", "\r"):
             v = v[1:].strip()
-        return v or "Spooky Player"
+        return v[:40] or "Spooky Player"
 
 
 class QuestionView(BaseModel):
@@ -126,8 +144,8 @@ class QuestionView(BaseModel):
 
 
 class AnswerSubmission(BaseModel):
-    answer: str = Field(..., description="Selected answer string or 0-indexed choice integer as string")
-    time_taken: float = Field(default=0.0, ge=0.0, description="Elapsed seconds before answering")
+    answer: str = Field(..., min_length=1, max_length=200, description="Selected answer string or 0-indexed choice integer as string")
+    time_taken: float = Field(default=0.0, ge=0.0, le=120.0, description="Elapsed seconds before answering")
 
 
 class AnswerResult(BaseModel):
@@ -142,15 +160,18 @@ class AnswerResult(BaseModel):
     total_score: int = 0
     is_game_over: bool = False
     next_question: QuestionView | None = None
+    achievement_unlocked: str | None = None
 
 
 class ScoreRecord(BaseModel):
     id: int | None = None
     player_name: str
     difficulty: str
+    mode: str = "classic"
     score: int
     total_questions: int
     percentage: float
+    max_streak: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @field_validator("player_name")
@@ -159,7 +180,7 @@ class ScoreRecord(BaseModel):
         v = v.strip()
         while v and v[0] in ("=", "+", "-", "@", "\t", "\r"):
             v = v[1:].strip()
-        return v or "Anonymous Ghost"
+        return v[:40] or "Anonymous Ghost"
 
 
 class LeaderboardResponse(BaseModel):

@@ -1,7 +1,10 @@
 """Quiz Engine managing question selection, session state, and scoring logic."""
 
+import hashlib
 import json
 import random
+import threading
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,6 +13,7 @@ from halloween_quiz.core.models import (
     CATEGORY_METADATA,
     AnswerResult,
     Difficulty,
+    GameMode,
     Question,
     QuestionView,
     QuizConfig,
@@ -130,6 +134,35 @@ class QuestionBank:
         random.shuffle(unique_eligible)
         return unique_eligible[:count]
 
+    def select_daily_questions(self, date_str: str | None = None, count: int = 10) -> list[Question]:
+        """Return a deterministic daily challenge question batch seeded by UTC date."""
+        if not self.questions:
+            return []
+        if not date_str:
+            date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+        # Deterministic pseudo-random sequence based on date and salt
+        seed_int = int(hashlib.sha256(f"halloween-daily-{date_str}-v2".encode()).hexdigest(), 16)
+        rng = random.Random(seed_int)
+
+        # Pick evenly across categories
+        all_cats = sorted(self._by_category.keys())
+        picked: list[Question] = []
+        for cat in all_cats:
+            cat_pool = list(self._by_category.get(cat, []))
+            if cat_pool:
+                rng.shuffle(cat_pool)
+                picked.append(cat_pool[0])
+
+        # Fill remaining spots from the overall pool deterministically
+        remaining_pool = [q for q in self.questions if q.id not in {p.id for p in picked}]
+        rng.shuffle(remaining_pool)
+        picked.extend(remaining_pool)
+
+        # Shuffle final sequence deterministically
+        rng.shuffle(picked)
+        return picked[:count]
+
 
 class QuizSession:
     """State machine tracking an individual quiz playthrough."""
@@ -155,14 +188,15 @@ class QuizSession:
         self.streak: int = 0
         self.max_streak: int = 0
         self.correct_count: int = 0
+        self.strikes: int = 0
         self.is_completed: bool = False
         self.started_at: datetime = datetime.now(timezone.utc)
+        self.last_activity: datetime = datetime.now(timezone.utc)
         self.completed_at: datetime | None = None
         self.history: list[dict] = []
-        # Keep a single randomized display order for each question in this
-        # session.  A status refresh must never move an answer after the
-        # player has seen it.
+        self.unlocked_achievements: list[str] = []
         self._display_options: dict[str, list[str]] = {}
+        self._question_presented_at: float = time.monotonic()
 
     @property
     def total_questions(self) -> int:
@@ -184,14 +218,22 @@ class QuizSession:
         if not q:
             return None
 
+        # Record authoritative presentation timestamp
+        self._question_presented_at = time.monotonic()
+        self.last_activity = datetime.now(timezone.utc)
+
         meta = CATEGORY_METADATA.get(
             q.category,
             {"name": q.category.capitalize(), "icon": "🎃", "description": ""}
         )
 
-        time_limit = self.config.time_limit_per_question or self.DIFFICULTY_DEFAULT_TIMES.get(
-            q.difficulty, 30
-        )
+        # In Panic mode, enforce high-pressure 10 second timer
+        if getattr(self.config, "mode", None) == GameMode.PANIC:
+            time_limit = 10
+        else:
+            time_limit = self.config.time_limit_per_question or self.DIFFICULTY_DEFAULT_TIMES.get(
+                q.difficulty, 30
+            )
 
         options = self._display_options.get(q.id)
         if options is None:
@@ -212,8 +254,38 @@ class QuizSession:
             time_limit=time_limit,
         )
 
+    def _check_new_achievements(self, is_correct: bool, effective_time: float) -> str | None:
+        """Evaluate deterministic conditions for newly unlocked achievements."""
+        new_badge: str | None = None
+
+        def award(badge_name: str):
+            nonlocal new_badge
+            if badge_name not in self.unlocked_achievements:
+                self.unlocked_achievements.append(badge_name)
+                if not new_badge:
+                    new_badge = badge_name
+
+        if self.streak >= 10:
+            award("Possessed")
+        elif self.streak >= 5:
+            award("Night Stalker")
+        elif self.streak >= 3:
+            award("Ghost Hunter")
+
+        if is_correct and effective_time <= 4.0:
+            award("Speed Demon")
+
+        if self.is_completed:
+            if self.percentage >= 100.0:
+                award("Perfect Séance")
+            if self.config.difficulty == Difficulty.HARD and self.percentage >= 70.0:
+                award("Hard Mode Survivor")
+
+        return new_badge
+
     def submit_answer(self, answer: str, time_taken: float = 0.0) -> AnswerResult:
-        """Process an answer submission and update session state."""
+        """Process an answer submission using server-authoritative timing and scoring."""
+        self.last_activity = datetime.now(timezone.utc)
         q = self.get_current_question()
         if not q:
             self.is_completed = True
@@ -229,10 +301,18 @@ class QuizSession:
                 total_score=self.score,
                 is_game_over=True,
                 next_question=None,
+                achievement_unlocked=None,
             )
 
-        # Normalize answer: an index, when supplied, refers to the shuffled
-        # order the player was shown; browser clients submit the answer text.
+        # Calculate server-authoritative elapsed time
+        server_elapsed = max(0.1, round(time.monotonic() - getattr(self, "_question_presented_at", time.monotonic()), 2))
+        # Validate client time_taken: accept only if plausible, otherwise enforce server timing
+        if 0.1 <= time_taken <= server_elapsed + 1.5:
+            effective_time = time_taken
+        else:
+            effective_time = server_elapsed
+
+        # Normalize answer
         selected = answer.strip()
         if selected.isdigit():
             idx = int(selected)
@@ -244,9 +324,12 @@ class QuizSession:
         points = 0
         time_bonus = 0
 
-        time_limit = self.config.time_limit_per_question or self.DIFFICULTY_DEFAULT_TIMES.get(
-            q.difficulty, 30
-        )
+        if getattr(self.config, "mode", None) == GameMode.PANIC:
+            time_limit = 10
+        else:
+            time_limit = self.config.time_limit_per_question or self.DIFFICULTY_DEFAULT_TIMES.get(
+                q.difficulty, 30
+            )
 
         if is_correct:
             self.correct_count += 1
@@ -259,16 +342,19 @@ class QuizSession:
             # Streak multiplier: +10% per streak up to 1.5x
             streak_mult = min(1.5, 1.0 + (self.streak - 1) * 0.10)
 
-            # Time bonus: if responded in under time limit
-            time_remaining = max(0.0, time_limit - time_taken)
+            # Authoritative time bonus
+            time_remaining = max(0.0, time_limit - effective_time)
             if time_limit > 0 and time_remaining > 0:
                 time_ratio = time_remaining / time_limit
-                time_bonus = int(base_pts * time_ratio * 0.5)
+                bonus_mult = 1.0 if getattr(self.config, "mode", None) == GameMode.PANIC else 0.5
+                time_bonus = int(base_pts * time_ratio * bonus_mult)
 
             points = int(base_pts * streak_mult) + time_bonus
             self.score += points
         else:
             self.streak = 0
+            if getattr(self.config, "mode", None) == GameMode.ENDLESS:
+                self.strikes += 1
 
         self.history.append({
             "question_id": q.id,
@@ -278,14 +364,20 @@ class QuizSession:
             "is_correct": is_correct,
             "points": points,
             "time_bonus": time_bonus,
-            "time_taken": time_taken,
+            "time_taken": effective_time,
         })
 
         self.current_index += 1
-        if self.current_index >= len(self.questions):
+
+        # Check completion conditions (regular pool exhausted or 3 strikes in Endless mode)
+        if getattr(self.config, "mode", None) == GameMode.ENDLESS and self.strikes >= 3:
+            self.is_completed = True
+            self.completed_at = datetime.now(timezone.utc)
+        elif self.current_index >= len(self.questions):
             self.is_completed = True
             self.completed_at = datetime.now(timezone.utc)
 
+        unlocked_badge = self._check_new_achievements(is_correct, effective_time)
         next_q = self.get_current_question_view()
 
         return AnswerResult(
@@ -300,13 +392,15 @@ class QuizSession:
             total_score=self.score,
             is_game_over=self.is_completed,
             next_question=next_q,
+            achievement_unlocked=unlocked_badge,
         )
 
     def timeout_current_question(self) -> AnswerResult:
         """Triggered when the question timer expires without an answer."""
+        time_limit = 10 if getattr(self.config, "mode", None) == GameMode.PANIC else float(self.config.time_limit_per_question or 20)
         return self.submit_answer(
             answer="__TIMEOUT__",
-            time_taken=float(self.config.time_limit_per_question),
+            time_taken=time_limit,
         )
 
     def get_summary(self) -> dict:
@@ -315,11 +409,95 @@ class QuizSession:
             "session_id": self.session_id,
             "player_name": self.config.player_name,
             "difficulty": self.config.difficulty.value,
+            "mode": getattr(self.config, "mode", GameMode.CLASSIC).value,
             "final_score": self.score,
             "correct_count": self.correct_count,
             "total_questions": self.total_questions,
             "percentage": self.percentage,
             "max_streak": self.max_streak,
+            "strikes": self.strikes,
             "is_completed": self.is_completed,
+            "achievements": self.unlocked_achievements,
             "history": self.history,
         }
+
+
+class SessionManager:
+    """Thread-safe session manager with TTL-based expiration and memory bounding."""
+
+    def __init__(self, ttl_seconds: int = 3600, max_sessions: int = 1000):
+        self.ttl_seconds = ttl_seconds
+        self.max_sessions = max_sessions
+        self._sessions: dict[str, QuizSession] = {}
+        self._lock = threading.Lock()
+
+    def get(self, session_id: str) -> QuizSession | None:
+        """Retrieve a session by ID if it has not expired."""
+        with self._lock:
+            session = self._sessions.get(session_id)
+            if not session:
+                return None
+            now = datetime.now(timezone.utc)
+            delta = (now - session.last_activity).total_seconds()
+            if delta > self.ttl_seconds:
+                del self._sessions[session_id]
+                return None
+            session.last_activity = now
+            return session
+
+    def add(self, session: QuizSession) -> None:
+        """Store a new session, pruning expired and least active sessions when over capacity."""
+        with self._lock:
+            self._prune_expired_locked()
+            if len(self._sessions) >= self.max_sessions:
+                oldest_id = min(
+                    self._sessions.keys(),
+                    key=lambda k: self._sessions[k].last_activity,
+                )
+                del self._sessions[oldest_id]
+            self._sessions[session.session_id] = session
+
+    def remove(self, session_id: str) -> bool:
+        """Explicitly remove a session."""
+        with self._lock:
+            return self._sessions.pop(session_id, None) is not None
+
+    def _prune_expired_locked(self) -> int:
+        now = datetime.now(timezone.utc)
+        expired = [
+            sid
+            for sid, s in self._sessions.items()
+            if (now - s.last_activity).total_seconds() > self.ttl_seconds
+        ]
+        for sid in expired:
+            del self._sessions[sid]
+        return len(expired)
+
+    def prune_expired(self) -> int:
+        """Prune expired sessions."""
+        with self._lock:
+            return self._prune_expired_locked()
+
+    def count(self) -> int:
+        """Current number of stored active (unexpired) sessions."""
+        with self._lock:
+            self._prune_expired_locked()
+            return len(self._sessions)
+
+    def clear(self) -> None:
+        """Clear all active sessions."""
+        with self._lock:
+            self._sessions.clear()
+
+    # Dictionary-like compatibility methods
+    def __getitem__(self, session_id: str) -> QuizSession:
+        session = self.get(session_id)
+        if session is None:
+            raise KeyError(session_id)
+        return session
+
+    def __setitem__(self, session_id: str, session: QuizSession) -> None:
+        self.add(session)
+
+    def __contains__(self, session_id: str) -> bool:
+        return self.get(session_id) is not None

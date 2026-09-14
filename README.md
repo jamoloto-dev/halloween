@@ -47,19 +47,22 @@ halloween/
 └── pyproject.toml             # Modern packaging (Ruff, Mypy, Pytest)
 ```
 
-### 🌟 Key Enhancements in Version 2.0
-1. **Zero Deployment Mismatch**: Container deployments cleanly execute `uvicorn run:app` or `gunicorn run:app` without boot crashes.
-2. **Pure Client-Side Audio**: All server-side audio dependencies (`vlc`, `paplay`) have been eliminated. Sound effects are synthesized and played in the player's browser with volume controls, mute state saved to `localStorage`, and Web Audio procedural fallbacks.
-3. **Smooth Countdown Timer**: Zero full-page reloads. High-frequency JavaScript timers provide color-shifting progress bars (Green ➔ Orange ➔ Red) and sound warnings.
-4. **Curated 100+ Question Bank**: 108 trivia questions across 6 spooky categories:
-   - 👻 **Spooky Stories**: Urban legends, haunted folklore, and ghost ships.
-   - 🎭 **Costumes & Traditions**: Guising, soul cakes, Samhain origins.
-   - 🎬 **Horror Movies**: Slasher icons, cult classics, iconic quotes.
-   - 📜 **Halloween History**: Celtic rituals, Jack-o'-lantern turnip lore, Salem history.
-   - 🍬 **Candy & Treats**: Candy Corn history, trick-or-treat stats, vintage sweets.
-   - 🔮 **Paranormal Lore**: Cryptids, EVP, EMF equipment, parapsychology.
-5. **Thread-Safe SQLite Leaderboard**: High scores are recorded with WAL mode enabled. Legacy `high_scores.csv` entries are migrated automatically without data loss.
-6. **Cross-Platform Rich CLI**: Terminal game built with `rich` and `click`, utilizing non-blocking threads that run seamlessly on Windows, macOS, and Linux without Unix `SIGALRM`.
+### 🌟 Key Features in Version 2.1.0
+1. **Six Engaging Game Modes**:
+   - 🎃 **Classic**: Standard 10-question balanced spooky challenge.
+   - ⚡ **Quick Bite**: Fast-paced 5-question round for casual play.
+   - 📖 **Deep Dive**: 15-question marathon trivia exploration.
+   - ⏳ **Midnight Panic**: High-intensity 10-second timer per question with boosted speed multipliers.
+   - 💀 **Endless Night**: Survival mode with a 3-lives HUD (strikes indicator); survive as long as you can.
+   - 🕯️ **Daily Haunt**: Deterministic UTC-seeded daily challenge identical for all players globally, resetting at midnight UTC.
+2. **Category Mastery & Tier Progression**: Real-time accuracy tracking and tier ranks across all 6 categories (*Lost Soul*, *Curious Ghost*, *Crypt Explorer*, *Spirit Hunter*, *Nightmare Expert*, *Master of the Crypt*).
+3. **Badges & Achievements**: Deterministic badge conditions with animated toast notifications (*Ghost Hunter*, *Night Stalker*, *Possessed*, *Speed Demon*, *Perfect Séance*, *Hard Mode Survivor*, *Endless Slayer*, *Daily Haunt Victor*).
+4. **Anti-Cheat Authoritative Server Timing**: Monotonic server timestamps prevent client speed exploits; sliding-window rate limiting prevents brute-force abuse.
+5. **Pure Client-Side Web Audio API**: Procedural tone synthesizers (`correct`, `incorrect`, `tick`, `ui`, `fanfare`) with custom volume controls and mute toggles.
+6. **Accessible Settings & Social Sharing**: Settings modal with volume sliders, Haptic feedback toggle, and Reduced Motion toggle (`prefers-reduced-motion` override); Web Share API survival card generator.
+7. **PWA & Offline Reliability**: Root Service Worker (`/sw.js`), Web App Manifest (`/manifest.json`), offline fallback page (`/offline.html`), and standalone installation prompt.
+8. **Curated 100+ Question Bank**: 108 trivia questions across 6 categories (*Spooky Stories*, *Costumes & Traditions*, *Horror Movies*, *Halloween History*, *Candy & Treats*, *Paranormal Lore*).
+9. **Production DevOps Probes**: Kubernetes-compatible `/live`, `/ready`, and `/health` endpoints with SQLite WAL and PostgreSQL support.
 
 ---
 

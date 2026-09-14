@@ -6,57 +6,122 @@
     <title>Halloween Quiz 🎃 The Spooky Trivia Challenge</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
-    <link rel="manifest" href="/pwa/manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff7518">
-    <meta name="description" content="Test your Halloween, horror, and paranormal knowledge in this interactive spooky trivia game!">
+    <meta name="description" content="Test your Halloween, horror, and paranormal knowledge in this interactive spooky trivia challenge with multiple game modes, achievements, and instant sound synthesis!">
 </head>
 <body>
-    <!-- Sound & Controls Bar -->
-    <header class="top-nav">
+    <!-- Subtle spooky background fog layer -->
+    <div class="fog-wrap" aria-hidden="true">
+        <div class="fog-layer fog-one"></div>
+        <div class="fog-layer fog-two"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <header class="top-nav" role="banner">
         <div class="nav-branding">
-            <img class="brand-mark" src="/static/logo.svg" alt="">
+            <img class="brand-mark" src="/static/logo.svg" alt="Jack-o'-lantern Logo" width="36" height="36">
             <div>
                 <span class="brand-title">Halloween Quiz</span>
                 <span class="brand-kicker">Trivia after dark</span>
             </div>
         </div>
-        <div class="nav-actions">
-            <button id="btn-leaderboard-open" class="nav-btn" title="View High Scores">🏆 Leaderboard</button>
-            <div class="audio-controls">
-                <button id="btn-bgm-toggle" class="nav-btn" title="Toggle Horror Ambience">🎵 Ambience: Off</button>
-                <button id="btn-sound-toggle" class="nav-btn" title="Mute / Unmute Sound">🔊 Sound</button>
+        <nav class="nav-actions" aria-label="Game controls">
+            <button id="btn-pwa-install" class="nav-btn hidden" title="Install Halloween Quiz App" aria-label="Install App">📲 Install</button>
+            <button id="btn-mastery-open" class="nav-btn" title="View Badges & Category Mastery" aria-label="View Player Progress">📜 Progress</button>
+            <button id="btn-leaderboard-open" class="nav-btn" title="View High Scores" aria-label="View Leaderboard">🏆 Leaderboard</button>
+            <button id="btn-settings-open" class="nav-btn" title="Audio & Gameplay Settings" aria-label="Settings">⚙️ Settings</button>
+            <div class="audio-controls desktop-only" aria-label="Quick sound controls">
+                <button id="btn-bgm-toggle" class="nav-btn" title="Toggle Horror Ambience" aria-label="Toggle Ambience">🎵 Ambience: Off</button>
+                <button id="btn-sound-toggle" class="nav-btn" title="Mute / Unmute Sound Effects" aria-label="Toggle Sound">🔊 Sound</button>
                 <div class="volume-slider-wrap" title="Horror ambience volume">
                     <label for="music-volume-slider">Music</label>
-                    <input type="range" id="music-volume-slider" min="0" max="1" step="0.05" value="0.25">
+                    <input type="range" id="music-volume-slider" min="0" max="1" step="0.05" value="0.25" aria-label="Music volume">
                 </div>
                 <div class="volume-slider-wrap" title="Sound effect volume">
                     <label for="sfx-volume-slider">SFX</label>
-                    <input type="range" id="sfx-volume-slider" min="0" max="1" step="0.05" value="0.60">
+                    <input type="range" id="sfx-volume-slider" min="0" max="1" step="0.05" value="0.60" aria-label="SFX volume">
                 </div>
             </div>
-        </div>
+        </nav>
     </header>
 
-    <main class="container">
+    <main class="container" role="main">
+        <!-- In-app Notification Banner (Replaces raw alerts) -->
+        <div id="app-notice" class="app-notice hidden" role="alert" aria-live="assertive">
+            <span id="app-notice-text"></span>
+            <button id="btn-notice-dismiss" class="btn-notice-close" aria-label="Dismiss notice">✕</button>
+        </div>
+
         <!-- SCREEN 1: SETUP / START -->
-        <section id="screen-start" class="game-screen active">
+        <section id="screen-start" class="game-screen active" aria-labelledby="start-title">
             <div class="card setup-card">
                 <div class="card-header-art">
                     <div class="hero-emblem" aria-hidden="true">👻</div>
                     <p class="eyebrow">A midnight challenge</p>
-                    <h2>Dare to Enter the Spooky Quiz?</h2>
+                    <h1 id="start-title" class="setup-heading">Dare to Enter the Spooky Quiz?</h1>
                     <p class="subtitle">Test your knowledge of folklore, horror cinema, Halloween history and candy lore.</p>
                 </div>
 
-                <form id="form-start-quiz" class="setup-form">
+                <form id="form-start-quiz" class="setup-form" novalidate>
                     <div class="form-group">
                         <label for="player-name">Your Hunter Name:</label>
-                        <input type="text" id="player-name" name="player_name" maxlength="30" value="Ghost Hunter" required placeholder="Enter your spooky nickname">
+                        <input type="text" id="player-name" name="player_name" maxlength="30" value="Ghost Hunter" required placeholder="Enter your spooky nickname" autocomplete="nickname">
                     </div>
 
+                    <!-- Game Mode Selection -->
                     <div class="form-group">
-                        <label>Difficulty:</label>
-                        <div class="difficulty-options">
+                        <label id="mode-label">Game Mode:</label>
+                        <div class="mode-options" role="radiogroup" aria-labelledby="mode-label">
+                            <label class="mode-chip">
+                                <input type="radio" name="mode" value="classic" checked>
+                                <span class="mode-content">
+                                    <strong>🎃 Classic Crypt</strong>
+                                    <small>Standard 10-round challenge</small>
+                                </span>
+                            </label>
+                            <label class="mode-chip">
+                                <input type="radio" name="mode" value="quick">
+                                <span class="mode-content">
+                                    <strong>⚡ Quick Bite</strong>
+                                    <small>5 quick casual questions</small>
+                                </span>
+                            </label>
+                            <label class="mode-chip">
+                                <input type="radio" name="mode" value="deep">
+                                <span class="mode-content">
+                                    <strong>📖 Deep Dive</strong>
+                                    <small>15-round marathon</small>
+                                </span>
+                            </label>
+                            <label class="mode-chip">
+                                <input type="radio" name="mode" value="panic">
+                                <span class="mode-content">
+                                    <strong>⏳ Midnight Panic</strong>
+                                    <small>10s rush · High speed bonus</small>
+                                </span>
+                            </label>
+                            <label class="mode-chip">
+                                <input type="radio" name="mode" value="endless">
+                                <span class="mode-content">
+                                    <strong>💀 Endless Night</strong>
+                                    <small>Survive until 3 strikes</small>
+                                </span>
+                            </label>
+                            <label class="mode-chip">
+                                <input type="radio" name="mode" value="daily">
+                                <span class="mode-content">
+                                    <strong>🕯️ Daily Haunt</strong>
+                                    <small id="daily-badge-countdown">Today's global challenge</small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Difficulty Selection -->
+                    <div class="form-group">
+                        <label id="diff-label">Difficulty:</label>
+                        <div class="difficulty-options" role="radiogroup" aria-labelledby="diff-label">
                             <label class="diff-chip">
                                 <input type="radio" name="difficulty" value="easy">
                                 <span class="diff-content">
@@ -81,21 +146,30 @@
                         </div>
                     </div>
 
+                    <!-- Trivia Categories -->
                     <div class="form-group">
-                        <label>Trivia Categories:</label>
-                        <div id="category-picker" class="category-grid">
-                            <!-- Populated dynamically via JS -->
+                        <div class="category-header-wrap">
+                            <label id="cat-label">Trivia Categories:</label>
+                            <div class="cat-quick-actions">
+                                <button type="button" id="btn-select-all-cats" class="btn-link">Select All</button>
+                                <span>·</span>
+                                <button type="button" id="btn-clear-cats" class="btn-link">Clear</button>
+                            </div>
+                        </div>
+                        <div id="category-picker" class="category-grid" aria-labelledby="cat-label">
+                            <!-- Populated dynamically via JS / server fallback -->
                         </div>
                     </div>
 
-                    <div class="form-row">
+                    <!-- Question Count Selection (Hidden in Quick, Deep, Endless, Daily) -->
+                    <div class="form-row" id="wrap-num-questions">
                         <div class="form-group half">
                             <label for="num-questions">Question Count:</label>
                             <select id="num-questions" name="num_questions" class="select-styled">
-                                <option value="5">5 Questions (Quick Bite)</option>
+                                <option value="5">5 Questions</option>
                                 <option value="10" selected>10 Questions (Standard)</option>
-                                <option value="15">15 Questions (Deep Dive)</option>
-                                <option value="20">20 Questions (Nightmare)</option>
+                                <option value="15">15 Questions</option>
+                                <option value="20">20 Questions</option>
                             </select>
                         </div>
                     </div>
@@ -103,23 +177,30 @@
                     <button type="submit" id="btn-start" class="btn-cta">
                         <span>Enter the Crypt</span><span aria-hidden="true">→</span>
                     </button>
-                    <p class="keyboard-hint">Choose an answer with keys <kbd>1</kbd>–<kbd>4</kbd> once your round begins.</p>
+                    <p class="keyboard-hint">Answer using keyboard keys <kbd>1</kbd>–<kbd>4</kbd> or <kbd>A</kbd>–<kbd>D</kbd> once round begins.</p>
                 </form>
             </div>
         </section>
 
         <!-- SCREEN 2: ACTIVE QUESTION -->
-        <section id="screen-quiz" class="game-screen">
+        <section id="screen-quiz" class="game-screen" aria-labelledby="question-text">
             <div class="card quiz-card">
-                <!-- Status Bar -->
+                <!-- Status HUD -->
                 <div class="quiz-hud">
                     <div class="hud-item progress-indicator">
-                        <span id="q-counter">Question 1/10</span>
+                        <span id="q-counter">Question 1 of 10</span>
                         <span id="q-category-badge" class="badge">👻 Spooky Stories</span>
+                        <span id="q-mode-badge" class="badge badge-mode">Classic</span>
                     </div>
 
-                    <div class="hud-item streak-box" id="streak-indicator">
-                        <span class="streak-flame">🔥</span>
+                    <!-- Endless Mode Strikes HUD -->
+                    <div id="hud-strikes" class="hud-item strikes-box hidden" title="Strikes Remaining">
+                        <span class="strikes-label">Lives:</span>
+                        <span id="strike-icons" class="strike-icons" aria-label="3 lives remaining">💚 💚 💚</span>
+                    </div>
+
+                    <div class="hud-item streak-box" id="streak-indicator" title="Current streak">
+                        <span class="streak-flame" aria-hidden="true">🔥</span>
                         <span id="streak-count">0 Streak</span>
                     </div>
 
@@ -142,33 +223,38 @@
 
                 <!-- Question Text -->
                 <div class="question-body">
-                    <h3 id="question-text" class="question-title">Loading spooky question...</h3>
+                    <h2 id="question-text" class="question-title">Loading spooky question...</h2>
                 </div>
 
-                <!-- Answer Options (Keys 1-4) -->
+                <!-- Answer Options (Keys 1-4, A-D) -->
                 <div id="options-grid" class="options-container" role="radiogroup" aria-label="Trivia answers">
                     <!-- Option buttons populated by JS -->
                 </div>
 
-                <!-- Explanation & Feedback (Revealed after answer) -->
+                <!-- Explanation & Feedback Panel -->
                 <div id="feedback-panel" class="feedback-panel hidden" aria-live="assertive">
                     <div id="feedback-status" class="feedback-title">Correct! 🎉</div>
+                    <div id="feedback-correct-answer" class="feedback-correct hidden"></div>
                     <p id="feedback-explanation" class="feedback-text"></p>
+                    <div id="feedback-funfact-box" class="feedback-funfact hidden">
+                        <span class="funfact-badge">🎃 Spooky Fact:</span>
+                        <span id="feedback-funfact"></span>
+                    </div>
                     <div class="feedback-breakdown">
                         <span id="feedback-points">+200 pts</span>
                         <span id="feedback-bonus">+45 time bonus</span>
                     </div>
-                    <p id="feedback-achievement" class="feedback-achievement"></p>
+                    <p id="feedback-achievement" class="feedback-achievement hidden"></p>
                     <button id="btn-next-question" class="btn-primary">Next Question ➔</button>
                 </div>
             </div>
         </section>
 
         <!-- SCREEN 3: GAME OVER / SUMMARY -->
-        <section id="screen-gameover" class="game-screen">
+        <section id="screen-gameover" class="game-screen" aria-labelledby="summary-title">
             <div class="card summary-card">
                 <div class="summary-header">
-                    <span class="trophy-emoji" id="summary-badge-icon">🏆</span>
+                    <span class="trophy-emoji" id="summary-badge-icon" aria-hidden="true">🏆</span>
                     <h2 id="summary-title">Spooky Master!</h2>
                     <p id="summary-subtitle" class="subtitle">You survived the Halloween trivia challenge!</p>
                 </div>
@@ -192,6 +278,14 @@
                     </div>
                 </div>
 
+                <!-- Social Share Card Action -->
+                <div class="share-box">
+                    <button id="btn-share-result" class="btn-cta share-btn">
+                        <span>🎃 Share Survival Card</span>
+                    </button>
+                    <p id="share-feedback" class="share-feedback hidden" aria-live="polite">Copied to clipboard!</p>
+                </div>
+
                 <!-- Question Review List -->
                 <div class="review-section">
                     <h3>Round Review</h3>
@@ -201,23 +295,27 @@
                 <div class="summary-actions">
                     <button id="btn-play-again" class="btn-cta">🎃 Play Another Round</button>
                     <button id="btn-view-board-finish" class="btn-secondary">🏆 View Leaderboard</button>
+                    <button id="btn-view-mastery-finish" class="btn-secondary">📜 View Mastery</button>
                 </div>
             </div>
         </section>
 
-        <!-- SCREEN 4: LEADERBOARD MODAL -->
+        <!-- MODAL 1: LEADERBOARD -->
         <div id="modal-leaderboard" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
             <div class="modal-card">
                 <div class="modal-header">
                     <h2 id="leaderboard-title">🎃 Crypt of High Scores</h2>
-                    <button id="btn-close-modal" class="btn-close" aria-label="Close modal">✖</button>
+                    <button id="btn-close-modal" class="btn-close" aria-label="Close high scores modal">✖</button>
                 </div>
 
-                <div class="leaderboard-tabs">
-                    <button class="tab-btn active" data-diff="all">All Modes</button>
-                    <button class="tab-btn" data-diff="easy">Easy</button>
-                    <button class="tab-btn" data-diff="medium">Medium</button>
-                    <button class="tab-btn" data-diff="hard">Hard</button>
+                <div class="leaderboard-tabs" role="tablist" aria-label="Leaderboard filters">
+                    <button class="tab-btn active" data-diff="all" role="tab" aria-selected="true">All</button>
+                    <button class="tab-btn" data-diff="easy" role="tab" aria-selected="false">Easy</button>
+                    <button class="tab-btn" data-diff="medium" role="tab" aria-selected="false">Medium</button>
+                    <button class="tab-btn" data-diff="hard" role="tab" aria-selected="false">Hard</button>
+                    <button class="tab-btn tab-mode" data-mode="daily" role="tab" aria-selected="false">🕯️ Daily</button>
+                    <button class="tab-btn tab-mode" data-mode="panic" role="tab" aria-selected="false">⏳ Panic</button>
+                    <button class="tab-btn tab-mode" data-mode="endless" role="tab" aria-selected="false">💀 Endless</button>
                 </div>
 
                 <div class="table-responsive">
@@ -226,6 +324,7 @@
                             <tr>
                                 <th>#</th>
                                 <th>Hunter</th>
+                                <th>Diff</th>
                                 <th>Mode</th>
                                 <th>Score</th>
                                 <th>Acc.</th>
@@ -239,17 +338,117 @@
                 </div>
             </div>
         </div>
+
+        <!-- MODAL 2: SETTINGS & ACCESSIBILITY -->
+        <div id="modal-settings" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+            <div class="modal-card modal-settings-card">
+                <div class="modal-header">
+                    <h2 id="settings-title">⚙️ Game & Audio Settings</h2>
+                    <button id="btn-close-settings" class="btn-close" aria-label="Close settings modal">✖</button>
+                </div>
+
+                <div class="settings-content">
+                    <div class="setting-row">
+                        <div>
+                            <strong>Horror Ambience</strong>
+                            <p class="setting-desc">Looping procedural and musical horror atmosphere.</p>
+                        </div>
+                        <button id="modal-btn-bgm-toggle" class="btn-secondary btn-sm">Turn On</button>
+                    </div>
+
+                    <div class="setting-row">
+                        <div>
+                            <label for="modal-music-slider"><strong>Music Volume</strong></label>
+                            <p class="setting-desc">Adjust background soundtrack intensity.</p>
+                        </div>
+                        <input type="range" id="modal-music-slider" min="0" max="1" step="0.05" value="0.25">
+                    </div>
+
+                    <div class="setting-row">
+                        <div>
+                            <strong>Sound Effects (SFX)</strong>
+                            <p class="setting-desc">Interactive clicks, feedback chimes, and timer ticks.</p>
+                        </div>
+                        <button id="modal-btn-sound-toggle" class="btn-secondary btn-sm">Mute</button>
+                    </div>
+
+                    <div class="setting-row">
+                        <div>
+                            <label for="modal-sfx-slider"><strong>SFX Volume</strong></label>
+                            <p class="setting-desc">Adjust feedback sound levels.</p>
+                        </div>
+                        <input type="range" id="modal-sfx-slider" min="0" max="1" step="0.05" value="0.60">
+                    </div>
+
+                    <div class="setting-row">
+                        <div>
+                            <strong>Reduced Motion</strong>
+                            <p class="setting-desc">Minimizes fog, shake, and floating animations.</p>
+                        </div>
+                        <input type="checkbox" id="setting-reduced-motion" class="toggle-styled">
+                    </div>
+
+                    <div class="setting-row">
+                        <div>
+                            <strong>Haptic Feedback</strong>
+                            <p class="setting-desc">Vibrate device on answer submissions (mobile).</p>
+                        </div>
+                        <input type="checkbox" id="setting-vibration" class="toggle-styled" checked>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 3: PLAYER PROGRESS & MASTERY -->
+        <div id="modal-mastery" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="mastery-title">
+            <div class="modal-card modal-mastery-card">
+                <div class="modal-header">
+                    <h2 id="mastery-title">📜 Crypt Progression & Badges</h2>
+                    <button id="btn-close-mastery" class="btn-close" aria-label="Close progression modal">✖</button>
+                </div>
+
+                <div class="mastery-content">
+                    <section class="achievements-section">
+                        <h3>🏆 Unlocked Badges</h3>
+                        <div id="badges-grid" class="badges-grid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </section>
+
+                    <section class="category-mastery-section">
+                        <h3>🔮 Category Mastery</h3>
+                        <div id="mastery-grid" class="mastery-grid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <!-- Canvas for celebration confetti -->
+    <!-- Toast container for notifications -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Celebration confetti canvas -->
     <canvas id="confetti-canvas"></canvas>
 
-    <!-- One looping ambience element; failure to load never blocks the quiz. -->
+    <!-- Looping horror ambience element -->
     <audio id="bgm-audio" loop preload="none">
         <source src="/sounds/horror-ambience.mp3" type="audio/mpeg">
     </audio>
 
+    <footer class="app-footer">
+        <div class="footer-links">
+            <a href="/privacy">Privacy Policy</a>
+            <span>·</span>
+            <a href="https://github.com/jamoloto-dev/halloween" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+            <span>·</span>
+            <span>Version 2.0.0</span>
+        </div>
+        <p class="footer-copy">Synthesized audio crafted via Web Audio API · SQLite WAL Persistence</p>
+    </footer>
+
     <script>window.__HALLOWEEN_CATEGORY_FALLBACK__ = __CATEGORY_DATA__;</script>
-    <script src="/static/app.js?v=20260913-category-repair"></script>
+    <script src="/static/app.js?v=20260914-production-release"></script>
 </body>
 </html>
