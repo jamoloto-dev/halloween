@@ -1,6 +1,6 @@
 # 🎃 Halloween Quiz Game 2.0
 
-[![CI Pipeline](https://github.com/jafta1083/halloween/actions/workflows/ci.yml/badge.svg)](https://github.com/jafta1083/halloween/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/jamoloto-dev/halloween/actions/workflows/ci.yml/badge.svg)](https://github.com/jamoloto-dev/halloween/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -69,7 +69,7 @@ halloween/
 
 ```bash
 # Clone repository
-git clone https://github.com/jafta1083/halloween.git
+git clone https://github.com/jamoloto-dev/halloween.git
 cd halloween
 
 # Create virtual environment

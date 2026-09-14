@@ -18,7 +18,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=5000 \
     PATH=/home/appuser/.local/bin:$PATH \
-    PYTHONPATH=/app/src:$PYTHONPATH
+    PYTHONPATH=/app/src
 
 # Create non-root system user for secure container execution
 RUN groupadd -g 1001 appgroup && \

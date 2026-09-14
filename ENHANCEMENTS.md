@@ -95,7 +95,7 @@ halloween/
 ## 🔗 Quick Links
 
 - **Live Streamlit App:** [halloween-vyqm9o8dlhrabwyycyjiai.streamlit.app](https://halloween-vyqm9o8dlhrabwyycyjiai.streamlit.app)
-- **GitHub Repository:** [jafta1083/halloween](https://github.com/jafta1083/halloween)
+- **GitHub Repository:** [jamoloto-dev/halloween](https://github.com/jamoloto-dev/halloween)
 - **Analytics Dashboard:** [Google Analytics](https://analytics.google.com)
 - **Netlify Deployment:** [netlify.com](https://netlify.com)
 

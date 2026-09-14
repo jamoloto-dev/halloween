@@ -74,7 +74,7 @@ This guide walks you through setting up a custom domain for your Halloween Quiz 
 2. **Deploy to Streamlit Cloud:**
    - Go to [share.streamlit.io](https://share.streamlit.io)
    - Click "New app"
-   - Connect to your GitHub (`jafta1083/halloween`)
+   - Connect to your GitHub (`jamoloto-dev/halloween`)
    - Choose:
      - **Main file path:** `src/web_game_streamlit.py`
      - **Python version:** 3.11
