@@ -120,6 +120,13 @@ def test_audio_controls_in_settings_modal(live_page: Page):
     # Restore haunted_mansion
     track_select.select_option("haunted_mansion")
 
+    # Volume and SFX preferences must persist in the unified local profile.
+    music_slider.evaluate("(el) => { el.value = '0.31'; el.dispatchEvent(new Event('input', { bubbles: true })); }")
+    sfx_slider.evaluate("(el) => { el.value = '0.57'; el.dispatchEvent(new Event('input', { bubbles: true })); }")
+    profile = json.loads(live_page.evaluate("() => localStorage.getItem('spooky_player_profile')"))
+    assert profile["preferences"]["music_volume"] == 0.31
+    assert profile["preferences"]["sfx_volume"] == 0.57
+
     # Close modal
     live_page.locator("#btn-close-settings").click()
     expect(modal).not_to_be_visible()
@@ -130,6 +137,13 @@ def test_category_selection_cards_and_guards(live_page: Page):
     cards = live_page.locator(".category-card")
     expect(cards).to_have_count(6)
 
+    # Category cards use their own sampled event, rather than generic button audio.
+    live_page.evaluate("""() => {
+        window.__audio_event_log = [];
+        const sound = window.halloweenApp.sound;
+        sound.play = (key) => window.__audio_event_log.push(key);
+    }""")
+
     # Click first card to toggle off
     first_card = cards.nth(0)
     expect(first_card).to_have_class(re_pattern := "category-card category-chip selected")
@@ -137,6 +151,7 @@ def test_category_selection_cards_and_guards(live_page: Page):
     expect(check_badge).to_have_text("✓")
 
     first_card.click()
+    assert "category_select" in live_page.evaluate("() => window.__audio_event_log")
     expect(first_card).not_to_have_class(re_pattern)
     expect(check_badge).to_have_text("○")
 
@@ -165,6 +180,21 @@ def test_category_selection_cards_and_guards(live_page: Page):
     live_page.locator("#btn-select-all-cats").click()
     for i in range(6):
         expect(checkboxes.nth(i)).to_be_checked()
+
+
+def test_sampled_audio_failure_falls_back_without_throwing(live_page: Page):
+    """A failed sampled effect must not block the browser game loop."""
+    fallback_result = live_page.evaluate("""() => {
+        const sound = window.halloweenApp.sound;
+        sound.soundCache.delete('correct');
+        try {
+            sound.play('correct');
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }""")
+    assert fallback_result is True
 
 
 def test_first_launch_onboarding_flow(page: Page):

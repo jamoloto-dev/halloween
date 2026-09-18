@@ -31,8 +31,26 @@
         { id: "night_bat", name: "Night Creature", icon: "🦇", asset: "/static/avatars/night_bat.svg", desc: "Obsidian shadow swooping through the mist" },
     ];
 
+    // Central source of truth for sampled audio. Web Audio synthesis remains the
+    // fallback for every event so a missing file can never interrupt gameplay.
+    const AUDIO_EVENTS = Object.freeze({
+        ui_click: { url: "/sounds/ui-click.wav", level: 0.30, fallback: "ui" },
+        category_select: { url: "/sounds/category-select.wav", level: 0.30, fallback: "ui" },
+        quiz_start: { url: "/sounds/quiz-start.wav", level: 0.70, fallback: "start", duckMs: 850 },
+        correct: { url: "/sounds/answer-correct.wav", level: 0.60, fallback: "correct", duckMs: 900 },
+        incorrect: { url: "/sounds/answer-incorrect.wav", level: 0.60, fallback: "incorrect", duckMs: 1100 },
+        timeout: { url: "/sounds/answer-incorrect.wav", level: 0.48, fallback: "incorrect", duckMs: 900 },
+        timer_warning: { url: null, level: 0.40, fallback: "tick" },
+        achievement: { url: "/sounds/achievement-earned.wav", level: 0.65, fallback: "achievement", duckMs: 1200 },
+        diamond_earned: { url: "/sounds/diamond-earned.wav", level: 0.58, fallback: "achievement", duckMs: 900 },
+        booster: { url: "/sounds/achievement-earned.wav", level: 0.50, fallback: "achievement", duckMs: 850 },
+        stage_complete: { url: "/sounds/stage-complete.wav", level: 0.72, fallback: "congrats", duckMs: 1800 },
+        chapter_complete: { url: "/sounds/stage-complete.wav", level: 0.75, fallback: "congrats", duckMs: 2200 },
+        round_complete: { url: "/sounds/round-complete.wav", level: 0.70, fallback: "congrats", duckMs: 1800 },
+    });
+
     const AVAILABLE_TRACKS = [
-        { id: "haunted_mansion", name: "Haunted Mansion (Default Ambience)", url: "/sounds/horror-ambience.mp3" },
+        { id: "haunted_mansion", name: "Haunted Mansion (Default Ambience)", url: "/sounds/spooky-master-main.mp3" },
         { id: "silent", name: "Silent / No Music", url: null },
     ];
 
@@ -92,36 +110,19 @@
             this.sfxVolume = 0.60;
 
             // Audio balance levels (starting hierarchy)
-            this.soundLevels = {
-                ui: 0.20,
-                tick: 0.25,
-                correct: 0.60,
-                incorrect: 0.60,
-                achievement: 0.65,
-                start: 0.70,
-                congrats: 0.70,
-            };
-
-            this.soundUrls = {
-                start: "/sounds/start.mp3",
-                correct: "/sounds/correct.mp3",
-                incorrect: "/sounds/incorrect.mp3",
-                congrats: "/sounds/congrats.mp3",
-            };
-
-            this.duckDurations = {
-                correct: 900,
-                incorrect: 1100,
-                congrats: 1800,
-                achievement: 1200,
-            };
+            this.audioEvents = AUDIO_EVENTS;
+            this.soundUrls = Object.fromEntries(
+                Object.entries(this.audioEvents)
+                    .filter(([, event]) => Boolean(event.url))
+                    .map(([key, event]) => [key, event.url])
+            );
 
             this.initAudioContext();
             this.preloadSoundEffects();
 
             if (this.bgmAudio) {
                 this.bgmAudio.addEventListener("error", () => {
-                    console.warn("Horror ambience file error; continuing without background music.");
+                    console.warn("Background music file error; continuing without music.");
                     this.backgroundAvailable = false;
                     this.bgmPlaying = false;
                     this.notifyBgmStateChange();
@@ -455,29 +456,27 @@
             if (!this.sfxEnabled) return;
             this.unlock();
 
+            const event = this.audioEvents[soundKey] || {};
             const audio = this.soundCache.get(soundKey);
-            const targetVolume = Math.min(1, this.sfxVolume * (this.soundLevels[soundKey] || 1.0));
+            const targetVolume = Math.min(1, this.sfxVolume * (event.level || 1.0));
+            const fallback = event.fallback || soundKey;
 
             if (audio) {
                 audio.muted = false;
                 audio.volume = targetVolume;
                 audio.currentTime = 0;
-                audio.play().catch(() => {
-                    this.playSynthFallback(soundKey);
-                });
+                audio.play().catch(() => this.playSynthFallback(fallback));
             } else {
-                this.playSynthFallback(soundKey);
+                this.playSynthFallback(fallback);
             }
 
-            if (this.duckDurations[soundKey]) {
-                this.duckBackground(this.duckDurations[soundKey]);
+            if (event.duckMs) {
+                this.duckBackground(event.duckMs);
             }
         }
 
         playUiSound() {
-            if (!this.sfxEnabled) return;
-            this.unlock();
-            this.playSynthFallback("ui");
+            this.play("ui_click");
         }
 
         playSynthFallback(type) {
@@ -1075,12 +1074,14 @@
             // Unlock audio on any first user interaction
             document.addEventListener("click", () => this.sound.unlock(), { once: true });
             document.addEventListener("keydown", () => this.sound.unlock(), { once: true });
+            document.addEventListener("pointerdown", () => this.sound.startBackgroundAmbience(), { once: true });
 
             // UI sound on interactive buttons
             document.addEventListener("click", (event) => {
                 const button = event.target.closest("button");
                 if (!button || button.disabled || button.id === "btn-start" || button.classList.contains("option-btn")) return;
-                this.sound.playUiSound();
+                const isCategoryAction = button.id === "btn-select-all-cats" || button.id === "btn-clear-cats";
+                this.sound.play(isCategoryAction ? "category_select" : "ui_click");
             }, true);
 
             // UI sound on form inputs
@@ -1127,6 +1128,7 @@
             // Play Again
             this.dom.btnPlayAgain.addEventListener("click", () => {
                 this.showScreen("start");
+                this.sound.startBackgroundAmbience();
             });
 
             // Notice Dismiss
@@ -1465,7 +1467,7 @@
             this.applyProfileToUi();
             this.closeOnboarding();
             this.showToast("Welcome to Spooky Master!", `Identity established: ${nickname}`, "🎃");
-            this.sound.play("start");
+            this.sound.play("quiz_start");
         }
 
         // ==========================================
@@ -1575,7 +1577,6 @@
                     if (checkBadge) checkBadge.textContent = checked ? "✓" : "○";
                 }
             });
-            this.sound.playUiSound();
         }
 
         showNotice(message, type = "warning", duration = 5000) {
@@ -1715,7 +1716,7 @@
 
                     input.addEventListener("change", () => {
                         syncCardState();
-                        this.sound.playUiSound();
+                        this.sound.play("category_select");
                     });
 
                     // Keyboard accessible toggling
@@ -1832,7 +1833,7 @@
                     }
                 }
 
-                this.sound.play("start");
+                this.sound.play("quiz_start");
                 this.showScreen("quiz");
                 this.renderQuestion(data.first_question);
             } catch (err) {
@@ -1980,7 +1981,7 @@
                 // Warning sound during final 5 seconds
                 if (this.timeRemaining <= 5.0 && this.timeRemaining > 0) {
                     if (Math.floor(this.timeRemaining + deltaSec) !== Math.floor(this.timeRemaining)) {
-                        this.sound.playSynthFallback("tick");
+                        this.sound.play("timer_warning");
                     }
                 }
 
@@ -2101,7 +2102,7 @@
                 this.dom.feedbackPoints.textContent = `+${result.points_awarded - result.time_bonus} pts`;
                 this.dom.feedbackBonus.textContent = result.time_bonus > 0 ? `+${result.time_bonus} fast time bonus!` : "";
             } else {
-                this.sound.play("incorrect");
+                this.sound.play(selectedAnswer === "[TIME EXPIRED]" ? "timeout" : "incorrect");
                 this.vibrate([30, 35, 30]);
                 this.dom.feedbackStatus.textContent = "💀 Missed! Wandering in the dark...";
                 this.dom.feedbackStatus.className = "feedback-title incorrect-msg";
@@ -2263,7 +2264,6 @@
                     this.dom.reviewList.appendChild(row);
                 });
 
-                this.sound.play("congrats");
                 this.confetti.burst();
 
                 // Economy: award 5 diamonds for completing any round
@@ -2289,7 +2289,10 @@
                         completed_at: new Date().toISOString(),
                     };
                     this.saveProfile();
+                    this.sound.play("stage_complete");
                     this.showToast("Stage Complete!", `Awarded ${stars} ⭐ and 💎 ${stageReward}`, "🗺️");
+                } else {
+                    this.sound.play("round_complete");
                 }
 
                 // Haunted Duel Submission Handling
@@ -2556,7 +2559,7 @@
             return this.profile?.diamonds || 0;
         }
 
-        addDiamonds(amount, reason, refId = null) {
+        addDiamonds(amount, reason, refId = null, soundKey = null) {
             if (!this.profile) return false;
             if (refId) {
                 const alreadyRecorded = (this.profile.diamond_ledger || []).some((item) => item.refId === refId);
@@ -2572,6 +2575,7 @@
             });
             this.saveProfile();
             this.updateDiamondDisplays();
+            if (soundKey) this.sound.play(soundKey);
             this.showToast(`+${amount} 💎`, reason, "💎");
             return true;
         }
@@ -2718,7 +2722,7 @@
                     this.showToast("Spectral Ward", "Streak protected against one wrong answer", "🛡️");
                 }
 
-                this.sound.playSynthFallback("achievement");
+                this.sound.play("booster");
             } catch (err) {
                 console.warn("Booster activation error:", err);
             }
@@ -2943,7 +2947,7 @@
                 if (!res.ok) throw new Error("Claim failed");
                 if (!this.profile.claimed_community_goals) this.profile.claimed_community_goals = {};
                 this.profile.claimed_community_goals[goalId] = true;
-                this.addDiamonds(reward, "Community Haunt Goal Claimed", goalId);
+                this.addDiamonds(reward, "Community Haunt Goal Claimed", goalId, "diamond_earned");
                 this.dom.btnClaimCommunity?.classList.add("hidden");
                 this.showToast("Bounty Claimed!", `+${reward} 💎 Community Goal Reward`, "🌐");
             } catch (err) {
