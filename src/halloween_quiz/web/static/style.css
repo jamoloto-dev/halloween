@@ -72,7 +72,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,
   top:0;
   z-index:100;
 }
-.nav-branding { display:flex; align-items:center; gap:11px; min-width:max-content; }
+.nav-branding { display:flex; align-items:center; gap:11px; min-width:max-content; cursor:pointer; user-select:none; }
+.nav-branding:focus-visible { outline:2px solid var(--accent); outline-offset:4px; border-radius:8px; }
+.fog-wrap { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
 .brand-mark { width:38px; height:38px; border-radius:11px; box-shadow:0 7px 20px rgba(255,114,24,.25); }
 .brand-title { display:block; font-size:16px; font-weight:800; letter-spacing:-.035em; line-height:1.1; }
 .brand-kicker { display:block; margin-top:2px; color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }

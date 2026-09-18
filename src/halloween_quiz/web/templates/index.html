@@ -19,7 +19,7 @@
 
     <!-- Top Navigation Bar (Simplified) -->
     <header class="top-nav" role="banner">
-        <div class="nav-branding">
+        <div class="nav-branding" id="nav-branding-home" role="button" tabindex="0" title="Return to Home Screen" aria-label="Spooky Master Home">
             <img class="brand-mark" src="/static/logo.svg" alt="Jack-o'-lantern Logo" width="36" height="36">
             <div>
                 <span class="brand-title">🎃 Spooky Master</span>
@@ -477,7 +477,7 @@
                                 <label for="modal-music-slider"><strong>Music Volume</strong> (<span id="music-vol-val">25%</span>)</label>
                                 <p class="setting-desc">Adjust background soundtrack intensity.</p>
                             </div>
-                            <input type="range" id="modal-music-slider" min="0" max="1" step="0.05" value="0.25" aria-label="Music volume">
+                            <input type="range" id="modal-music-slider" min="0" max="1" step="0.01" value="0.25" aria-label="Music volume">
                         </div>
 
                         <div class="setting-row">
@@ -493,7 +493,7 @@
                                 <label for="modal-sfx-slider"><strong>SFX Volume</strong> (<span id="sfx-vol-val">60%</span>)</label>
                                 <p class="setting-desc">Adjust feedback sound levels.</p>
                             </div>
-                            <input type="range" id="modal-sfx-slider" min="0" max="1" step="0.05" value="0.60" aria-label="SFX volume">
+                            <input type="range" id="modal-sfx-slider" min="0" max="1" step="0.01" value="0.60" aria-label="SFX volume">
                         </div>
                     </div>
 
@@ -611,6 +611,7 @@
             <div class="modal-card modal-onboarding-card">
                 <div class="modal-header">
                     <h2 id="onboarding-title">🎃 Welcome to Spooky Master!</h2>
+                    <button id="btn-close-onboarding" class="btn-close" aria-label="Close welcome banner">✖</button>
                 </div>
                 <div class="onboarding-body">
                     <p class="onboarding-subtitle">Before you venture into the midnight crypt, establish your hunter identity.</p>

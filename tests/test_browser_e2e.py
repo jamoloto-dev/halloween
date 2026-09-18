@@ -557,3 +557,266 @@ def test_haunted_duels_creation_and_traps(live_page: Page):
     # Close duels modal
     live_page.locator("#btn-close-duels").click()
     expect(duels_modal).not_to_be_visible()
+
+
+def test_explore_chapter_map_button(live_page: Page):
+    """Clicking 'Explore Chapter Map' button opens canonical Campaign modal."""
+    btn = live_page.locator("#btn-hero-journey")
+    expect(btn).to_be_visible()
+    btn.click()
+
+    campaign_modal = live_page.locator("#modal-campaign")
+    expect(campaign_modal).to_be_visible()
+    expect(campaign_modal.locator("#chapter-title")).to_be_visible()
+    expect(campaign_modal.locator("#campaign-chapter-tabs .tab-btn")).to_have_count(6)
+
+    # Close modal
+    live_page.locator("#btn-close-campaign").click()
+    expect(campaign_modal).not_to_be_visible()
+
+
+def test_journey_navigation(live_page: Page):
+    """Clicking 'Journey' button opens canonical Campaign modal."""
+    btn = live_page.locator("#btn-campaign-nav")
+    expect(btn).to_be_visible()
+    btn.click()
+
+    campaign_modal = live_page.locator("#modal-campaign")
+    expect(campaign_modal).to_be_visible()
+    expect(campaign_modal.locator("#chapter-title")).to_be_visible()
+
+    # Close modal
+    live_page.locator("#btn-close-campaign").click()
+    expect(campaign_modal).not_to_be_visible()
+
+
+def test_duels_navigation(live_page: Page):
+    """Clicking 'Duels' button opens Haunted Duels modal."""
+    btn = live_page.locator("#btn-duels-nav")
+    expect(btn).to_be_visible()
+    btn.click()
+
+    duels_modal = live_page.locator("#modal-duels")
+    expect(duels_modal).to_be_visible()
+    expect(duels_modal.locator("#duel-diff")).to_be_visible()
+
+    # Close modal
+    live_page.locator("#btn-close-duels").click()
+    expect(duels_modal).not_to_be_visible()
+
+
+def test_progress_navigation(live_page: Page):
+    """Clicking 'Progress' button in top nav opens Player Profile & Mastery modal."""
+    btn = live_page.locator(".nav-actions #btn-mastery-open")
+    expect(btn).to_be_visible()
+    btn.click()
+
+    mastery_modal = live_page.locator("#modal-mastery")
+    expect(mastery_modal).to_be_visible()
+    expect(mastery_modal.locator("#badges-grid")).to_be_visible()
+    expect(mastery_modal.locator("#mastery-grid")).to_be_visible()
+
+    # Close modal
+    live_page.locator("#btn-close-mastery").click()
+    expect(mastery_modal).not_to_be_visible()
+
+
+def test_nav_branding_returns_home(live_page: Page):
+    """Clicking top-nav branding returns to start screen from active quiz."""
+    live_page.locator("#btn-start").click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible()
+
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+    expect(live_page.locator("#screen-quiz")).not_to_be_visible()
+
+
+def test_background_music_source(live_page: Page):
+    """Verify background music audio element points to canonical spooky-master-main.mp3."""
+    bg_audio = live_page.locator("#bgm-audio")
+    expect(bg_audio).to_be_attached()
+
+    audio_state = live_page.evaluate("""() => {
+        const sound = window.halloweenApp.sound;
+        const audioEl = sound.bgmAudio;
+        const sourceEl = audioEl ? audioEl.querySelector('source') : null;
+        return {
+            selectedTrack: sound.selectedTrack,
+            bgmSrc: audioEl ? (audioEl.src || (sourceEl ? sourceEl.src : null)) : null,
+            musicEnabled: sound.musicEnabled,
+            musicVolume: sound.musicVolume,
+        };
+    }""")
+    assert audio_state["bgmSrc"] is not None
+    assert "spooky-master-main.mp3" in audio_state["bgmSrc"]
+    assert audio_state["selectedTrack"] in ("haunted_mansion", "horror-ambience")
+
+
+def test_correct_sample_mapping(live_page: Page):
+    """Verify 'correct' event is mapped to /sounds/answer-correct.wav and triggers on correct answer."""
+    mapping = live_page.evaluate("() => window.halloweenApp.sound.soundUrls['correct']")
+    assert mapping == "/sounds/answer-correct.wav"
+
+    # Start game to reach active question screen
+    live_page.locator("#num-questions").select_option("5")
+    live_page.locator("#btn-start").click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible()
+
+    # Instrument sound.play to track played events
+    live_page.evaluate("""() => {
+        window.__audio_event_log = [];
+        const origPlay = window.halloweenApp.sound.play.bind(window.halloweenApp.sound);
+        window.halloweenApp.sound.play = (key) => {
+            window.__audio_event_log.push(key);
+            return origPlay(key);
+        };
+        window.halloweenApp.showAnswerResult({
+            is_correct: true,
+            points_awarded: 150,
+            time_bonus: 50,
+            streak: 1,
+            total_score: 150,
+            correct_answer: "Pumpkin",
+            explanation: "Carved pumpkins ward off evil spirits.",
+            is_game_over: false,
+            next_question: null,
+        }, "Pumpkin");
+    }""")
+
+    expect(live_page.locator("#feedback-panel")).to_be_visible()
+    event_log = live_page.evaluate("() => window.__audio_event_log")
+    assert "correct" in event_log
+
+    # Return to home
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+
+def test_incorrect_sample_mapping(live_page: Page):
+    """Verify 'incorrect' event is mapped to /sounds/answer-incorrect.wav and triggers on wrong answer."""
+    mapping = live_page.evaluate("() => window.halloweenApp.sound.soundUrls['incorrect']")
+    assert mapping == "/sounds/answer-incorrect.wav"
+
+    # Start game to reach active question screen
+    live_page.locator("#btn-start").click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible()
+
+    live_page.evaluate("""() => {
+        window.__audio_event_log = [];
+        const origPlay = window.halloweenApp.sound.play.bind(window.halloweenApp.sound);
+        window.halloweenApp.sound.play = (key) => {
+            window.__audio_event_log.push(key);
+            return origPlay(key);
+        };
+        window.halloweenApp.showAnswerResult({
+            is_correct: false,
+            points_awarded: 0,
+            time_bonus: 0,
+            streak: 0,
+            total_score: 0,
+            correct_answer: "Pumpkin",
+            explanation: "Carved pumpkins ward off evil spirits.",
+            is_game_over: false,
+            next_question: null,
+        }, "Turnip");
+    }""")
+
+    expect(live_page.locator("#feedback-panel")).to_be_visible()
+    event_log = live_page.evaluate("() => window.__audio_event_log")
+    assert "incorrect" in event_log
+
+    # Return to home
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+
+def test_category_sound_mapping(live_page: Page):
+    """Verify category selection plays category-select.wav."""
+    mapping = live_page.evaluate("() => window.halloweenApp.sound.soundUrls['category_select']")
+    assert mapping == "/sounds/category-select.wav"
+
+    live_page.evaluate("""() => {
+        window.__audio_event_log = [];
+        const origPlay = window.halloweenApp.sound.play.bind(window.halloweenApp.sound);
+        window.halloweenApp.sound.play = (key) => {
+            window.__audio_event_log.push(key);
+            return origPlay(key);
+        };
+    }""")
+
+    cards = live_page.locator(".category-card")
+    cards.first.click()
+
+    event_log = live_page.evaluate("() => window.__audio_event_log")
+    assert "category_select" in event_log
+
+
+def test_audio_settings_persistence(live_page: Page):
+    """Verify settings modal volume, mute, and track options persist to profile and reload."""
+    live_page.locator("#btn-settings-open").click()
+    settings_modal = live_page.locator("#modal-settings")
+    expect(settings_modal).to_be_visible()
+
+    music_slider = live_page.locator("#modal-music-slider")
+    sfx_slider = live_page.locator("#modal-sfx-slider")
+    track_select = live_page.locator("#setting-music-track")
+
+    # Set new audio preferences
+    music_slider.evaluate("(el) => { el.value = '0.42'; el.dispatchEvent(new Event('input', { bubbles: true })); }")
+    sfx_slider.evaluate("(el) => { el.value = '0.78'; el.dispatchEvent(new Event('input', { bubbles: true })); }")
+    track_select.select_option("silent")
+
+    # Close settings
+    live_page.locator("#btn-close-settings").click()
+    expect(settings_modal).not_to_be_visible()
+
+    # Verify profile in localStorage
+    profile = json.loads(live_page.evaluate("() => localStorage.getItem('spooky_player_profile')"))
+    assert profile["preferences"]["music_volume"] == 0.42
+    assert profile["preferences"]["sfx_volume"] == 0.78
+    assert profile["preferences"]["music_track"] == "silent"
+
+    # Reload page and verify state restored
+    live_page.reload()
+    live_page.wait_for_load_state("networkidle")
+
+    sound_state = live_page.evaluate("""() => {
+        const sound = window.halloweenApp.sound;
+        return {
+            musicVol: sound.musicVolume,
+            sfxVol: sound.sfxVolume,
+            track: sound.selectedTrack,
+        };
+    }""")
+    assert sound_state["musicVol"] == 0.42
+    assert sound_state["sfxVol"] == 0.78
+    assert sound_state["track"] == "silent"
+
+    # Restore default haunted_mansion track
+    live_page.locator("#btn-settings-open").click()
+    track_select.select_option("haunted_mansion")
+    live_page.locator("#btn-close-settings").click()
+
+
+def test_onboarding_overlay_dismissal_and_no_blocking(page: Page):
+    """Verify fresh visitor can dismiss onboarding with close button and navigate cleanly."""
+    page.goto(BASE_URL)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_load_state("networkidle")
+
+    onboarding = page.locator("#modal-onboarding")
+    expect(onboarding).to_be_visible()
+
+    # Close button is visible and dismisses overlay
+    close_btn = page.locator("#btn-close-onboarding")
+    expect(close_btn).to_be_visible()
+    close_btn.click()
+    expect(onboarding).not_to_be_visible()
+
+    # Explore Chapter Map can now be clicked directly without any overlay blocking
+    page.locator("#btn-hero-journey").click()
+    expect(page.locator("#modal-campaign")).to_be_visible()
+    page.locator("#btn-close-campaign").click()
+    expect(page.locator("#modal-campaign")).not_to_be_visible()
+

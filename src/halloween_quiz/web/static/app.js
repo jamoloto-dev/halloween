@@ -51,6 +51,7 @@
 
     const AVAILABLE_TRACKS = [
         { id: "haunted_mansion", name: "Haunted Mansion (Default Ambience)", url: "/sounds/spooky-master-main.mp3" },
+        { id: "horror-ambience", name: "Haunted Mansion (Default Ambience)", url: "/sounds/spooky-master-main.mp3" },
         { id: "silent", name: "Silent / No Music", url: null },
     ];
 
@@ -200,9 +201,10 @@
         }
 
         setTrack(trackId, restartIfPlaying = true) {
-            this.selectedTrack = trackId;
-            const track = AVAILABLE_TRACKS.find((t) => t.id === trackId);
-            if (!track || !track.url || trackId === "silent") {
+            const canonicalId = (trackId === "horror-ambience" || !trackId) ? "haunted_mansion" : trackId;
+            this.selectedTrack = canonicalId;
+            const track = AVAILABLE_TRACKS.find((t) => t.id === canonicalId);
+            if (!track || !track.url || canonicalId === "silent") {
                 if (this.bgmAudio && this.bgmPlaying) {
                     this.stopBackgroundAmbience(false, 250);
                 }
@@ -462,10 +464,14 @@
             const fallback = event.fallback || soundKey;
 
             if (audio) {
-                audio.muted = false;
-                audio.volume = targetVolume;
-                audio.currentTime = 0;
-                audio.play().catch(() => this.playSynthFallback(fallback));
+                try {
+                    audio.currentTime = 0;
+                    audio.volume = targetVolume;
+                    audio.muted = false;
+                    audio.play().catch(() => this.playSynthFallback(fallback));
+                } catch (err) {
+                    this.playSynthFallback(fallback);
+                }
             } else {
                 this.playSynthFallback(fallback);
             }
@@ -676,6 +682,7 @@
                 toastContainer: document.getElementById("toast-container"),
 
                 // Top Navigation Bar
+                btnHome: document.getElementById("nav-branding-home"),
                 btnPwaInstall: document.getElementById("btn-pwa-install"),
                 btnMasteryOpen: document.getElementById("btn-mastery-open"),
                 btnLeaderboard: document.getElementById("btn-leaderboard-open"),
@@ -718,6 +725,7 @@
                 masteryGrid: document.getElementById("mastery-grid"),
 
                 modalOnboarding: document.getElementById("modal-onboarding"),
+                btnCloseOnboarding: document.getElementById("btn-close-onboarding"),
                 onboardingAvatarGrid: document.getElementById("onboarding-avatar-grid"),
                 onboardingHunterName: document.getElementById("onboarding-hunter-name"),
                 btnSaveOnboarding: document.getElementById("btn-save-onboarding"),
@@ -912,9 +920,51 @@
                                 claimed_stage_rewards: {},
                                 claimed_chapter_rewards: {},
                             };
+                        } else {
+                            if (!parsed.campaign.completed_stages) parsed.campaign.completed_stages = {};
+                            if (!parsed.campaign.claimed_stage_rewards) parsed.campaign.claimed_stage_rewards = {};
+                            if (!parsed.campaign.claimed_chapter_rewards) parsed.campaign.claimed_chapter_rewards = {};
                         }
                         if (!parsed.claimed_community_goals) parsed.claimed_community_goals = {};
                         if (!parsed.diamond_ledger) parsed.diamond_ledger = [];
+
+                        if (!parsed.stats) {
+                            parsed.stats = {
+                                games_played: 0,
+                                total_answered: 0,
+                                total_correct: 0,
+                                best_score: 0,
+                                best_streak: 0,
+                                preferred_mode: "classic",
+                            };
+                        } else {
+                            if (typeof parsed.stats.games_played !== "number") parsed.stats.games_played = 0;
+                            if (typeof parsed.stats.total_answered !== "number") parsed.stats.total_answered = 0;
+                            if (typeof parsed.stats.total_correct !== "number") parsed.stats.total_correct = 0;
+                            if (typeof parsed.stats.best_score !== "number") parsed.stats.best_score = 0;
+                            if (typeof parsed.stats.best_streak !== "number") parsed.stats.best_streak = 0;
+                            if (!parsed.stats.preferred_mode) parsed.stats.preferred_mode = "classic";
+                        }
+
+                        if (!parsed.preferences) {
+                            parsed.preferences = {
+                                music_enabled: true,
+                                music_volume: 0.25,
+                                music_track: "haunted_mansion",
+                                sfx_enabled: true,
+                                sfx_volume: 0.60,
+                                reduced_motion: false,
+                                vibration: true,
+                            };
+                        } else {
+                            if (parsed.preferences.music_enabled === undefined) parsed.preferences.music_enabled = true;
+                            if (typeof parsed.preferences.music_volume !== "number" || isNaN(parsed.preferences.music_volume)) parsed.preferences.music_volume = 0.25;
+                            if (!parsed.preferences.music_track || parsed.preferences.music_track === "horror-ambience") parsed.preferences.music_track = "haunted_mansion";
+                            if (parsed.preferences.sfx_enabled === undefined) parsed.preferences.sfx_enabled = true;
+                            if (typeof parsed.preferences.sfx_volume !== "number" || isNaN(parsed.preferences.sfx_volume)) parsed.preferences.sfx_volume = 0.60;
+                            parsed.preferences.reduced_motion = Boolean(parsed.preferences.reduced_motion);
+                            parsed.preferences.vibration = parsed.preferences.vibration !== false;
+                        }
 
                         this.sound.applyPreferences(parsed.preferences);
                         return parsed;
@@ -933,8 +983,10 @@
                 localStorage.getItem("halloween_muted")
             );
 
-            const defaultMusicVol = parseFloat(localStorage.getItem("halloween_music_volume") || "0.25");
-            const defaultSfxVol = parseFloat(localStorage.getItem("halloween_sfx_volume") || "0.60");
+            let defaultMusicVol = parseFloat(localStorage.getItem("halloween_music_volume") || "0.25");
+            if (!Number.isFinite(defaultMusicVol) || defaultMusicVol < 0) defaultMusicVol = 0.25;
+            let defaultSfxVol = parseFloat(localStorage.getItem("halloween_sfx_volume") || "0.60");
+            if (!Number.isFinite(defaultSfxVol) || defaultSfxVol < 0) defaultSfxVol = 0.60;
             const isMuted = localStorage.getItem("halloween_muted") === "true";
             const isReducedMotion = localStorage.getItem("halloween_reduced_motion") === "true";
             const isVibration = localStorage.getItem("halloween_vibration") !== "false";
@@ -1071,10 +1123,32 @@
         // EVENT INITIALIZATION
         // ==========================================
         initEvents() {
-            // Unlock audio on any first user interaction
-            document.addEventListener("click", () => this.sound.unlock(), { once: true });
-            document.addEventListener("keydown", () => this.sound.unlock(), { once: true });
-            document.addEventListener("pointerdown", () => this.sound.startBackgroundAmbience(), { once: true });
+            // Robust audio unlock and background ambience start on user interaction
+            const unlockAndStartBgm = () => {
+                this.sound.unlock();
+                if (this.sound.musicEnabled && !this.sound.bgmPlaying) {
+                    this.sound.startBackgroundAmbience();
+                }
+            };
+            document.addEventListener("click", unlockAndStartBgm);
+            document.addEventListener("keydown", unlockAndStartBgm);
+            document.addEventListener("pointerdown", unlockAndStartBgm);
+
+            // Home Branding Navigation
+            this.dom.btnHome?.addEventListener("click", () => this.openHome());
+            this.dom.btnHome?.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    this.openHome();
+                }
+            });
+
+            // Global Escape key closes active modals
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    this.closeAllModals();
+                }
+            });
 
             // UI sound on interactive buttons
             document.addEventListener("click", (event) => {
@@ -1248,13 +1322,21 @@
                 if (e.target === this.dom.modalMastery) this.closeMastery();
             });
 
-            // Onboarding Avatar Grid and Name Suggestions
+            // Onboarding Avatar Grid, Close, and Name Suggestions
             this.renderOnboardingAvatarGrid();
             this.dom.btnSaveOnboarding?.addEventListener("click", () => {
                 this.completeOnboarding();
             });
             this.dom.btnSkipOnboarding?.addEventListener("click", () => {
                 this.completeOnboarding();
+            });
+            this.dom.btnCloseOnboarding?.addEventListener("click", () => {
+                this.completeOnboarding();
+            });
+            this.dom.modalOnboarding?.addEventListener("click", (e) => {
+                if (e.target === this.dom.modalOnboarding) {
+                    this.completeOnboarding();
+                }
             });
             document.querySelectorAll(".btn-suggestion").forEach((btn) => {
                 btn.addEventListener("click", () => {
@@ -1468,6 +1550,26 @@
             this.closeOnboarding();
             this.showToast("Welcome to Spooky Master!", `Identity established: ${nickname}`, "🎃");
             this.sound.play("quiz_start");
+        }
+
+        closeAllModals() {
+            if (this.dom.modalOnboarding && !this.dom.modalOnboarding.classList.contains("hidden")) {
+                this.completeOnboarding();
+            }
+            this.dom.modalCampaign?.classList.add("hidden");
+            this.dom.modalChapterStory?.classList.add("hidden");
+            this.dom.modalDuels?.classList.add("hidden");
+            this.dom.modalMastery?.classList.add("hidden");
+            this.dom.modalLeaderboard?.classList.add("hidden");
+            this.dom.modalSettings?.classList.add("hidden");
+            this.dom.modalShop?.classList.add("hidden");
+            this.dom.modalAvatarPicker?.classList.add("hidden");
+        }
+
+        openHome() {
+            this.closeAllModals();
+            this.showScreen("start");
+            window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
         // ==========================================
@@ -2376,6 +2478,7 @@
         // LEADERBOARD MODAL
         // ==========================================
         async openLeaderboard() {
+            this.closeAllModals();
             this.dom.modalLeaderboard.classList.remove("hidden");
             this.fetchLeaderboard(null, null);
         }
@@ -2429,6 +2532,7 @@
         // SETTINGS MODAL
         // ==========================================
         openSettings() {
+            this.closeAllModals();
             this.syncSettingsUi();
             this.dom.modalSettings?.classList.remove("hidden");
             if (this.dom.settingsPlayerName) {
@@ -2465,6 +2569,7 @@
         // PLAYER PROFILE & MASTERY DASHBOARD
         // ==========================================
         openMastery() {
+            this.closeAllModals();
             this.renderMasteryModal();
             this.dom.modalMastery?.classList.remove("hidden");
         }
@@ -2474,16 +2579,18 @@
         }
 
         renderMasteryModal() {
-            const progress = this.getProgress();
+            const progress = this.getProgress() || { mastery: {}, achievements: {} };
+            const achievements = progress.achievements || {};
+            const stats = (this.profile && this.profile.stats) || {};
 
             // Profile Hero Stats
-            if (this.dom.dashStatGames) this.dom.dashStatGames.textContent = this.profile.stats.games_played || 0;
-            if (this.dom.dashStatBestScore) this.dom.dashStatBestScore.textContent = (this.profile.stats.best_score || 0).toLocaleString();
-            if (this.dom.dashStatBestStreak) this.dom.dashStatBestStreak.textContent = this.profile.stats.best_streak || 0;
+            if (this.dom.dashStatGames) this.dom.dashStatGames.textContent = stats.games_played || 0;
+            if (this.dom.dashStatBestScore) this.dom.dashStatBestScore.textContent = (stats.best_score || 0).toLocaleString();
+            if (this.dom.dashStatBestStreak) this.dom.dashStatBestStreak.textContent = stats.best_streak || 0;
 
             // Compute overall mastery tier
-            const totalAnswered = this.profile.stats.total_answered || 0;
-            const totalCorrect = this.profile.stats.total_correct || 0;
+            const totalAnswered = stats.total_answered || 0;
+            const totalCorrect = stats.total_correct || 0;
             const overallPct = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
             const currentTier = getMasteryTier(overallPct);
 
@@ -2496,7 +2603,7 @@
             if (this.dom.badgesGrid) {
                 this.dom.badgesGrid.innerHTML = "";
                 ALL_BADGES.forEach((badge) => {
-                    const unlocked = Boolean(progress.achievements[badge.id]);
+                    const unlocked = Boolean(achievements[badge.id]);
                     if (unlocked) unlockedCount += 1;
 
                     const el = document.createElement("div");
@@ -2638,6 +2745,7 @@
         }
 
         openShop() {
+            this.closeAllModals();
             this.updateDiamondDisplays();
             this.updateBoosterHud();
             this.dom.modalShop?.classList.remove("hidden");
@@ -2745,6 +2853,7 @@
         }
 
         openCampaign() {
+            this.closeAllModals();
             this.dom.modalCampaign?.classList.remove("hidden");
             if (!this.campaignChapters || this.campaignChapters.length === 0) {
                 this.loadCampaignData();
@@ -2959,6 +3068,7 @@
         // HAUNTED DUELS (ASYNCHRONOUS PVP)
         // ==========================================
         openDuels() {
+            this.closeAllModals();
             this.dom.modalDuels?.classList.remove("hidden");
         }
 
