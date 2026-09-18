@@ -25,5 +25,9 @@ if __name__ == "__main__":
         port = int(os.getenv("PORT", 5000))
         host = os.getenv("HOST", "0.0.0.0")
         reload = os.getenv("ENVIRONMENT", "development").lower() == "development"
-        print(f"🎃 Starting Halloween Quiz Web Application on http://{host}:{port}")
+        print("---------------------------------------")
+        print("🎃 Spooky Master is running")
+        print("Open:")
+        print(f"http://127.0.0.1:{port}")
+        print("---------------------------------------")
         uvicorn.run("run:app", host=host, port=port, reload=reload)

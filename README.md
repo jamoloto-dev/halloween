@@ -90,7 +90,7 @@ pip install -e ".[dev]"
 # Run web server (FastAPI + Uvicorn)
 python run.py
 ```
-Open **http://localhost:5000** in your browser to play!
+Open **http://127.0.0.1:5000** in your browser to play!
 
 ### 3. Launch the Terminal Game (Rich CLI)
 
@@ -116,7 +116,7 @@ halloween-quiz stats
 ```bash
 docker compose up --build
 ```
-Access the application at `http://localhost:5000`. High scores persist in `./data`.
+Access the application at `http://127.0.0.1:5000`. High scores persist in `./data`.
 
 ### Production Docker Build
 ```bash

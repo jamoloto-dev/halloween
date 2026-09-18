@@ -21,7 +21,7 @@ Run it locally (exposes port 5000):
 docker run -p 5000:5000 -e PORT=5000 --rm halloween-quiz:latest
 ```
 
-Open http://localhost:5000 to test.
+Open http://127.0.0.1:5000 to test.
 
 Notes:
 - The Dockerfile includes a commented line showing how to install `ffmpeg` if you want MP3 conversion inside the image. Uncomment and rebuild if desired.

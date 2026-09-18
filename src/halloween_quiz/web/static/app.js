@@ -888,8 +888,26 @@
             this.applyProfileToUi();
             this.updateDiamondDisplays();
             this.updateBoosterHud();
+            this.purgeObsoleteCaches();
             this.fetchCommunityStats();
             this.loadCampaignData();
+        }
+
+        async purgeObsoleteCaches() {
+            if ("caches" in window) {
+                try {
+                    const currentCache = "spooky-master-v2.2.0";
+                    const keys = await caches.keys();
+                    for (const key of keys) {
+                        if (key !== currentCache) {
+                            console.log("[CACHE] Purging obsolete cache:", key);
+                            await caches.delete(key);
+                        }
+                    }
+                } catch (err) {
+                    console.warn("[CACHE] Cache cleanup warning:", err);
+                }
+            }
         }
 
         escapeHtml(str) {
@@ -910,11 +928,26 @@
                 const storedRaw = localStorage.getItem("spooky_player_profile");
                 if (storedRaw) {
                     const parsed = JSON.parse(storedRaw);
-                    if (parsed && parsed.player_id) {
+                    if (parsed && typeof parsed === "object") {
+                        if (!parsed.player_id) parsed.player_id = generateUuid();
+                        if (!parsed.nickname) parsed.nickname = "Ghost Hunter";
+                        if (!parsed.avatar_id) parsed.avatar_id = "pumpkin_hunter";
                         if (typeof parsed.diamonds !== "number") parsed.diamonds = 50;
-                        if (!parsed.boosters) parsed.boosters = { hint: 1, time_extension: 1, double_points: 0, shield: 0 };
-                        if (!parsed.cosmetics_unlocked) parsed.cosmetics_unlocked = ["pumpkin_hunter", "ghost"];
-                        if (!parsed.campaign) {
+
+                        if (!parsed.boosters || typeof parsed.boosters !== "object") {
+                            parsed.boosters = { hint: 1, time_extension: 1, double_points: 0, shield: 0 };
+                        } else {
+                            if (typeof parsed.boosters.hint !== "number") parsed.boosters.hint = 1;
+                            if (typeof parsed.boosters.time_extension !== "number") parsed.boosters.time_extension = 1;
+                            if (typeof parsed.boosters.double_points !== "number") parsed.boosters.double_points = 0;
+                            if (typeof parsed.boosters.shield !== "number") parsed.boosters.shield = 0;
+                        }
+
+                        if (!Array.isArray(parsed.cosmetics_unlocked)) {
+                            parsed.cosmetics_unlocked = ["pumpkin_hunter", "ghost"];
+                        }
+
+                        if (!parsed.campaign || typeof parsed.campaign !== "object") {
                             parsed.campaign = {
                                 completed_stages: {},
                                 claimed_stage_rewards: {},
@@ -925,10 +958,15 @@
                             if (!parsed.campaign.claimed_stage_rewards) parsed.campaign.claimed_stage_rewards = {};
                             if (!parsed.campaign.claimed_chapter_rewards) parsed.campaign.claimed_chapter_rewards = {};
                         }
-                        if (!parsed.claimed_community_goals) parsed.claimed_community_goals = {};
-                        if (!parsed.diamond_ledger) parsed.diamond_ledger = [];
 
-                        if (!parsed.stats) {
+                        if (!parsed.claimed_community_goals || typeof parsed.claimed_community_goals !== "object") {
+                            parsed.claimed_community_goals = {};
+                        }
+                        if (!Array.isArray(parsed.diamond_ledger)) {
+                            parsed.diamond_ledger = [];
+                        }
+
+                        if (!parsed.stats || typeof parsed.stats !== "object") {
                             parsed.stats = {
                                 games_played: 0,
                                 total_answered: 0,
@@ -946,7 +984,7 @@
                             if (!parsed.stats.preferred_mode) parsed.stats.preferred_mode = "classic";
                         }
 
-                        if (!parsed.preferences) {
+                        if (!parsed.preferences || typeof parsed.preferences !== "object") {
                             parsed.preferences = {
                                 music_enabled: true,
                                 music_volume: 0.25,
@@ -967,6 +1005,7 @@
                         }
 
                         this.sound.applyPreferences(parsed.preferences);
+                        this.saveProfile(parsed);
                         return parsed;
                     }
                 }
@@ -1612,9 +1651,17 @@
         initPwa() {
             if ("serviceWorker" in navigator) {
                 window.addEventListener("load", () => {
-                    navigator.serviceWorker.register("/sw.js").catch((err) => {
-                        console.warn("ServiceWorker registration:", err);
+                    navigator.serviceWorker.register("/sw.js").then((reg) => {
+                        // Immediately check for updated service worker
+                        reg.update().catch(() => {});
+                    }).catch((err) => {
+                        console.warn("[PWA] ServiceWorker registration warning:", err);
                     });
+                });
+
+                // Listen for active service worker controller changes
+                navigator.serviceWorker.addEventListener("controllerchange", () => {
+                    console.log("[PWA] New service worker took control; application shell updated.");
                 });
             }
 
