@@ -30,4 +30,11 @@ if __name__ == "__main__":
         print("Open:")
         print(f"http://127.0.0.1:{port}")
         print("---------------------------------------")
-        uvicorn.run("run:app", host=host, port=port, reload=reload)
+        uvicorn.run(
+            "run:app",
+            host=host,
+            port=port,
+            reload=reload,
+            proxy_headers=True,
+            forwarded_allow_ips="*",
+        )

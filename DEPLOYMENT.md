@@ -9,7 +9,8 @@ The application can be configured entirely via environment variables:
 | `PORT` | integer | `5000` | Port on which the HTTP server listens. |
 | `HOST` | string | `0.0.0.0` | Host interface binding. |
 | `DATABASE_URL` | string | *None* | Database connection string. If omitted, uses SQLite at `data/halloween.db`. Supports PostgreSQL (`postgresql://user:pass@host:5432/dbname`). |
-| `CORS_ORIGINS` | string | `*` | Comma-separated list of allowed origins. Set to explicit domain in production. |
+| `CUSTOM_DOMAIN` | string | *None* | Primary production custom domain (e.g., `halloween.jamoloto.dev`). Automatically included in CORS allowed origins. |
+| `CORS_ORIGINS` | string | `*` | Comma-separated list of allowed origins. Set to explicit domain(s) in production. |
 | `RATE_LIMIT_ENABLED` | boolean | `true` | Enables sliding window rate limiting. |
 | `RATE_LIMIT_START` | integer | `15` | Maximum quiz session starts allowed per minute per IP. |
 | `RATE_LIMIT_ACTION` | integer | `60` | Maximum quiz answer actions allowed per minute per IP. |
@@ -84,10 +85,11 @@ The application provides three distinct operational endpoints:
 ## 4. Cloud Platform Recipes
 
 ### 4.1 Render / Railway / Fly.io
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `uvicorn run:app --host 0.0.0.0 --port $PORT`
+- **Build Command**: `pip install -r requirements.txt` (or use Dockerfile via Blueprint `deploy/render.yaml`)
+- **Start Command**: `uvicorn run:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"`
 - **Health Check Path**: `/live` or `/health`
 - **Mount Path**: Attach a persistent volume to `/app/data` (for SQLite persistence) or provision a managed PostgreSQL database and set `DATABASE_URL`.
+- **Custom Domain**: Refer to [DOMAIN_SETUP.md](DOMAIN_SETUP.md) for step-by-step DNS and SSL setup.
 
 ### 4.2 Google Cloud Run
 ```bash

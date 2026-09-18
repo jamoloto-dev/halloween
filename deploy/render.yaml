@@ -7,3 +7,23 @@ services:
     plan: starter
     autoDeploy: true
     pullRequestPreviews: false
+    healthCheckPath: /health
+    domains:
+      - halloween.jamoloto.dev
+    disk:
+      name: halloween-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 5000
+      - key: DATABASE_PATH
+        value: /app/data/halloween.db
+      - key: DATABASE_URL
+        value: sqlite:////app/data/halloween.db
+      - key: CUSTOM_DOMAIN
+        value: halloween.jamoloto.dev
+      - key: CORS_ORIGINS
+        value: https://halloween.jamoloto.dev,https://halloween-quiz.onrender.com

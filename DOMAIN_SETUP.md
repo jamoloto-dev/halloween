@@ -1,208 +1,208 @@
-# Custom Domain Setup Guide
+# Spooky Master Custom Domain & Production Setup Guide
 
-This guide walks you through setting up a custom domain for your Halloween Quiz game on either Netlify (for the PWA) or Streamlit Cloud (for the main app).
-
-## Table of Contents
-1. [For Netlify (PWA Deployment)](#netlify-pwa)
-2. [For Streamlit Cloud (Main App)](#streamlit-cloud)
-3. [DNS Configuration](#dns-configuration)
-4. [Troubleshooting](#troubleshooting)
+This guide explains how to deploy **Spooky Master** (Halloween Quiz) and configure a custom domain (e.g., `halloween.jamoloto.dev`) with automatic SSL/TLS encryption.
 
 ---
 
-## Netlify (PWA)
+## 1. Application Architecture & Domain Overview
 
-### Step 1: Deploy PWA to Netlify
+Spooky Master is a containerized, unified FastAPI application that serves:
+1. **REST API**: Quiz engine, leaderboards, daily haunt, and multiplayer duels under `/api/`.
+2. **SPA Frontend**: Responsive HTML5, CSS3, Web Audio engine, and Witch's Market.
+3. **PWA Runtime**: Progressive Web App manifest (`/manifest.json`), offline service worker (`/sw.js`), and cached game assets.
 
-1. **Connect your GitHub repository to Netlify:**
-   - Go to [netlify.com](https://netlify.com)
-   - Click "Add new site" → "Import an existing project"
-   - Select GitHub and authenticate
-   - Choose your `halloween` repository
-
-2. **Configure build settings:**
-   - **Build command:** (leave empty - PWA is static)
-   - **Publish directory:** `pwa`
-   - Click "Deploy site"
-
-3. **Wait for deployment** (usually completes in 2-3 minutes)
-   - Your site will be live at `https://<random-id>.netlify.app`
-
-### Step 2: Add Custom Domain to Netlify
-
-1. In your Netlify site dashboard, go to **Domain management**
-2. Click **Add custom domain**
-3. Enter your custom domain (e.g., `halloween.yoursite.com`)
-4. Netlify will ask whether you manage DNS elsewhere or want them to
-
-### Option A: Let Netlify Manage DNS (Recommended)
-
-1. Netlify provides **nameservers** - copy them
-2. Go to your domain registrar (GoDaddy, Namecheap, etc.)
-3. Update nameservers to Netlify's provided values
-4. Wait 24-48 hours for propagation
-5. Netlify will automatically provision an SSL certificate
-
-### Option B: Keep DNS with Your Registrar
-
-1. In your registrar's DNS settings, add a **CNAME record:**
-   - **Name:** (your subdomain, e.g., `halloween`)
-   - **Value:** `<your-netlify-site>.netlify.app`
-   - **TTL:** 3600 (or default)
-
-2. Verify in Netlify dashboard (may take 24-48 hours)
-
-### Step 3: Enable HTTPS & SSL
-
-1. Return to Netlify's Domain settings
-2. Enable **HTTPS** (Netlify auto-provisions via Let's Encrypt)
-3. Force **HTTPS redirects** in Site settings → Build & deploy → Post processing
+Because frontend and backend are served from the same origin, API calls are relative (`/api/...`). When configuring a custom domain:
+* **Production Custom Domain**: `https://halloween.jamoloto.dev`
+* **Default Hosting Domain**: `https://halloween-quiz.onrender.com`
+* **CORS & Domain Environment Variables**: Set `CUSTOM_DOMAIN` and `CORS_ORIGINS` to allow cross-origin requests and PWA sync.
 
 ---
 
-## Streamlit Cloud
+## 2. Deploying on Render with a Custom Domain (Recommended)
 
-### Step 1: Deploy Main App to Streamlit Cloud
+Render is the primary supported platform for Spooky Master, offering native Docker builds, persistent disk storage for SQLite, and free automatic SSL.
 
-1. **Push code to GitHub** (if not already done):
+### Step 1: Deploy with Render Blueprint
+1. Log in to your [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** &rarr; **Blueprint**.
+3. Connect your repository: `jamoloto-dev/halloween` (branch: `main`).
+4. Render will read [deploy/render.yaml](deploy/render.yaml), which automatically configures:
+   - Docker build from `Dockerfile`
+   - Healthcheck path: `/health`
+   - Persistent disk (`/app/data`) for score retention
+   - Environment variables (`ENVIRONMENT=production`, `CUSTOM_DOMAIN=halloween.jamoloto.dev`)
+   - Pre-configured custom domain: `halloween.jamoloto.dev`
+5. Click **Apply**.
+
+*(Alternatively, create a **Web Service** manually: select Docker environment, healthcheck path `/health`, and add a persistent disk mounted at `/app/data`)*.
+
+### Step 2: Configure Custom Domain in Render
+If you created the service manually without the blueprint:
+1. In your service dashboard, go to **Settings** &rarr; **Custom Domains**.
+2. Click **Add Custom Domain**.
+3. Enter your domain: `halloween.jamoloto.dev` (or your chosen domain).
+4. Click **Save**. Render will display the DNS records you must create at your registrar.
+
+### Step 3: Configure DNS Records at Your Registrar
+Log into your DNS provider (Cloudflare, Namecheap, GoDaddy, Porkbun, Google Domains, etc.) and add the appropriate record:
+
+#### For a Subdomain (e.g., `halloween.jamoloto.dev`):
+| Type | Name / Host | Value / Target | TTL |
+| :--- | :--- | :--- | :--- |
+| `CNAME` | `halloween` | `halloween-quiz.onrender.com` | `Auto` or `3600` |
+
+#### For an Apex / Root Domain (e.g., `jamoloto.dev`):
+If your DNS provider supports **CNAME Flattening** or **ALIAS/ANAME** records:
+| Type | Name / Host | Value / Target | TTL |
+| :--- | :--- | :--- | :--- |
+| `ALIAS` or `ANAME` | `@` | `halloween-quiz.onrender.com` | `Auto` or `3600` |
+
+If your DNS provider only supports standard **A Records**:
+| Type | Name / Host | Value / Target | TTL |
+| :--- | :--- | :--- | :--- |
+| `A` | `@` | `216.24.57.1` *(or IP provided by Render)* | `Auto` or `3600` |
+
+### Step 4: Automatic SSL Certificate
+Once DNS propagates, Render automatically issues and renews a free Let's Encrypt SSL certificate. HTTPS redirects are enforced automatically.
+
+---
+
+## 3. Using Cloudflare DNS & Proxy
+
+If your domain is managed by Cloudflare:
+1. **Add CNAME Record**:
+   - Name: `halloween`
+   - Target: `halloween-quiz.onrender.com`
+2. **Proxy Status**:
+   - Start with **DNS Only (Grey Cloud)** while Render provisions the Let's Encrypt certificate.
+   - Once verified, you can switch to **Proxied (Orange Cloud)** for Cloudflare CDN and DDoS protection.
+3. **SSL/TLS Encryption Mode**:
+   - Go to Cloudflare &rarr; **SSL/TLS**.
+   - Set encryption mode to **Full (strict)**. *Do not use Flexible, as it will cause redirect loops with Render's HTTPS.*
+4. **Service Worker Caching**:
+   - Cloudflare automatically respects `Cache-Control: no-cache, no-store, must-revalidate` sent by Spooky Master for `/sw.js`.
+
+---
+
+## 4. Alternative Deployment Platforms
+
+### 4.1 Railway
+1. Create a new project from GitHub repository `jamoloto-dev/halloween`.
+2. Go to **Settings** &rarr; **Networking** &rarr; **Custom Domain**.
+3. Enter `halloween.jamoloto.dev`.
+4. Add the provided CNAME record (pointing to `<project>.up.railway.app`).
+
+### 4.2 Fly.io
+1. Deploy the app: `fly launch` (uses the Dockerfile).
+2. Allocate an IP and certificate:
    ```bash
-   git add -A
-   git commit -m "Add analytics and icons"
-   git push origin main
+   fly ips allocate-v4
+   fly ips allocate-v6
+   fly certs add halloween.jamoloto.dev
    ```
+3. Add the A, AAAA, or CNAME records indicated by `fly certs show halloween.jamoloto.dev`.
 
-2. **Deploy to Streamlit Cloud:**
-   - Go to [share.streamlit.io](https://share.streamlit.io)
-   - Click "New app"
-   - Connect to your GitHub (`jamoloto-dev/halloween`)
-   - Choose:
-     - **Main file path:** `src/web_game_streamlit.py`
-     - **Python version:** 3.11
-   - Click "Deploy"
+### 4.3 Self-Hosted VPS (Nginx Reverse Proxy)
+When hosting on a Linux server running Docker or systemd on port 5000:
+```nginx
+server {
+    server_name halloween.jamoloto.dev;
 
-3. **Your Streamlit app** will be live at:
-   `https://halloween-xxxxx.streamlit.app`
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90;
+    }
 
-### Step 2: Add Custom Domain to Streamlit Cloud
+    listen 443 ssl http2;
+    ssl_certificate /etc/letsencrypt/live/halloween.jamoloto.dev/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/halloween.jamoloto.dev/privkey.pem;
+}
 
-1. In your Streamlit app, click ⚙️ **Settings** (top right)
-2. Go to **General** tab
-3. Under **Custom domain**, enter your domain (e.g., `quiz.yoursite.com`)
-4. Streamlit will show **CNAME values** to configure
-
-### Step 3: Configure DNS (Streamlit)
-
-1. Go to your domain registrar's DNS settings
-2. Add a **CNAME record:**
-   - **Name:** (your subdomain, e.g., `quiz`)
-   - **Value:** (Streamlit's provided CNAME value)
-   - **TTL:** 3600
-
-3. Click Save and wait 24-48 hours for propagation
-
-4. **Verify** in Streamlit settings (green checkmark appears when propagated)
+server {
+    listen 80;
+    server_name halloween.jamoloto.dev;
+    return 301 https://$host$request_uri;
+}
+```
 
 ---
 
-## DNS Configuration
+## 5. Environment Variables for Custom Domains
 
-### Quick Reference Table
+Configure these environment variables in your hosting provider's dashboard:
 
-| Deployment | Record Type | Name Example | Value | TTL |
-|---|---|---|---|---|
-| **Netlify** | CNAME | `halloween` | `sitename.netlify.app` | 3600 |
-| **Streamlit** | CNAME | `quiz` | (Streamlit's provided CNAME) | 3600 |
-| **Root Domain** | A | `@` | (Registrar's instructions) | 3600 |
-
-### Using Different Subdomains
-
-You can deploy both on the same domain using subdomains:
-
-- **PWA on Netlify:** `halloween.yoursite.com` → points to Netlify
-- **Streamlit App:** `quiz.yoursite.com` → points to Streamlit Cloud
-
-### Root Domain Setup
-
-To use your root domain (e.g., `yoursite.com`):
-
-1. **For Netlify:** Might require changing registrar's nameservers
-2. **For Streamlit:** Some registrars don't support CNAME on root
-
-**Recommendation:** Use subdomains (e.g., `halloween.`, `quiz.`) instead of root domain.
+| Variable | Value for Production | Description |
+| :--- | :--- | :--- |
+| `ENVIRONMENT` | `production` | Enables production security, rate limits, and restricted CORS. |
+| `CUSTOM_DOMAIN` | `halloween.jamoloto.dev` | Primary domain. Automatically adds `https://` and `http://` variants to CORS. |
+| `CORS_ORIGINS` | `https://halloween.jamoloto.dev,https://halloween-quiz.onrender.com` | Allowed browser origins for API and cross-origin resource sharing. |
+| `PORT` | `5000` | Port for the Uvicorn ASGI server. |
+| `DATABASE_PATH` | `/app/data/halloween.db` | Path to persistent SQLite database file on mounted disk. |
 
 ---
 
-## Troubleshooting
+## 6. PWA & Service Worker Origin Verification
 
-### Domain Not Resolving
+Browsers isolate PWA storage, Cache Storage, and Service Workers strictly by origin.
 
-1. **Check DNS propagation:**
-   - Use [whatsmydns.net](https://whatsmydns.net)
-   - Enter your domain and select CNAME record type
-   - Should show green ✓ in most locations
-
-2. **Wait longer:** DNS propagation can take 24-48 hours
-
-3. **Check Netlify/Streamlit settings:**
-   - Verify you entered the domain exactly as registered
-   - Ensure CNAME value matches platform's requirements
-
-### SSL Certificate Issues
-
-1. **Netlify:** Automatically provisions Let's Encrypt (usually instant)
-2. **Streamlit:** May take up to 24 hours after DNS propagation
-3. **Force HTTPS:**
-   - Netlify: Site settings → Build & deploy → Post processing
-   - Streamlit: Auto-enabled
-
-### Mixed Content Errors
-
-Ensure your site uses HTTPS everywhere:
-- Links in code should use `https://`
-- Embedded images/scripts should be HTTPS
-- Check browser console for non-HTTPS resources
+When moving from local development (`127.0.0.1:5000`) to your custom domain (`https://halloween.jamoloto.dev`):
+1. **HTTPS Is Mandatory**: Service workers require a secure context (`https://`).
+2. **Fresh Cache**: The custom domain will start with a fresh cache of the latest `spooky-master-v2.2.0` assets.
+3. **PWA Install Banner**: Chrome, Edge, and mobile Safari will show the "Install Spooky Master" prompt once served over HTTPS with a valid manifest.
 
 ---
 
-## Environment Variables for Analytics
+## 7. Post-Deployment Verification Checklist
 
-To enable Google Analytics tracking on your deployed app:
+Run these quick checks after configuring your DNS:
 
-### Streamlit Cloud
+### 1. Check DNS Propagation
+```bash
+# Check CNAME resolution
+dig CNAME halloween.jamoloto.dev +short
 
-1. Go to app **Settings** → **Secrets**
-2. Add:
-   ```
-   GA_MEASUREMENT_ID = "G-YOUR_MEASUREMENT_ID"
-   ```
+# Or using nslookup
+nslookup halloween.jamoloto.dev
+```
 
-### Netlify (PWA)
+### 2. Verify HTTPS & Server Headers
+```bash
+curl -sI https://halloween.jamoloto.dev/
+```
+Expected output:
+* HTTP status `200 OK`
+* Valid SSL certificate (issued by Let's Encrypt or Cloudflare)
 
-1. Go to **Site settings** → **Build & deploy** → **Environment**
-2. Add environment variable:
-   ```
-   GA_ID = "G-YOUR_MEASUREMENT_ID"
-   ```
-3. Rebuild site to apply changes
+### 3. Verify Health & Operational Probes
+```bash
+# General application health
+curl -s https://halloween.jamoloto.dev/health
 
-Get your `G-XXXXXXXXXX` ID from [Google Analytics](https://analytics.google.com)
+# Liveness probe
+curl -s https://halloween.jamoloto.dev/live
 
----
+# Readiness probe
+curl -s https://halloween.jamoloto.dev/ready
+```
 
-## Verification
+### 4. Verify Service Worker & Manifest
+```bash
+# Manifest JSON
+curl -sI https://halloween.jamoloto.dev/manifest.json | grep "content-type"
 
-After setup, verify everything works:
+# Service Worker JS
+curl -sI https://halloween.jamoloto.dev/sw.js | grep "service-worker-allowed"
+```
 
-1. **Visit your custom domain** in a browser
-2. **Check HTTPS:** URL bar should show 🔒 lock icon
-3. **Play a round** to ensure game logic works
-4. **Check console (F12):** No JavaScript errors
-5. **Verify analytics:** Open Google Analytics dashboard to see events
-
----
-
-## Need Help?
-
-- **Netlify support:** [docs.netlify.com](https://docs.netlify.com)
-- **Streamlit Cloud:** [docs.streamlit.io](https://docs.streamlit.io)
-- **DNS issues:** Contact your registrar's support
+### 5. In-Browser Verification
+1. Open `https://halloween.jamoloto.dev` in your browser.
+2. Verify the 🔒 secure lock icon in the address bar.
+3. Open Developer Tools (F12) &rarr; **Console** &rarr; verify 0 errors.
+4. Test audio playback, chapter map navigation, and category selection.

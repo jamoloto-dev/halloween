@@ -75,8 +75,10 @@ def create_app() -> FastAPI:
     )
     init_app_state(app)
 
-    # Safe CORS configuration
+    # Safe CORS and custom domain configuration
     raw_cors = os.getenv("CORS_ORIGINS", "")
+    custom_domain = os.getenv("CUSTOM_DOMAIN", os.getenv("DOMAIN", "")).strip().lower()
+
     if raw_cors:
         cors_origins = [o.strip() for o in raw_cors.split(",") if o.strip()]
     else:
@@ -88,6 +90,20 @@ def create_app() -> FastAPI:
             ]
         else:
             cors_origins = ["*"]
+
+    if custom_domain:
+        clean_domain = custom_domain.replace("https://", "").replace("http://", "").strip("/")
+        origins_to_add = [
+            f"https://{clean_domain}",
+            f"http://{clean_domain}",
+        ]
+        if not clean_domain.startswith("www.") and clean_domain.count(".") == 1:
+            origins_to_add.append(f"https://www.{clean_domain}")
+            origins_to_add.append(f"http://www.{clean_domain}")
+
+        for orig in origins_to_add:
+            if orig not in cors_origins and "*" not in cors_origins:
+                cors_origins.append(orig)
 
     app.add_middleware(
         CORSMiddleware,

@@ -49,3 +49,51 @@ def test_index_html_uses_versioned_script_and_style_matching_sw() -> None:
     assert f"/static/style.css?{version_param}" in index_content
     assert f"/static/app.js?{version_param}" in sw_content
     assert f"/static/style.css?{version_param}" in sw_content
+
+
+def test_custom_domain_cors_and_reverse_proxy(monkeypatch) -> None:
+    """FastAPI app must authorize CUSTOM_DOMAIN in production CORS and handle reverse proxy requests."""
+    from fastapi.testclient import TestClient
+
+    from halloween_quiz.web.app import create_app
+
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("CUSTOM_DOMAIN", "halloween.jamoloto.dev")
+
+    app = create_app()
+    with TestClient(app) as client:
+        # Request with authorized custom domain origin
+        headers = {"Origin": "https://halloween.jamoloto.dev"}
+        res = client.get("/api/categories", headers=headers)
+        assert res.status_code == 200
+        assert res.headers.get("access-control-allow-origin") == "https://halloween.jamoloto.dev"
+
+        # Request with unauthorized origin
+        unauth_res = client.get("/api/categories", headers={"Origin": "https://unauthorized-evil-site.com"})
+        assert unauth_res.status_code == 200
+        assert "access-control-allow-origin" not in unauth_res.headers
+
+
+def test_render_blueprint_domain_and_disk_setup() -> None:
+    """deploy/render.yaml must configure persistent disk, healthcheck, and custom domain."""
+    render_yaml_file = ROOT / "deploy" / "render.yaml"
+    content = render_yaml_file.read_text(encoding="utf-8")
+
+    assert "halloween-quiz" in content
+    assert "healthCheckPath: /health" in content
+    assert "halloween.jamoloto.dev" in content
+    assert "mountPath: /app/data" in content
+    assert "CUSTOM_DOMAIN" in content
+
+
+def test_domain_setup_documentation_is_accurate() -> None:
+    """DOMAIN_SETUP.md must guide FastAPI/Docker deployment and not contain obsolete Streamlit/Netlify targets."""
+    doc = (ROOT / "DOMAIN_SETUP.md").read_text(encoding="utf-8")
+
+    assert "halloween.jamoloto.dev" in doc
+    assert "render.com" in doc
+    assert "Dockerfile" in doc
+    # Obsolete targets should no longer be present as deployment instructions
+    assert "src/web_game_streamlit.py" not in doc
+    assert "Publish directory: pwa" not in doc
+

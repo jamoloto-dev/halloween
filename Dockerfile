@@ -40,4 +40,4 @@ EXPOSE ${PORT}
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD python3 -c "import urllib.request, os; port = os.getenv('PORT', '5000'); urllib.request.urlopen(f'http://localhost:{port}/health')" || exit 1
 
-CMD ["sh", "-c", "uvicorn run:app --host 0.0.0.0 --port ${PORT:-5000}"]
+CMD ["sh", "-c", "uvicorn run:app --host 0.0.0.0 --port ${PORT:-5000} --proxy-headers --forwarded-allow-ips '*'"]
