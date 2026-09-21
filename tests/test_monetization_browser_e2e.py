@@ -3,9 +3,15 @@
 import os
 
 import pytest
+
+# Gracefully skip entire module if playwright is not installed (e.g. in CI unit test runners)
+pytest.importorskip("playwright")
+
 from playwright.sync_api import Page, expect
 
 BASE_URL = os.getenv("TEST_BASE_URL", "http://localhost:5000")
+
+pytestmark = [pytest.mark.e2e]
 
 
 @pytest.fixture(scope="module", autouse=True)
