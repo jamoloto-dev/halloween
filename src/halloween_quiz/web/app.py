@@ -11,7 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from halloween_quiz import __version__
 from halloween_quiz.core.engine import QuestionBank, SessionManager
+from halloween_quiz.core.entitlements import entitlement_service
 from halloween_quiz.core.storage import ScoreRepository
 from halloween_quiz.web.routes import router
 
@@ -36,6 +38,7 @@ def init_app_state(app: FastAPI) -> None:
 
     bank = QuestionBank(questions_path)
     score_repo = ScoreRepository(db_path)
+    entitlement_service.set_repository(score_repo)
 
     if Path(csv_path).exists():
         migrated = score_repo.migrate_legacy_csv(csv_path)
@@ -70,7 +73,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Halloween Quiz API",
         description="Interactive Spooky Trivia Game API & Web Application",
-        version="2.0.0",
+        version=__version__,
         lifespan=lifespan,
     )
     init_app_state(app)

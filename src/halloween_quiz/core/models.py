@@ -125,6 +125,7 @@ class Question(BaseModel):
 
 
 class QuizConfig(BaseModel):
+    player_id: str = Field(default="guest_default", max_length=128)
     player_name: str = Field(default="Ghost Hunter", min_length=1, max_length=50)
     difficulty: Difficulty = Difficulty.MEDIUM
     mode: GameMode = GameMode.CLASSIC
@@ -196,6 +197,7 @@ class AnswerResult(BaseModel):
 
 class ScoreRecord(BaseModel):
     id: int | None = None
+    player_id: str = Field(default="guest_default", max_length=128)
     player_name: str
     difficulty: str
     mode: str = "classic"
@@ -207,6 +209,7 @@ class ScoreRecord(BaseModel):
     challenge_date: str | None = None
     avatar_id: str | None = "pumpkin_hunter"
     is_boosted: bool = False
+    is_guest: bool = True
 
     @field_validator("player_name")
     @classmethod
@@ -224,7 +227,9 @@ class LeaderboardResponse(BaseModel):
 
 
 class PersonalBestResponse(BaseModel):
+    player_id: str = "guest_default"
     player_name: str
+    is_guest: bool = True
     high_score: int
     best_streak: int
     total_games: int

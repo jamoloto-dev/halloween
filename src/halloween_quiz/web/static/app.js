@@ -1,5 +1,5 @@
 /**
- * 🎃 Spooky Master (Halloween Quiz) - Client Engine v2.2.0
+ * 🎃 Spooky Master (Halloween Quiz) - Client Engine v2.3.0
  * Features: Pure client-side Web Audio API, Smooth zero-reload countdown timer,
  * Six Game Modes (Classic, Quick, Deep, Panic, Endless, Daily Haunt),
  * First-Launch Player Onboarding, Predefined Illustrated Avatar System,
@@ -2398,22 +2398,22 @@
         }
 
         async handlePurchasePass() {
-            if (this.entitlements?.dev_mode_active) {
+            if (this.entitlements?.dev_override_active) {
                 await this.fetchEntitlements("spooky_pass");
                 this.showToast("Spooky Pass Activated!", "Test purchase completed in local dev mode.", "🎃");
             } else {
-                this.showNotice("Payment Gateway: Secure billing connects to Stripe Checkout, Apple App Store, and Google Play Billing. In local development, enable DEV_PREMIUM_MODE in .env for instant testing.");
-                this.showToast("Billing Notice", "Secure checkout connects via Stripe / App Stores.", "💳");
+                this.showNotice("Payment Gateway Status: Live billing provider is not configured. The $4.99 price is a proposed configuration SKU. In local development, enable DEV_PREMIUM_MODE in .env for instant testing.");
+                this.showToast("Proposed Pricing", "Live checkout is not enabled in this environment.", "💳");
             }
         }
 
         async handleSubscribeVip() {
-            if (this.entitlements?.dev_mode_active) {
+            if (this.entitlements?.dev_override_active) {
                 await this.fetchEntitlements("haunted_vip");
                 this.showToast("Haunted VIP Active!", "Test VIP subscription enabled in local dev mode.", "👑");
             } else {
-                this.showNotice("Subscription Gateway: Haunted VIP connects to Stripe Billing and mobile app store subscriptions. In local development, enable DEV_PREMIUM_MODE in .env for instant testing.");
-                this.showToast("VIP Notice", "Secure subscriptions connect via Stripe / App Stores.", "👑");
+                this.showNotice("Subscription Gateway Status: Recurring billing provider is not configured. The $2.99/mo rate is a proposed configuration SKU. In local development, enable DEV_PREMIUM_MODE in .env for instant testing.");
+                this.showToast("Proposed Pricing", "Live recurring billing is not enabled in this environment.", "👑");
             }
         }
 
@@ -3203,7 +3203,8 @@
 
                 try {
                     const playerName = this.profile?.nickname || "Ghost Hunter";
-                    const res = await fetch(`/api/leaderboard/personal-best?player_name=${encodeURIComponent(playerName)}`);
+                    const playerId = this.profile?.player_id || "player_default";
+                    const res = await fetch(`/api/leaderboard/personal-best?player_name=${encodeURIComponent(playerName)}&player_id=${encodeURIComponent(playerId)}`);
                     if (!res.ok) throw new Error("Personal best fetch failed");
                     const data = await res.json();
 

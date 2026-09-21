@@ -523,3 +523,137 @@ def test_social_share_payload_sanitization():
     assert "NightCrawler" in share_text
     assert "4,820" in share_text
     assert "92%" in share_text
+
+
+# ===========================================================================
+# 6. MONETIZATION INTEGRITY & HARDENING AUDIT TESTS
+# ===========================================================================
+
+
+def test_durable_entitlement_persistence(tmp_path):
+    """Entitlements must survive across EntitlementService restarts via SQLite repository."""
+    db_file = tmp_path / "durable_test.db"
+    repo = ScoreRepository(str(db_file))
+
+    # Save entitlement in repository
+    repo.save_entitlement(
+        user_id="hunter_alpha",
+        tier="spooky_pass",
+        source="store",
+        is_guest=True,
+    )
+
+    # Initialize a new EntitlementService simulating a fresh process/container restart
+    service = EntitlementService(repo=repo)
+    resolved = service.resolve_tier("hunter_alpha")
+    assert resolved == EntitlementTier.SPOOKY_PASS
+
+    # Verify status report includes durable_sqlite storage_type
+    status = service.get_status("hunter_alpha")
+    assert status.tier == EntitlementTier.SPOOKY_PASS
+    assert status.is_premium is True
+    assert status.storage_type == "durable_sqlite"
+    assert status.is_guest is True
+
+    # Unknown player defaults to FREE
+    assert service.resolve_tier("unknown_hunter") == EntitlementTier.FREE
+
+
+def test_entitlement_expiration_handling(tmp_path):
+    """Expired subscription entitlements must fall back to FREE tier."""
+    from datetime import datetime, timedelta, timezone
+    db_file = tmp_path / "expiration_test.db"
+    repo = ScoreRepository(str(db_file))
+
+    # Expired VIP entitlement (1 day in past)
+    past_date = datetime.now(timezone.utc) - timedelta(days=1)
+    repo.save_entitlement(
+        user_id="hunter_expired",
+        tier="haunted_vip",
+        source="stripe",
+        expires_at=past_date,
+    )
+
+    service = EntitlementService(repo=repo)
+    assert service.resolve_tier("hunter_expired") == EntitlementTier.FREE
+
+
+def test_zero_pay_to_win_policy_a_guarantee():
+    """Policy A: All premium tiers grant exactly 0 daily diamond currency; live prices are disabled."""
+    service = EntitlementService()
+    for tier in [EntitlementTier.FREE, EntitlementTier.SPOOKY_PASS, EntitlementTier.HAUNTED_VIP]:
+        caps = service.get_capabilities(tier)
+        assert caps.daily_diamond_bonus == 0, f"Tier {tier} violates zero-pay-to-win by granting diamonds!"
+        assert caps.competitive_advantage is False
+
+    # Verify product catalog pricing honesty
+    flags = service.get_feature_flags()
+    assert flags["FEATURE_ADS"] is False, "Ads must be disabled when no provider SDK is integrated"
+    assert flags["FEATURE_SUBSCRIPTIONS"] is False, "Subscriptions must be disabled when no gateway is integrated"
+    for product in service.get_status("test").catalog:
+        assert product.is_live_price is False
+        assert "proposed configuration" in product.notice.lower()
+
+
+def test_guest_identity_and_personal_best_separation(tmp_path):
+    """Identical player display names with distinct player_ids must not overwrite personal bests."""
+    db_file = tmp_path / "identity_test.db"
+    repo = ScoreRepository(str(db_file))
+
+    # Player 1 with name "Ghost Hunter"
+    repo.save_score(
+        player_id="player_uuid_001",
+        player_name="Ghost Hunter",
+        difficulty="hard",
+        score=2500,
+        is_guest=True,
+    )
+
+    # Player 2 with same display name "Ghost Hunter"
+    repo.save_score(
+        player_id="player_uuid_002",
+        player_name="Ghost Hunter",
+        difficulty="easy",
+        score=800,
+        is_guest=True,
+    )
+
+    pb1 = repo.get_personal_best(player_name="Ghost Hunter", player_id="player_uuid_001")
+    pb2 = repo.get_personal_best(player_name="Ghost Hunter", player_id="player_uuid_002")
+
+    assert pb1["player_id"] == "player_uuid_001"
+    assert pb1["high_score"] == 2500
+    assert pb1["is_guest"] is True
+
+    assert pb2["player_id"] == "player_uuid_002"
+    assert pb2["high_score"] == 800
+    assert pb2["is_guest"] is True
+
+
+def test_api_receipt_verification_simulation_flags(client: TestClient):
+    """Receipt verification endpoint must explicitly disclose simulation and lack of provider config."""
+    res = client.post(
+        "/api/entitlements/verify",
+        json={"player_id": "test_guest_hunter", "purchase_token": "token_abc"},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["verified_by_provider"] is False
+    assert data["provider_configured"] is False
+    assert data["simulation"] is True
+
+
+def test_production_endpoint_lockdown(client: TestClient, monkeypatch):
+    """POST /api/leaderboard must strictly reject calls in production with 403 Forbidden."""
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    payload = {
+        "player_name": "Cheater",
+        "difficulty": "hard",
+        "score": 99999,
+        "total_questions": 10,
+        "percentage": 100.0,
+    }
+    res = client.post("/api/leaderboard", json=payload)
+    assert res.status_code == 403
+    assert "disabled in production" in res.json()["detail"]
+

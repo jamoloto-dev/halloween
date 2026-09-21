@@ -13,7 +13,10 @@ import importlib
 # Configure Flask to serve static files from the project's assets/static directory
 STATIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../assets/static'))
 app = Flask(__name__, static_folder=STATIC_DIR, static_url_path='/static')
-app.secret_key = 'halloween2025'  # Required for session management
+app.secret_key = os.getenv("SECRET_KEY") or (
+    "dev-secret-key-fallback" if os.getenv("ENVIRONMENT", "development").lower() != "production"
+    else os.urandom(32).hex()
+)
 
 # HTML template with CSS for styling (styles/scripts loaded from assets/static)
 TEMPLATE = """

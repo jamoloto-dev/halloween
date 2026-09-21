@@ -23,7 +23,7 @@ def test_health_endpoint(client):
     assert data["status"] == "healthy"
     assert data["database_connected"] is True
     assert data["questions_loaded"] >= 100
-    assert data["version"] == "2.0.0"
+    assert data["version"] == "2.3.0"
 
 
 def test_categories_endpoint(client):

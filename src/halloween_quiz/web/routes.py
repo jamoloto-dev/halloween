@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 
+from halloween_quiz import __version__
 from halloween_quiz.core.campaign import (
     CAMPAIGN_CHAPTERS,
     get_stage_by_id,
@@ -144,7 +145,7 @@ def health_check(
         "database_connected": db_connected,
         "questions_loaded": bank.total_count,
         "total_scores_recorded": score_count,
-        "version": "2.0.0",
+        "version": __version__,
     }
 
 
@@ -249,6 +250,7 @@ def start_quiz(
                 )
 
     config = QuizConfig(
+        player_id=player_id,
         player_name=payload.player_name,
         difficulty=diff,
         mode=mode_enum,
@@ -421,7 +423,10 @@ def submit_answer(
     if session.is_completed and not session.score_saved:
         session.score_saved = True
         try:
+            pid = getattr(session.config, "player_id", "guest_default") or "guest_default"
+            is_guest = pid in ("guest_default", "player_default") or pid.startswith("guest_")
             repo.save_score(
+                player_id=pid,
                 player_name=session.config.player_name,
                 difficulty=session.config.difficulty.value,
                 score=session.score,
@@ -431,6 +436,7 @@ def submit_answer(
                 max_streak=session.max_streak,
                 avatar_id=getattr(session.config, "avatar_id", "pumpkin_hunter"),
                 is_boosted=session.is_boosted,
+                is_guest=is_guest,
             )
             logger.info(
                 f"Session completed and saved: session={session_id}, score={session.score}, mode={session.config.mode.value}"
@@ -476,7 +482,10 @@ def timeout_question(
     if session.is_completed and not session.score_saved:
         session.score_saved = True
         try:
+            pid = getattr(session.config, "player_id", "guest_default") or "guest_default"
+            is_guest = pid in ("guest_default", "player_default") or pid.startswith("guest_")
             repo.save_score(
+                player_id=pid,
                 player_name=session.config.player_name,
                 difficulty=session.config.difficulty.value,
                 score=session.score,
@@ -486,6 +495,7 @@ def timeout_question(
                 max_streak=session.max_streak,
                 avatar_id=getattr(session.config, "avatar_id", "pumpkin_hunter"),
                 is_boosted=session.is_boosted,
+                is_guest=is_guest,
             )
             logger.info(
                 f"Session completed via timeout and saved: session={session_id}, score={session.score}, mode={session.config.mode.value}"
@@ -537,11 +547,14 @@ def get_leaderboard(
 
 @router.get("/api/leaderboard/personal-best", response_model=PersonalBestResponse)
 def get_personal_best(
+    request: Request,
     player_name: str = Query(..., min_length=1, max_length=100, description="Player name"),
+    player_id: str | None = Query(None, description="Player identifier"),
     repo: ScoreRepository = Depends(get_score_repo),
 ):
     """Retrieve high score, streak, and history for a specific player."""
-    data = repo.get_personal_best(player_name)
+    eff_player_id = player_id or request.headers.get("X-Player-ID") or "guest_default"
+    data = repo.get_personal_best(player_name=player_name, player_id=eff_player_id)
     return PersonalBestResponse(**data)
 
 
@@ -569,6 +582,9 @@ def verify_or_restore_purchase(
         "success": True,
         "restored": status_info.is_premium,
         "tier": status_info.tier.value,
+        "verified_by_provider": False,
+        "provider_configured": False,
+        "simulation": True,
         "message": (
             "Active purchase restored."
             if status_info.is_premium
@@ -583,18 +599,27 @@ def record_score_manually(
     request: Request,
     repo: ScoreRepository = Depends(get_score_repo),
 ):
-    """Score recording endpoint (protected against client manipulation in production)."""
-    admin_key = os.getenv("ADMIN_API_KEY")
+    """Score recording endpoint (strictly disabled in production to protect leaderboard integrity)."""
     env = os.getenv("ENVIRONMENT", "development").lower()
     if env == "production":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Manual leaderboard submission is disabled in production. Ranked scores must be earned via active server-validated quiz sessions.",
+        )
+
+    admin_key = os.getenv("ADMIN_API_KEY")
+    if admin_key:
         provided_key = request.headers.get("X-Admin-Key")
-        if not admin_key or provided_key != admin_key:
+        if not provided_key or provided_key != admin_key:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Manual leaderboard submission is disabled in production. Scores must be earned via active quiz sessions.",
+                detail="Invalid or missing X-Admin-Key header for manual score recording.",
             )
 
+    pid = getattr(payload, "player_id", "guest_default") or "guest_default"
+    is_guest = getattr(payload, "is_guest", True)
     return repo.save_score(
+        player_id=pid,
         player_name=payload.player_name,
         difficulty=payload.difficulty,
         score=payload.score,
@@ -604,6 +629,7 @@ def record_score_manually(
         max_streak=getattr(payload, "max_streak", 0) or 0,
         avatar_id=getattr(payload, "avatar_id", "pumpkin_hunter") or "pumpkin_hunter",
         is_boosted=getattr(payload, "is_boosted", False),
+        is_guest=is_guest,
     )
 
 

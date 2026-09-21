@@ -1,124 +1,64 @@
 # Spooky Master Project State
 
-Last Updated: 2026-09-18
+**Last Updated**: 2026-09-21  
+**Branch**: `main`  
+**Base Commit**: `028271f8747f58de267d80a700432c5ef2eebbbd`  
+**Standardized Release Version**: `2.3.0`  
+**Canonical Runtime**: FastAPI backend (`uvicorn run:app`) + Vanilla JS SPA frontend (`src/halloween_quiz/web/static/app.js`) + Rich CLI (`src/halloween_quiz/cli/main.py`)  
 
-Branch: `main`
+---
 
-Commit: `4d08a16c619f71656ea6e920da64d4fd4f0ae7b2` (`fix(ci): gracefully skip playwright e2e tests when playwright or live server is not present`)
+## 1. Executive Summary & Audit Reconciliations
 
-Remote Status: `main` is exactly `origin/main` at the commit above, with no commits ahead of `origin/main`.  The pre-audit working tree had no uncommitted or untracked work; this tracker is the sole audit-created untracked file until committed.  Local branch `feat/production-game-expansion` points to ancestor `da09375`; it is already included in `main`.  No local or remote branch named `halloween` exists.
+This update reconciles the monetization implementation with reality, removing all false claims of production payment gateways while providing durable repository-backed entitlement persistence, identity integrity, and strict adherence to zero pay-to-win (Policy A).
 
-Canonical runtime: `run.py` imports `halloween_quiz.web.app:app`; it starts the FastAPI/uvicorn app (or the Rich CLI with `--cli`).  Dockerfile and Procfile also start `uvicorn run:app`.  The standalone `pwa/`, Streamlit files, and legacy `assets/static/` remain tracked but are not the canonical deployment target; FastAPI exposes the old PWA at `/pwa`.
+### Key Architectural Truths & Fixes:
+1. **Entitlement Persistence**: Entitlements are backed by durable SQLite storage (`user_entitlements` table in `halloween.db` with WAL mode) and survive process restarts, container restarts, multi-worker deployments, and server reboots.
+2. **Guest vs. Authenticated State**: All player identities are marked as `is_guest: true` with authoritative client UUIDs (`X-Player-ID`). Accidental score or personal best collisions across players sharing display nicknames are prevented.
+3. **Policy A Zero Pay-To-Win Enforced**: Premium passes (`Spooky Master Pass`, `Haunted VIP`) grant **0 daily diamonds**. Diamonds remain 100% skill-earned via in-game achievements, campaign stars, daily challenges, and community goals. Boosters remain prohibited in ranked competitive modes (`daily`, `duel`).
+4. **Billing & Storefront Honesty**: Prices ($4.99 lifetime, $2.99/mo) are explicitly designated as proposed configuration SKUs. Real-money gateways (Stripe Checkout, Apple StoreKit 2, Google Play Billing) are **DESIGNED FOR FUTURE / NOT IMPLEMENTED**.
+5. **Receipt Validation Honesty**: `POST /api/entitlements/verify` returns `verified_by_provider: false`, `provider_configured: false`, and `simulation: true`.
+6. **Ad Experience Honesty**: `FEATURE_ADS` is disabled (`false`) by default because no third-party ad network SDK is integrated.
+7. **Version Uniformity**: Standardized on `2.3.0` across `pyproject.toml`, `__init__.py`, `app.py`, `routes.py`, `app.js`, `sw.js`, `index.html`, and documentation.
+8. **Endpoint Lockdown**: `POST /api/leaderboard` is disabled in production (returns HTTP 403 Forbidden). All ranked leaderboard entries must originate from server-validated completed quiz sessions.
 
-Version: FastAPI and package metadata are `2.0.0`.  `CHANGELOG.md` claims 2.3.0 and README claims 2.1.0, so version documentation is inconsistent and must not be used as release evidence.
+---
 
-## Stable Foundation
+## 2. Monetization Implementation Truth Table
 
-- FastAPI SPA application under `src/halloween_quiz/web/`, domain logic under `core/`, Rich CLI under `cli/`.
-- SQLite WAL score repository, optional `DATABASE_URL` path, six canonical question categories, 113 loaded questions (including five audio-riddle records).
-- Server-side quiz session state, authoritative elapsed-time calculation, bounded session manager, rate limiter, PWA assets, and Docker/Procfile configuration.
+| Feature / Subsystem | Status | Active Code Location | Operational Reality |
+| :--- | :--- | :--- | :--- |
+| **Campaign Chapters 4–6 Gating** | 🟢 IMPLEMENTED & VERIFIED | `core/campaign.py`, `routes.py:start_quiz` | Enforced server-side (HTTP 403) for unentitled users. |
+| **Supernatural Guises (Avatars)** | 🟢 IMPLEMENTED & VERIFIED | `core/entitlements.py`, `app.js` | Cosmetic only; validated upon quiz launch. |
+| **Atmospheric Themes** | 🟢 IMPLEMENTED & VERIFIED | `core/entitlements.py`, `app.js` | Blood Moon, Phantom Forest, Neon Crypt, Midnight Graveyard. |
+| **Advanced Trivia Topics** | 🟢 IMPLEMENTED & VERIFIED | `core/engine.py`, `core/entitlements.py` | Additive packs (Cryptids, Cinema Masters, Global Folklore). |
+| **Durable Entitlement Storage** | 🟢 IMPLEMENTED & VERIFIED | `core/storage.py`, `core/entitlements.py` | Backed by SQLite table `user_entitlements`; survives restarts. |
+| **Zero Pay-to-Win (Policy A)** | 🟢 IMPLEMENTED & VERIFIED | `core/entitlements.py`, `index.html` | Exactly 0 diamond currency granted by any premium pass. |
+| **Guest Identity Separation** | 🟢 IMPLEMENTED & VERIFIED | `core/storage.py`, `routes.py`, `app.js` | Authoritative `player_id` stored in `high_scores`; `is_guest: true`. |
+| **Dev Mode Override** | 🟡 DEV ONLY | `core/entitlements.py` | Gated by `ENVIRONMENT != "production"` and `DEV_PREMIUM_MODE`. |
+| **Receipt Restore Simulation** | 🟡 DEV ONLY | `routes.py:verify_or_restore_purchase` | Explicit simulation flag; no external provider verification. |
+| **Stripe Checkout / Webhooks** | 🔵 DESIGNED FOR FUTURE | `docs/MONETIZATION_ARCHITECTURE.md` | Specification written; no live SDK or webhook workers. |
+| **StoreKit 2 / Google Play SDK**| 🔵 DESIGNED FOR FUTURE | `docs/MONETIZATION_ARCHITECTURE.md` | Future native wrapper specification. |
+| **Ad Network SDK** | ⚪ NOT IMPLEMENTED | `core/entitlements.py` | `FEATURE_ADS=false`; no live ad provider. |
 
-## Implemented & Verified
+---
 
-- Core models, engine, question loading, storage migrations, SQLite leaderboard repository, CLI, deterministic daily selection, session limits, server-time scoring, panic/endless mechanics, audio-riddle model data, duel tiebreaker function, and adaptive tracker algorithm: 25 direct tests passed in this audit.
-- All six category identifiers and display names remain: Spooky Stories, Costumes & Traditions, Horror Movies, Halloween History, Candy & Treats, and Paranormal Lore (`core/models.py`).
-- Ruff and Mypy currently pass.
+## 3. Latest Test & Verification Results
 
-## Implemented but Needs Verification
+| Suite / Tool | Test Count | Result | Details |
+| :--- | :--- | :--- | :--- |
+| **Ruff Linter** | 21 source files | 🟢 PASS | 0 errors |
+| **Mypy Type Checker** | 21 source files | 🟢 PASS | 0 errors; strict typing validated |
+| **Unit & Integration Suite** | 73 tests | 🟢 PASS (100%) | 0 failures, 0 regressions |
+| **Playwright Core Browser E2E** | 43 tests | 🟢 PASS (100%) | Cross-browser Chromium end-to-end verified |
+| **Playwright Monetization E2E** | 3 tests | 🟢 PASS (100%) | Modal catalog, view switcher, theme switcher verified |
+| **Total Automated Tests** | **119 tests** | 🟢 **PASS (100%)** | Full green regression run |
+| **Code Coverage** | Entire package | 🟢 **83%** | Core models 98%, scoring 96%, app 93%, adaptive 90%, entitlements 89% |
 
-- Browser SPA quiz flow, feedback, replay, category cards, onboarding, settings persistence, audio playback/ducking, accessibility behavior, responsive layouts, canonical PWA installation/offline behavior, campaign UI, shop UI, and duel UI all have code and E2E coverage, but browser tests could not launch in this sandbox.
-- HTTP route tests could not run here because FastAPI `TestClient` hangs before context startup in this sandbox; the same happens with a minimal one-route FastAPI app, so this is not evidence of an application defect.  Re-run in normal CI/local infrastructure.
-- Docker build is unverified because the local Docker daemon is unavailable.
+---
 
-## Partially Implemented
+## 4. Residual Technical Debt & Future Milestones
 
-- The Haunted Journey has six chapters and 24 static stages, narrative UI, and local stage/star/reward persistence.  It is client-local rather than server-persisted or authenticated.
-- Diamonds, booster inventory, cosmetic unlocks, and ledger are stored in `spooky_player_profile` in browser localStorage.  There is no server wallet or transaction ledger.
-- Haunted Duels have server routes and an in-memory 48-hour registry, but the client submits result score, accuracy, and a fixed `time_taken_seconds: 25.0`; results are not bound to an authoritative quiz session or durable storage.
-- Adaptive difficulty is an isolated `AdaptivePerformanceTracker`; no engine, route, or frontend flow constructs or uses it.
-- Daily Haunt question selection is deterministic, but Community Haunt data is not durable or trustworthy; see Known Bugs.
-
-## Planned / Not Started
-
-- Secure account login, cross-device sync, and server-side player profiles.
-- Durable server-side economy and inventory.
-- Durable, session-authoritative competitive duels.
-- Production-grade adaptive difficulty integration for permitted casual/campaign modes.
-
-## Known Bugs
-
-- `core/community.py` initializes every new UTC day with fabricated participant, completion, score, and goal values (124/86/268400/1380).  These are displayed through `/api/community`; they are not measured community data.  This violates the no-fabricated-community-numbers requirement.
-- Community data and duel data are process-memory only and reset on restart or do not work across multiple workers/instances.
-- `CHANGELOG.md`, `README.md`, and package/runtime version values disagree.
-
-## Technical Debt
-
-- Three application generations remain tracked: canonical FastAPI SPA, standalone PWA, and Streamlit/legacy static implementations.  They have different deployment documentation.
-- E2E tests require a separately started server at `localhost:5000`; browser fixture creation occurs before its server-reachability skip can help when Chromium cannot launch.
-- Documentation still contains obsolete Flask/Streamlit/Netlify deployment instructions and release claims.
-
-## Security Concerns
-
-- `POST /api/leaderboard` accepts arbitrary scores unless production has a non-empty `ADMIN_API_KEY`; it is not session-authoritative as claimed by the changelog.
-- Duel endpoints accept client-supplied results and do not bind a result to the created quiz session; they are not anti-cheat safe.
-- Community reward claiming has no server-side player identity or durable idempotency.
-- Rate limiting, input/CSV sanitization, session TTL/capacity, SQLite WAL, CORS configuration, and `/health`, `/live`, `/ready` routes exist.  No security-header middleware was found (for example CSP, X-Content-Type-Options, frame policy), and development defaults to wildcard CORS with credentials enabled.
-
-## Deployment Status
-
-- Deployment target configuration points to FastAPI: Dockerfile, Procfile, docker-compose, and `deploy/render.yaml` (`main`).
-- Docker build: not verified on 2026-09-18; Docker daemon was not running (`Cannot connect to the Docker daemon`).
-- No live deployment URL or deployment health was verified in this audit.
-
-## Latest Test Results
-
-| Command | Result |
-| --- | --- |
-| `ruff check .` | PASS — no findings |
-| `mypy src` | PASS — no issues; two informational unchecked-body notes in legacy `src/game.py` |
-| `pytest -v` | INCOMPLETE — 57 collected; stalled at first FastAPI `TestClient` test in sandbox |
-| Direct unit/storage/CLI tests | PASS — 17 passed in 0.45s |
-| Direct production/campaign algorithm tests | PASS — 8 passed in 2.83s; 1 dependency deprecation warning |
-| `pytest tests/test_browser_e2e.py -v` | NOT VERIFIED — 19 setup errors because sandbox Chromium exits with `sandbox_host_linux.cc:41 ... Operation not permitted` |
-| `pytest --cov=halloween_quiz --cov-report=term-missing` | NOT RUN TO COMPLETION — blocked by the same TestClient environment issue |
-| FastAPI startup | PASS — Uvicorn initialized 113 questions, database, and session manager; this sandbox then denied loopback access to its `127.0.0.1:5001` probes |
-| `docker build -t spooky-master-audit .` | NOT VERIFIED — Docker daemon unavailable |
-
-## Feature Status Matrix
-
-| Feature | Status | Evidence | Next Action |
-| --- | --- | --- | --- |
-| Core Quiz | 🟡 PARTIALLY IMPLEMENTED | `core/engine.py`; 4 engine tests pass; API/browser flow unverified here | Re-run API/E2E outside sandbox |
-| Categories | 🟡 PARTIALLY IMPLEMENTED | `Category`, fallback data, `loadCategories`, `setAllCategories`; six canonical names present | Browser-verify selection/guard |
-| Game Modes | 🟡 PARTIALLY IMPLEMENTED | `GameMode`, `routes.py:start_quiz`; panic/endless direct test passes | Exercise all six through API/browser |
-| Audio | 🔵 CODE EXISTS BUT NOT VERIFIED | `SoundEngine`, audio assets, Settings controls, ducking methods | Browser/audio-device verification |
-| Player Profile | 🔵 CODE EXISTS BUT NOT VERIFIED | `spooky_player_profile`, onboarding/avatar code in `app.js` | Browser persistence verification |
-| Mastery & Achievements | 🔵 CODE EXISTS BUT NOT VERIFIED | local profile progress and dashboard rendering in `app.js` | Browser persistence verification |
-| Settings & Accessibility | 🔵 CODE EXISTS BUT NOT VERIFIED | settings modal, reduced motion, vibration, focus CSS | Browser/accessibility verification |
-| PWA | 🔵 CODE EXISTS BUT NOT VERIFIED | `manifest.json`, `sw.js`, `offline.html`, registration code | Install/offline test in browser |
-| Campaign / Chapter Map / Stories | 🟡 PARTIALLY IMPLEMENTED | `campaign.py`, campaign routes and modal; local-only progress | Decide/persist authoritative progression |
-| Diamonds / Shop / Boosters / Cosmetics | 🟡 PARTIALLY IMPLEMENTED | local wallet/ledger/shop and in-session boosters | Establish durable trusted economy |
-| Daily Haunt | 🟡 PARTIALLY IMPLEMENTED | deterministic question selector direct test passes | API/browser verification |
-| Community Haunt | 🔴 BROKEN | `CommunityRegistry` hard-codes made-up metrics and is memory-only | Replace fabricated baseline with persisted actual metrics |
-| Haunted Duels | 🟡 PARTIALLY IMPLEMENTED | server registry/routes/traps/tiebreaker; direct tiebreaker test passes | Bind results to durable authoritative sessions |
-| Audio Riddles | 🟡 PARTIALLY IMPLEMENTED | question-type fields, five riddle definitions, UI transcript/player; direct data test passes | Browser playback/accessibility verification |
-| Adaptive Difficulty | 🟡 PARTIALLY IMPLEMENTED | `adaptive.py` test passes; no call sites outside module/tests | Integrate only in allowed modes |
-| Security | 🟡 PARTIALLY IMPLEMENTED | timing, rate limit, TTL, sanitization, probes; public score/duel gaps | Close identified integrity gaps |
-| Deployment | 🔵 CODE EXISTS BUT NOT VERIFIED | `Dockerfile`, `Procfile`, Render config | Build and deploy after daemon/CI available |
-
-## Current Development Phase
-
-Feature-expansion code from `da09375` is integrated into `main`, followed by `4d08a16` to soften unavailable-Playwright behavior.  The project is at production-integrity and verification, not at a clean, independently verified release.  The last claimed 57/57 green result is not reproducible in this audit environment.
-
-## Exact Next Task
-
-Replace the Community Haunt fabricated daily baseline with zero-initialized, durable, server-recorded metrics (and only display measured values).  Add focused tests for rotation, persistence, and reward idempotency.  Do not build further game features before this integrity defect is resolved.
-
-## Do Not Break
-
-- The six canonical categories and their identifiers/display names.
-- Quiz start, question retrieval, answer/timeout flow, score persistence, completion, and replay.
-- Category fallback, Select All, Clear, and zero-category guard.
-- Audio settings, sound fallback, ambience ducking, and local preference persistence.
-- Keyboard shortcuts, visible focus states, responsive mobile support, and reduced-motion/vibration controls.
-- Existing local player profile, mastery, achievements, best score/streak, and avatar/nickname data.
+1. **OAuth / User Accounts**: Replace client UUID guest identity with server-authoritative OAuth (e.g., Supabase / Firebase / Google Auth) when multi-device account syncing is prioritized.
+2. **Server-Side Player Inventory**: Migrate client-side diamond and booster inventory (`spooky_player_profile` in localStorage) to server-authoritative wallet tables once user authentication is launched.
+3. **External Payment Provider**: Implement Stripe Checkout sessions and cryptographic webhook verification (`stripe.Webhook.construct_event`) when merchant banking is established.

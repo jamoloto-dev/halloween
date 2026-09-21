@@ -2,6 +2,7 @@
 
 import csv
 import os
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -29,10 +30,32 @@ class Base(DeclarativeBase):
     pass
 
 
+class UserEntitlementDB(Base):
+    __tablename__ = "user_entitlements"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    entitlement_tier: Mapped[str] = mapped_column(String(50), nullable=False, default="free")
+    source: Mapped[str] = mapped_column(String(50), nullable=False, default="store")
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_guest: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    provider_reference: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+
+
 class HighScoreDB(Base):
     __tablename__ = "high_scores"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    player_id: Mapped[str] = mapped_column(
+        String(128), nullable=False, default="guest_default", index=True
+    )
     player_name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     difficulty: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     mode: Mapped[str] = mapped_column(String(30), nullable=False, default="classic", index=True)
@@ -48,6 +71,7 @@ class HighScoreDB(Base):
         String(50), nullable=True, default="pumpkin_hunter"
     )
     is_boosted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_guest: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     def to_model(self) -> ScoreRecord:
         dt = self.created_at
@@ -55,6 +79,7 @@ class HighScoreDB(Base):
             dt = dt.replace(tzinfo=timezone.utc)
         return ScoreRecord(
             id=self.id,
+            player_id=str(getattr(self, "player_id", "guest_default") or "guest_default"),
             player_name=str(self.player_name),
             difficulty=str(self.difficulty),
             mode=str(getattr(self, "mode", "classic") or "classic"),
@@ -66,6 +91,7 @@ class HighScoreDB(Base):
             challenge_date=getattr(self, "challenge_date", None),
             avatar_id=getattr(self, "avatar_id", "pumpkin_hunter") or "pumpkin_hunter",
             is_boosted=bool(getattr(self, "is_boosted", False)),
+            is_guest=bool(getattr(self, "is_guest", True)),
         )
 
 
@@ -159,6 +185,18 @@ class ScoreRepository:
                                     "ALTER TABLE high_scores ADD COLUMN is_boosted BOOLEAN DEFAULT 0"
                                 )
                             )
+                        if "player_id" not in cols:
+                            conn.execute(
+                                text(
+                                    "ALTER TABLE high_scores ADD COLUMN player_id VARCHAR(128) DEFAULT 'guest_default'"
+                                )
+                            )
+                        if "is_guest" not in cols:
+                            conn.execute(
+                                text(
+                                    "ALTER TABLE high_scores ADD COLUMN is_guest BOOLEAN DEFAULT 1"
+                                )
+                            )
                         conn.commit()
         except Exception:
             # Non-fatal if table doesn't exist yet or already has columns
@@ -178,6 +216,8 @@ class ScoreRepository:
         avatar_id: str | None = "pumpkin_hunter",
         is_boosted: bool = False,
         correct_count: int | None = None,
+        player_id: str = "guest_default",
+        is_guest: bool = True,
         **kwargs: Any,
     ) -> ScoreRecord:
         """Persist a player's quiz score."""
@@ -185,6 +225,7 @@ class ScoreRepository:
         while clean_name and clean_name[0] in ("=", "+", "-", "@", "\t", "\r"):
             clean_name = clean_name[1:].strip()
         clean_name = clean_name[:100] or "Anonymous Ghost"
+        clean_id = (player_id or "guest_default").strip()[:128] or "guest_default"
 
         if percentage is None:
             percentage = (
@@ -198,6 +239,7 @@ class ScoreRepository:
             challenge_date = created_at.strftime("%Y-%m-%d")
 
         db_item = HighScoreDB(
+            player_id=clean_id,
             player_name=clean_name,
             difficulty=difficulty.lower(),
             mode=(mode or "classic").lower(),
@@ -209,6 +251,7 @@ class ScoreRepository:
             challenge_date=challenge_date,
             avatar_id=avatar_id or "pumpkin_hunter",
             is_boosted=is_boosted,
+            is_guest=is_guest,
         )
 
         with self.SessionLocal() as session:
@@ -277,23 +320,38 @@ class ScoreRepository:
                 stmt = stmt.where(HighScoreDB.is_boosted.is_(False))
             return int(session.execute(stmt).scalar() or 0)
 
-    def get_personal_best(self, player_name: str) -> dict:
+    def get_personal_best(self, player_name: str, player_id: str | None = None) -> dict:
         """Fetch high score, streak, total games, and history for a player."""
         clean_name = player_name.strip()
         while clean_name and clean_name[0] in ("=", "+", "-", "@", "\t", "\r"):
             clean_name = clean_name[1:].strip()
         clean_name = clean_name[:100] or "Anonymous Ghost"
+        clean_id = (player_id or "").strip()
+        is_guest = not (clean_id and not clean_id.startswith("guest_") and clean_id != "guest_default")
 
         with self.SessionLocal() as session:
-            stmt = (
-                select(HighScoreDB)
-                .where(HighScoreDB.player_name == clean_name)
-                .order_by(desc(HighScoreDB.score), HighScoreDB.created_at.asc())
-            )
-            results = session.execute(stmt).scalars().all()
+            results: Sequence[HighScoreDB] = []
+            if clean_id and clean_id != "guest_default":
+                stmt = (
+                    select(HighScoreDB)
+                    .where(HighScoreDB.player_id == clean_id)
+                    .order_by(desc(HighScoreDB.score), HighScoreDB.created_at.asc())
+                )
+                results = session.execute(stmt).scalars().all()
+
+            if not results:
+                stmt = (
+                    select(HighScoreDB)
+                    .where(HighScoreDB.player_name == clean_name)
+                    .order_by(desc(HighScoreDB.score), HighScoreDB.created_at.asc())
+                )
+                results = session.execute(stmt).scalars().all()
+
             if not results:
                 return {
+                    "player_id": clean_id or "guest_default",
                     "player_name": clean_name,
+                    "is_guest": True,
                     "high_score": 0,
                     "best_streak": 0,
                     "total_games": 0,
@@ -304,13 +362,16 @@ class ScoreRepository:
                     "records": [],
                 }
             best_rec = results[0].to_model()
+            is_guest = bool(getattr(results[0], "is_guest", True))
             max_streak = max((r.max_streak for r in results), default=0)
             max_pct = max((r.percentage for r in results), default=0.0)
             daily_scores = [r.score for r in results if getattr(r, "mode", "") == "daily"]
             best_daily = max(daily_scores, default=0)
             best_mode = getattr(best_rec, "mode", "classic") or "classic"
             return {
+                "player_id": getattr(best_rec, "player_id", clean_id or "guest_default"),
                 "player_name": clean_name,
+                "is_guest": is_guest,
                 "high_score": best_rec.score,
                 "best_streak": max_streak,
                 "total_games": len(results),
@@ -319,6 +380,85 @@ class ScoreRepository:
                 "best_mode": best_mode,
                 "best_record": best_rec,
                 "records": [r.to_model() for r in results[:10]],
+            }
+
+    def get_entitlement(self, user_id: str) -> dict | None:
+        """Retrieve active durable entitlement for user/device identity."""
+        clean_id = (user_id or "guest_default").strip()
+        with self.SessionLocal() as session:
+            stmt = (
+                select(UserEntitlementDB)
+                .where(
+                    UserEntitlementDB.user_id == clean_id,
+                    UserEntitlementDB.is_active.is_(True),
+                )
+                .order_by(desc(UserEntitlementDB.updated_at))
+            )
+            row = session.execute(stmt).scalars().first()
+            if not row:
+                return None
+            return {
+                "id": row.id,
+                "user_id": row.user_id,
+                "tier": row.entitlement_tier,
+                "source": row.source,
+                "is_active": row.is_active,
+                "is_guest": row.is_guest,
+                "provider_reference": row.provider_reference,
+                "expires_at": row.expires_at,
+                "created_at": row.created_at,
+                "updated_at": row.updated_at,
+            }
+
+    def save_entitlement(
+        self,
+        user_id: str,
+        tier: str,
+        source: str = "store",
+        is_guest: bool = True,
+        provider_reference: str | None = None,
+        expires_at: datetime | None = None,
+    ) -> dict:
+        """Persist or update durable entitlement for user/device identity."""
+        clean_id = (user_id or "guest_default").strip()
+        now = datetime.now(timezone.utc)
+        with self.SessionLocal() as session:
+            stmt = select(UserEntitlementDB).where(UserEntitlementDB.user_id == clean_id)
+            row = session.execute(stmt).scalars().first()
+            if row:
+                row.entitlement_tier = tier
+                row.source = source
+                row.is_active = True
+                row.is_guest = is_guest
+                row.provider_reference = provider_reference
+                row.expires_at = expires_at
+                row.updated_at = now
+            else:
+                row = UserEntitlementDB(
+                    user_id=clean_id,
+                    entitlement_tier=tier,
+                    source=source,
+                    is_active=True,
+                    is_guest=is_guest,
+                    provider_reference=provider_reference,
+                    expires_at=expires_at,
+                    created_at=now,
+                    updated_at=now,
+                )
+                session.add(row)
+            session.commit()
+            session.refresh(row)
+            return {
+                "id": row.id,
+                "user_id": row.user_id,
+                "tier": row.entitlement_tier,
+                "source": row.source,
+                "is_active": row.is_active,
+                "is_guest": row.is_guest,
+                "provider_reference": row.provider_reference,
+                "expires_at": row.expires_at,
+                "created_at": row.created_at,
+                "updated_at": row.updated_at,
             }
 
     def migrate_legacy_csv(self, csv_path: str = "high_scores.csv") -> int:
