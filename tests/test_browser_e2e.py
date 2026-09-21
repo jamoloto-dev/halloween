@@ -1,6 +1,7 @@
 """Playwright browser end-to-end tests for Spooky Master / Halloween Quiz."""
 
 import json
+import re
 import urllib.error
 import urllib.request
 
@@ -819,4 +820,329 @@ def test_onboarding_overlay_dismissal_and_no_blocking(page: Page):
     expect(page.locator("#modal-campaign")).to_be_visible()
     page.locator("#btn-close-campaign").click()
     expect(page.locator("#modal-campaign")).not_to_be_visible()
+
+
+def test_lobby_hero_and_identity_banner(live_page: Page):
+    """Verify the supernatural environment, hero branding, and returning player identity bar."""
+    expect(live_page.locator(".supernatural-env")).to_be_attached()
+    expect(live_page.locator(".supernatural-moon-wrap")).to_be_attached()
+    expect(live_page.locator("#screen-start .lobby-hero")).to_be_visible()
+    expect(live_page.locator("#start-title")).to_contain_text("SPOOKY MASTER")
+    expect(live_page.locator("#btn-enter-the-haunt")).to_be_visible()
+
+    # Identity banner elements
+    expect(live_page.locator("#lobby-player-name")).to_be_visible()
+    expect(live_page.locator("#lobby-player-tier")).to_be_visible()
+    expect(live_page.locator("#lobby-diamond-count")).to_be_visible()
+
+    # Avatar orb opens avatar selector
+    live_page.locator("#btn-lobby-avatar").click(force=True)
+    expect(live_page.locator("#modal-avatar-picker")).to_be_visible()
+    live_page.locator("#btn-close-avatar-picker").click()
+    expect(live_page.locator("#modal-avatar-picker")).not_to_be_visible()
+
+    # Edit profile button opens settings modal
+    live_page.locator("#btn-lobby-edit-profile").click()
+    expect(live_page.locator("#modal-settings")).to_be_visible()
+    live_page.locator("#btn-close-settings").click()
+    expect(live_page.locator("#modal-settings")).not_to_be_visible()
+
+
+def test_lobby_enter_the_haunt_flow(live_page: Page):
+    """Verify that clicking ENTER THE HAUNT starts a quiz session immediately."""
+    btn_enter = live_page.locator("#btn-enter-the-haunt")
+    expect(btn_enter).to_be_visible()
+    btn_enter.click()
+
+    # Should transition to active quiz screen
+    expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
+    expect(live_page.locator("#question-text")).to_be_visible()
+    expect(live_page.locator(".options-container")).to_be_visible()
+
+    # Return back to lobby to keep test clean
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+
+def test_lobby_journey_card_and_stage_preview(live_page: Page):
+    """Verify Journey continue card, dynamic stage progression map, and navigation."""
+    expect(live_page.locator("#lobby-journey-card")).to_be_visible()
+    expect(live_page.locator("#lobby-journey-heading")).to_be_visible()
+    expect(live_page.locator("#lobby-stage-progression-map")).to_be_visible()
+
+    # At least one stage node exists with active badge
+    active_node = live_page.locator(".lobby-stage-node.active-node")
+    expect(active_node).to_be_visible()
+    expect(active_node).to_contain_text("YOU ARE HERE")
+
+    # Continue Journey button opens campaign modal
+    btn_continue = live_page.locator("#btn-lobby-continue-journey")
+    expect(btn_continue).to_be_visible()
+    btn_continue.click()
+    expect(live_page.locator("#modal-campaign")).to_be_visible()
+    live_page.locator("#btn-close-campaign").click()
+    expect(live_page.locator("#modal-campaign")).not_to_be_visible()
+
+
+def test_lobby_quick_cards_and_navigation(live_page: Page):
+    """Verify Quick Play, Daily Haunt, and Haunted Duels quick action buttons."""
+    # Duels button opens duels modal
+    btn_duels = live_page.locator("#btn-lobby-duels")
+    expect(btn_duels).to_be_visible()
+    btn_duels.click()
+    expect(live_page.locator("#modal-duels")).to_be_visible()
+    live_page.locator("#btn-close-duels").click()
+    expect(live_page.locator("#modal-duels")).not_to_be_visible()
+
+    # Quick Play starts a 5-question session
+    btn_quick = live_page.locator("#btn-lobby-quick-play")
+    expect(btn_quick).to_be_visible()
+    btn_quick.click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
+    expect(live_page.locator("#q-counter")).to_contain_text("of 5")
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+
+def test_lobby_spooky_guide_hint_cycling(live_page: Page):
+    """Verify Spooky Guide box renders quotes and cycling button updates hint."""
+    quote_el = live_page.locator("#lobby-guide-quote")
+    expect(quote_el).to_be_visible()
+    initial_text = quote_el.inner_text()
+    assert len(initial_text) > 0
+
+    btn_next = live_page.locator("#btn-guide-next-hint")
+    expect(btn_next).to_be_visible()
+    btn_next.click()
+    live_page.wait_for_timeout(300)
+
+    updated_text = quote_el.inner_text()
+    assert updated_text != initial_text
+
+
+def test_lobby_snapshot_and_nav_pills(live_page: Page):
+    """Verify snapshot metrics and secondary nav pills (Leaderboard, Settings, Progress)."""
+    expect(live_page.locator("#lobby-progress-snapshot")).to_be_visible()
+    expect(live_page.locator("#lobby-stat-games")).to_be_visible()
+    expect(live_page.locator("#lobby-stat-streak")).to_be_visible()
+    expect(live_page.locator("#lobby-stat-badges")).to_be_visible()
+    expect(live_page.locator("#lobby-stat-mastery")).to_be_visible()
+
+    # Progress button opens mastery modal
+    live_page.locator("#btn-lobby-progress").click()
+    expect(live_page.locator("#modal-mastery")).to_be_visible()
+    live_page.locator("#btn-close-mastery").click()
+    expect(live_page.locator("#modal-mastery")).not_to_be_visible()
+
+    # Leaderboard button opens leaderboard modal
+    live_page.locator("#btn-lobby-leaderboard").click()
+    expect(live_page.locator("#modal-leaderboard")).to_be_visible()
+    live_page.locator("#btn-close-modal").click()
+    expect(live_page.locator("#modal-leaderboard")).not_to_be_visible()
+
+    # Settings button opens settings modal
+    live_page.locator("#btn-lobby-settings").click()
+    expect(live_page.locator("#modal-settings")).to_be_visible()
+    live_page.locator("#btn-close-settings").click()
+    expect(live_page.locator("#modal-settings")).not_to_be_visible()
+
+
+def test_lobby_clean_console_and_page_health(page: Page):
+    """Verify zero unhandled javascript exceptions or severe console errors on lobby load."""
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+
+    page.goto(BASE_URL)
+    page.wait_for_load_state("networkidle")
+    onboarding = page.locator("#modal-onboarding")
+    if onboarding.is_visible():
+        page.locator("#btn-save-onboarding").click()
+
+    page.wait_for_timeout(500)
+    assert errors == [], f"Console errors detected on lobby: {errors}"
+
+
+def test_lobby_avatar_guises_dock_switching(live_page: Page):
+    """Verify the 8 supernatural avatar guises render in the dock and clicking updates active guise."""
+    dock = live_page.locator("#lobby-avatar-carousel")
+    expect(dock).to_be_visible()
+
+    dock_orbs = dock.locator(".lobby-avatar-dock-orb")
+    expect(dock_orbs).to_have_count(8)
+
+    # Click on Spectral Ghost guise (second avatar)
+    ghost_orb = dock_orbs.nth(1)
+    ghost_orb.click()
+
+    # Ghost orb is now selected and active avatar image reflects ghost.svg
+    expect(ghost_orb).to_have_class(re.compile(r"\bselected\b"))
+    expect(live_page.locator("#lobby-avatar-img")).to_have_attribute("src", re.compile(r"ghost\.svg"))
+
+
+def test_lobby_daily_haunt_flow(live_page: Page):
+    """Verify clicking DAILY HAUNT card starts a 10-question daily challenge session."""
+    btn_daily = live_page.locator("#btn-lobby-daily-haunt")
+    expect(btn_daily).to_be_visible()
+    btn_daily.click()
+
+    expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
+    expect(live_page.locator("#q-mode-badge")).to_contain_text("DAILY")
+    expect(live_page.locator("#q-counter")).to_contain_text("of 10")
+
+    # Return home
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+
+def test_lobby_progress_snapshot_card_click(live_page: Page):
+    """Clicking anywhere on the progress snapshot card opens the full hunter mastery modal."""
+    snapshot_card = live_page.locator("#lobby-progress-snapshot")
+    expect(snapshot_card).to_be_visible()
+    snapshot_card.click()
+
+    expect(live_page.locator("#modal-mastery")).to_be_visible()
+    live_page.locator("#btn-close-mastery").click()
+    expect(live_page.locator("#modal-mastery")).not_to_be_visible()
+
+
+def test_lobby_reduced_motion_behavior(live_page: Page):
+    """Verify reduced motion toggle disables CSS animations cleanly across lobby elements."""
+    # Open settings and toggle reduced motion
+    live_page.locator("#btn-settings-open").click()
+    expect(live_page.locator("#modal-settings")).to_be_visible()
+
+    setting_checkbox = live_page.locator("#setting-reduced-motion")
+    setting_checkbox.check()
+    expect(live_page.locator("html")).to_have_class(re.compile(r"\breduced-motion\b"))
+
+    # Close settings
+    live_page.locator("#btn-close-settings").click()
+
+    # Floating emblem has animation: none when reduced-motion is active
+    anim_style = live_page.eval_on_selector(
+        ".lobby-floating-emblem", "el => window.getComputedStyle(el).animationName"
+    )
+    assert anim_style == "none"
+
+    # Reset reduced motion setting back off
+    live_page.locator("#btn-settings-open").click()
+    setting_checkbox.uncheck()
+    live_page.locator("#btn-close-settings").click()
+
+
+def test_final_manual_journey_complete_sequence(live_page: Page):
+    """
+    Perform the complete canonical manual journey sequence required by Spooky Master:
+    Open Spooky Master -> Opening page appears -> Existing hunter avatar/name shown
+    -> Background music works -> Enter the Haunt -> Return Home -> Continue Journey
+    -> Journey opens -> Explore Chapter Map -> Chapter map opens -> Return Home
+    -> Daily Haunt -> Return Home -> Haunted Duels -> Return Home -> Progress
+    -> Return Home -> Leaderboard -> Settings -> Adjust sound -> Return Home
+    -> Quick Play -> Start quiz -> Answers -> Complete round.
+    """
+    # 1 & 2. Open Spooky Master & Opening page appears
+    live_page.goto(BASE_URL)
+    live_page.wait_for_load_state("networkidle")
+    expect(live_page.locator("#screen-start")).to_be_visible()
+    expect(live_page.locator("#start-title")).to_contain_text("SPOOKY MASTER")
+
+    # 3. Existing hunter avatar/name shown
+    expect(live_page.locator("#lobby-avatar-img")).to_be_visible()
+    expect(live_page.locator("#lobby-player-name")).to_be_visible()
+    expect(live_page.locator("#lobby-diamond-count")).to_be_visible()
+
+    # 4. Background music works (canonical music track mapped)
+    bgm_src = live_page.evaluate("""() => {
+        const sound = window.halloweenApp.sound;
+        const audioEl = sound.bgmAudio;
+        const sourceEl = audioEl ? audioEl.querySelector('source') : null;
+        return audioEl ? (audioEl.src || (sourceEl ? sourceEl.src : '')) : '';
+    }""")
+    assert "spooky-master-main.mp3" in bgm_src
+
+    # 5. Enter the Haunt
+    live_page.locator("#btn-enter-the-haunt").click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
+
+    # 6. Return Home
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 7 & 8. Continue Journey & Journey opens
+    live_page.locator("#btn-lobby-continue-journey").click()
+    expect(live_page.locator("#modal-campaign")).to_be_visible()
+    live_page.locator("#btn-close-campaign").click()
+    expect(live_page.locator("#modal-campaign")).not_to_be_visible()
+
+    # 9 & 10. Explore Chapter Map & Chapter map opens
+    live_page.locator("#btn-hero-journey").click()
+    expect(live_page.locator("#modal-campaign")).to_be_visible()
+    live_page.locator("#btn-close-campaign").click()
+    expect(live_page.locator("#modal-campaign")).not_to_be_visible()
+
+    # 11. Return Home
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 12 & 13. Daily Haunt & Return Home
+    live_page.locator("#btn-lobby-daily-haunt").click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 14 & 15. Haunted Duels & Return Home
+    live_page.locator("#btn-lobby-duels").click()
+    expect(live_page.locator("#modal-duels")).to_be_visible()
+    live_page.locator("#btn-close-duels").click()
+    expect(live_page.locator("#modal-duels")).not_to_be_visible()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 16 & 17. Progress & Return Home
+    live_page.locator("#btn-lobby-progress").click()
+    expect(live_page.locator("#modal-mastery")).to_be_visible()
+    live_page.locator("#btn-close-mastery").click()
+    expect(live_page.locator("#modal-mastery")).not_to_be_visible()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 18. Leaderboard
+    live_page.locator("#btn-lobby-leaderboard").click()
+    expect(live_page.locator("#modal-leaderboard")).to_be_visible()
+    live_page.locator("#btn-close-modal").click()
+    expect(live_page.locator("#modal-leaderboard")).not_to_be_visible()
+
+    # 19 & 20. Settings & Adjust sound
+    live_page.locator("#btn-lobby-settings").click()
+    expect(live_page.locator("#modal-settings")).to_be_visible()
+    sound_toggle = live_page.locator("#modal-btn-sound-toggle")
+    sound_toggle.click()
+    sound_toggle.click()
+
+    # 21. Return Home
+    live_page.locator("#btn-close-settings").click()
+    expect(live_page.locator("#modal-settings")).not_to_be_visible()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 22 & 23. Quick Play & Start quiz
+    live_page.locator("#btn-lobby-quick-play").click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
+    expect(live_page.locator("#q-counter")).to_contain_text("of 5")
+
+    # 24. Answer questions (correct/incorrect answer choices)
+    for _ in range(5):
+        expect(live_page.locator("#options-grid")).to_be_visible()
+        options = live_page.locator(".option-btn")
+        expect(options).to_have_count(4)
+        options.nth(0).click()
+
+        feedback = live_page.locator("#feedback-panel")
+        expect(feedback).to_be_visible()
+        live_page.locator("#btn-next-question").click()
+
+    # 25. Complete round
+    expect(live_page.locator("#screen-gameover")).to_be_visible(timeout=5000)
+    expect(live_page.locator("#stat-final-score")).to_be_visible()
+    live_page.locator("#btn-play-again").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+
+
 

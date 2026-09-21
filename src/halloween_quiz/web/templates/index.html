@@ -5,16 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spooky Master 🎃 Halloween Quiz Challenge</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/static/style.css?v=20260918-spooky-master-v2.2.0">
+    <link rel="stylesheet" href="/static/style.css?v=20260921-spooky-master-v2.3.0">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff7518">
     <meta name="description" content="Spooky Master - Test your Halloween, horror, and paranormal knowledge with multiple game modes, player profiles, achievements, and instant sound synthesis!">
 </head>
 <body>
-    <!-- Subtle spooky background fog layer -->
+    <!-- Subtle spooky background fog layer & Anti-gravity sky -->
     <div class="fog-wrap" aria-hidden="true">
         <div class="fog-layer fog-one"></div>
         <div class="fog-layer fog-two"></div>
+    </div>
+
+    <!-- Supernatural Anti-Gravity Atmospheric Environment (Pointer-events none) -->
+    <div class="supernatural-env" aria-hidden="true">
+        <div class="supernatural-moon-wrap">
+            <div class="supernatural-moon">
+                <div class="moon-crater c-1"></div>
+                <div class="moon-crater c-2"></div>
+                <div class="moon-crater c-3"></div>
+            </div>
+            <div class="moon-halo"></div>
+        </div>
+        <div class="haunted-skyline-silhouette"></div>
+        <div class="anti-gravity-particles">
+            <span class="particle p-1">✦</span>
+            <span class="particle p-2">✧</span>
+            <span class="particle p-3">✦</span>
+            <span class="particle p-4">✧</span>
+            <span class="particle p-5">✦</span>
+            <span class="particle p-6">✧</span>
+        </div>
+        <div class="floating-objects">
+            <span class="float-item float-item-1" aria-hidden="true">🎃</span>
+            <span class="float-item float-item-2" aria-hidden="true">👻</span>
+            <span class="float-item float-item-3" aria-hidden="true">💀</span>
+            <span class="float-item float-item-4" aria-hidden="true">🕯️</span>
+            <span class="float-item float-item-5" aria-hidden="true">🔮</span>
+        </div>
     </div>
 
     <!-- Top Navigation Bar (Simplified) -->
@@ -44,58 +72,246 @@
             <button id="btn-notice-dismiss" class="btn-notice-close" aria-label="Dismiss notice">✕</button>
         </div>
 
-        <!-- SCREEN 1: SETUP / START -->
+        <!-- SCREEN 1: SETUP / HAUNTED GAME LOBBY -->
         <section id="screen-start" class="game-screen active" aria-labelledby="start-title">
-            <div class="card setup-card">
-                <div class="card-header-art">
-                    <div class="hero-emblem" aria-hidden="true">👻</div>
-                    <p class="eyebrow">A midnight challenge</p>
-                    <h1 id="start-title" class="setup-heading">Dare to Enter the Spooky Crypt?</h1>
-                    <p class="subtitle">Test your knowledge of folklore, horror cinema, Halloween history, and candy lore.</p>
+            <div class="lobby-wrapper">
+
+                <!-- 1. RETURNING PLAYER IDENTITY BAR -->
+                <div class="lobby-identity-banner" id="lobby-identity-banner">
+                    <div class="lobby-identity-profile">
+                        <button type="button" id="btn-lobby-avatar" class="lobby-avatar-orb" title="Click to customize your hunter avatar" aria-label="Hunter Avatar: Click to customize">
+                            <img id="lobby-avatar-img" class="lobby-avatar-img" src="/static/avatars/pumpkin_hunter.svg" alt="Active Avatar" width="56" height="56">
+                            <span class="lobby-avatar-float-ring" aria-hidden="true"></span>
+                            <span class="lobby-avatar-edit-badge" aria-hidden="true">✏️</span>
+                        </button>
+                        <div class="lobby-identity-text">
+                            <div class="lobby-identity-name-row">
+                                <span id="lobby-player-name" class="lobby-hunter-name">Ghost Hunter</span>
+                                <span id="lobby-player-tier" class="badge badge-tier">Lost Soul 🌑</span>
+                            </div>
+                            <span class="lobby-hunter-sub">Hunter Status: <span class="status-online">● Ready for the Haunt</span></span>
+                        </div>
+                    </div>
+                    <div class="lobby-identity-actions">
+                        <button type="button" id="lobby-diamonds-pill" class="lobby-diamond-badge" title="The Witch's Market Wallet" aria-label="Diamonds balance: click to open market">
+                            💎 <span id="lobby-diamond-count">50</span>
+                        </button>
+                        <button type="button" id="btn-lobby-edit-profile" class="btn-ghost-sm" title="Edit hunter profile">⚙️ Profile</button>
+                    </div>
+
+                    <!-- Mini Floating Avatar Guises Dock -->
+                    <div class="lobby-avatar-carousel-wrap">
+                        <div class="avatar-carousel-header">
+                            <span class="avatar-carousel-title">🎭 Supernatural Guises</span>
+                            <span class="avatar-carousel-sub">Instant guise selection</span>
+                        </div>
+                        <div class="lobby-avatar-carousel" id="lobby-avatar-carousel" role="radiogroup" aria-label="Quick Select Hunter Avatar">
+                            <!-- Populated dynamically with 8 spooky avatars -->
+                        </div>
+                    </div>
                 </div>
 
-                <form id="form-start-quiz" class="setup-form" novalidate>
-                    <div class="form-group">
-                        <label for="player-name">Your Hunter Identity:</label>
-                        <div class="hunter-identity-input-wrap">
-                            <button type="button" id="btn-start-change-avatar" class="btn-avatar-badge" title="Click to change your avatar">
-                                <img id="start-avatar-img" class="hunter-avatar-badge" src="/static/avatars/pumpkin_hunter.svg" alt="Hunter Avatar" width="40" height="40">
-                                <span class="avatar-edit-icon" aria-hidden="true">✏️</span>
+                <!-- 2. OPENING HERO SECTION -->
+                <header class="lobby-hero" id="lobby-hero-entrance">
+                    <div class="lobby-floating-emblem" aria-hidden="true">
+                        <div class="emblem-orb">
+                            <span class="emblem-icon">🎃</span>
+                            <span class="emblem-ghost-orbit">👻</span>
+                            <span class="emblem-flame-orbit">🔥</span>
+                        </div>
+                        <div class="orbit-glow-ring ring-one"></div>
+                        <div class="orbit-glow-ring ring-two"></div>
+                    </div>
+                    <p class="lobby-eyebrow">ENTER IF YOU DARE</p>
+                    <h1 id="start-title" class="lobby-hero-title">🎃 SPOOKY MASTER</h1>
+                    <p class="lobby-hero-subtitle">
+                        Enter the haunted world of trivia, survive its supernatural challenges and become the ultimate hunter.
+                    </p>
+                    <div class="lobby-hero-cta-wrap">
+                        <button type="button" id="btn-enter-the-haunt" class="btn-cta btn-enter-haunt" aria-label="Enter the Haunt">
+                            <span class="btn-cta-glimmer" aria-hidden="true"></span>
+                            <span class="btn-cta-text">🎃 ENTER THE HAUNT</span>
+                            <span class="btn-cta-arrow" aria-hidden="true">➔</span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- 3. MAIN GAME LOBBY CENTERPIECE (2-Column Grid on Desktop, Stack on Mobile) -->
+                <div class="lobby-centerpiece-grid">
+                    
+                    <!-- LEFT COLUMN: THE HAUNTED JOURNEY (CAMPAIGN PROGRESSION & FLOATING MAP) -->
+                    <div class="lobby-journey-column">
+                        <!-- Continue Journey Card -->
+                        <div class="lobby-card lobby-journey-card" id="lobby-journey-card">
+                            <div class="lobby-card-header">
+                                <span class="lobby-card-badge">STORY CAMPAIGN</span>
+                                <h2 id="lobby-journey-heading" class="lobby-card-heading">CONTINUE YOUR JOURNEY</h2>
+                            </div>
+                            <div class="lobby-journey-details">
+                                <div class="journey-ch-icon" id="lobby-journey-icon">🏚️</div>
+                                <div class="journey-ch-meta">
+                                    <h3 id="lobby-journey-chapter" class="journey-ch-title">Chapter 1: The Abandoned Manor</h3>
+                                    <p id="lobby-journey-stage" class="journey-st-title">Stage 1 — The Wrought-Iron Gate</p>
+                                </div>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="lobby-journey-progress-box">
+                                <div class="journey-progress-labels">
+                                    <span class="journey-prog-label">Chapter Progress</span>
+                                    <span id="lobby-journey-progress-text" class="journey-prog-val">0 / 4 Stages Cleared</span>
+                                </div>
+                                <div class="journey-track">
+                                    <div id="lobby-journey-bar-fill" class="journey-bar-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <!-- Action Buttons -->
+                            <div class="lobby-journey-actions">
+                                <button type="button" id="btn-lobby-continue-journey" class="btn-cta btn-continue-primary" aria-label="Continue Haunted Journey">
+                                    <span>🗺️ Continue Journey</span>
+                                </button>
+                                <button type="button" id="btn-hero-journey" class="btn-secondary btn-explore-map" aria-label="Explore Chapter Map">
+                                    <span>📜 Explore Chapter Map</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Stage Progression Map Preview -->
+                        <div class="lobby-card lobby-map-card" id="lobby-map-preview-card">
+                            <div class="lobby-card-header">
+                                <span class="lobby-card-badge">FLOATING PROGRESSION</span>
+                                <h3 class="lobby-card-subheading">Spectral Stage Preview</h3>
+                            </div>
+                            <div class="floating-stage-map" id="lobby-stage-progression-map" role="list" aria-label="Dynamic Chapter Progression Map">
+                                <!-- Populated dynamically with supernatural floating nodes -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: QUICK ACTIONS, GAME GUIDE & SNAPSHOT -->
+                    <div class="lobby-actions-column">
+                        <!-- Quick Action Game Cards -->
+                        <div class="lobby-quick-cards-group">
+                            <button type="button" id="btn-lobby-quick-play" class="lobby-quick-card card-quick-play" aria-label="Quick Play: 5 fast questions">
+                                <span class="quick-icon">⚡</span>
+                                <div class="quick-content">
+                                    <strong>QUICK PLAY</strong>
+                                    <small>Start immediately · 5 casual questions</small>
+                                </div>
+                                <span class="quick-arrow" aria-hidden="true">➔</span>
                             </button>
-                            <input type="text" id="player-name" name="player_name" class="stone-input" maxlength="30" value="Ghost Hunter" required placeholder="Carve your spooky nickname" autocomplete="nickname">
+
+                            <button type="button" id="btn-lobby-daily-haunt" class="lobby-quick-card card-daily-haunt" aria-label="Daily Haunt: Today's global challenge">
+                                <span class="quick-icon">🕯️</span>
+                                <div class="quick-content">
+                                    <strong>DAILY HAUNT</strong>
+                                    <small>Today's challenge · Resets 23:59 UTC</small>
+                                </div>
+                                <span class="quick-arrow" aria-hidden="true">➔</span>
+                            </button>
+
+                            <button type="button" id="btn-lobby-duels" class="lobby-quick-card card-duels" aria-label="Haunted Duels: Challenge a hunter">
+                                <span class="quick-icon">⚔️</span>
+                                <div class="quick-content">
+                                    <strong>HAUNTED DUELS</strong>
+                                    <small>Challenge a hunter · PvP & Spooky Traps</small>
+                                </div>
+                                <span class="quick-arrow" aria-hidden="true">➔</span>
+                            </button>
+                        </div>
+
+                        <!-- Atmospheric Spooky Guide -->
+                        <div class="lobby-card lobby-guide-card" id="lobby-guide-box">
+                            <div class="guide-top-row">
+                                <div class="guide-title-box">
+                                    <span class="guide-ghost-avatar" aria-hidden="true">👻</span>
+                                    <span class="guide-name">Spooky Guide</span>
+                                </div>
+                                <button type="button" id="btn-guide-next-hint" class="btn-guide-next" title="Whisper another supernatural hint" aria-label="Whisper another supernatural hint">
+                                    🔮 Whisper Hint
+                                </button>
+                            </div>
+                            <blockquote class="guide-quote-box">
+                                <p id="lobby-guide-quote" class="guide-quote-text">
+                                    "Something strange is waiting inside the Abandoned Manor... The spirits respond to swift answers."
+                                </p>
+                            </blockquote>
+                        </div>
+
+                        <!-- Compact Progress Snapshot -->
+                        <div class="lobby-card lobby-snapshot-card" id="lobby-progress-snapshot">
+                            <div class="snapshot-header">
+                                <span class="snapshot-title">📜 Hunter Progress Snapshot</span>
+                                <button type="button" id="btn-lobby-progress" class="btn-ghost-sm" aria-label="View complete hunter profile">View Full ➔</button>
+                            </div>
+                            <div class="snapshot-grid">
+                                <div class="snapshot-stat">
+                                    <span id="lobby-stat-games" class="stat-num">0</span>
+                                    <span class="stat-lbl">Games</span>
+                                </div>
+                                <div class="snapshot-stat">
+                                    <span id="lobby-stat-streak" class="stat-num">0</span>
+                                    <span class="stat-lbl">Best Streak</span>
+                                </div>
+                                <div class="snapshot-stat">
+                                    <span id="lobby-stat-badges" class="stat-num">0/8</span>
+                                    <span class="stat-lbl">Badges</span>
+                                </div>
+                                <div class="snapshot-stat">
+                                    <span id="lobby-stat-mastery" class="stat-num">0%</span>
+                                    <span class="stat-lbl">Mastery</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Secondary Navigation Pills -->
+                        <div class="lobby-nav-pills">
+                            <button type="button" id="btn-lobby-leaderboard" class="lobby-nav-pill">🏆 Leaderboard</button>
+                            <button type="button" id="btn-lobby-settings" class="lobby-nav-pill">⚙️ Settings</button>
                         </div>
                     </div>
-
-                <!-- Campaign Mode Feature Banner -->
-                <div class="campaign-cta-banner">
-                    <div class="campaign-cta-content">
-                        <span class="campaign-cta-badge">STORY CAMPAIGN</span>
-                        <h2 class="campaign-cta-title">The Haunted Journey</h2>
-                        <p class="campaign-cta-desc">6 Gothic Chapters · 24 Haunting Stages · Earn Diamonds & Lore</p>
-                    </div>
-                    <button type="button" id="btn-hero-journey" class="btn-cta btn-journey-cta">
-                        <span>🗺️ Explore Chapter Map</span>
-                    </button>
                 </div>
 
-                <!-- Daily Community Haunt Widget -->
-                <div class="community-haunt-widget" id="community-haunt-widget">
-                    <div class="community-widget-top">
-                        <div class="community-header-left">
-                            <span class="community-badge-pill">🌐 Global Community Haunt</span>
-                            <span class="community-active-players" id="comm-players-count">124 Hunters Entered Today</span>
-                        </div>
-                        <span class="community-countdown" id="comm-countdown-timer">Resets 23:59 UTC</span>
-                    </div>
-                    <p class="community-goal-desc" id="comm-goal-title">Answer 2,000 Spooky & Horror Questions Worldwide Today</p>
-                    <div class="community-progress-track">
-                        <div id="comm-progress-bar" class="community-progress-fill" style="width: 69%;"></div>
-                    </div>
-                    <div class="community-widget-bottom">
-                        <span class="community-progress-stats" id="comm-progress-stats">1,380 / 2,000 Questions (69%)</span>
-                        <button type="button" id="btn-claim-community" class="btn-claim-diamonds hidden">Claim 💎 20</button>
-                    </div>
-                </div>
+                <!-- 4. CUSTOM CRYPT CHAMBERS & RULES SETUP -->
+                <details id="crypt-custom-chamber" class="crypt-custom-chamber" open>
+                    <summary class="crypt-custom-summary">
+                        <span class="summary-left">
+                            <span class="summary-icon" aria-hidden="true">🕯️</span>
+                            <strong>Custom Crypt Chambers & Rules</strong>
+                        </span>
+                        <span class="summary-toggle-pill">Toggle Setup Options</span>
+                    </summary>
+
+                    <div class="card setup-card crypt-inner-card">
+                        <form id="form-start-quiz" class="setup-form" novalidate>
+                            <div class="form-group">
+                                <label for="player-name">Your Hunter Identity:</label>
+                                <div class="hunter-identity-input-wrap">
+                                    <button type="button" id="btn-start-change-avatar" class="btn-avatar-badge" title="Click to change your avatar">
+                                        <img id="start-avatar-img" class="hunter-avatar-badge" src="/static/avatars/pumpkin_hunter.svg" alt="Hunter Avatar" width="40" height="40">
+                                        <span class="avatar-edit-icon" aria-hidden="true">✏️</span>
+                                    </button>
+                                    <input type="text" id="player-name" name="player_name" class="stone-input" maxlength="30" value="Ghost Hunter" required placeholder="Carve your spooky nickname" autocomplete="nickname">
+                                </div>
+                            </div>
+
+                            <!-- Daily Community Haunt Widget -->
+                            <div class="community-haunt-widget" id="community-haunt-widget">
+                                <div class="community-widget-top">
+                                    <div class="community-header-left">
+                                        <span class="community-badge-pill">🌐 Global Community Haunt</span>
+                                        <span class="community-active-players" id="comm-players-count">124 Hunters Entered Today</span>
+                                    </div>
+                                    <span class="community-countdown" id="comm-countdown-timer">Resets 23:59 UTC</span>
+                                </div>
+                                <p class="community-goal-desc" id="comm-goal-title">Answer 2,000 Spooky & Horror Questions Worldwide Today</p>
+                                <div class="community-progress-track">
+                                    <div id="comm-progress-bar" class="community-progress-fill" style="width: 69%;"></div>
+                                </div>
+                                <div class="community-widget-bottom">
+                                    <span class="community-progress-stats" id="comm-progress-stats">1,380 / 2,000 Questions (69%)</span>
+                                    <button type="button" id="btn-claim-community" class="btn-claim-diamonds hidden">Claim 💎 20</button>
+                                </div>
+                            </div>
 
                 <!-- Game Mode Selection -->
                 <div class="form-group">
@@ -213,6 +429,8 @@
                     </button>
                     <p class="keyboard-hint">Answer using keyboard keys <kbd>1</kbd>–<kbd>4</kbd> or <kbd>A</kbd>–<kbd>D</kbd> once round begins.</p>
                 </form>
+                    </div>
+                </details>
             </div>
         </section>
 
@@ -990,12 +1208,12 @@
             <span>·</span>
             <a href="https://github.com/jamoloto-dev/halloween" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
             <span>·</span>
-            <span>Version 2.1.0</span>
+            <span>Version 2.3.0</span>
         </div>
         <p class="footer-copy">Procedural & Sampled Web Audio API · SQLite WAL Persistence · PWA Offline Capable</p>
     </footer>
 
     <script>window.__HALLOWEEN_CATEGORY_FALLBACK__ = __CATEGORY_DATA__;</script>
-    <script src="/static/app.js?v=20260918-spooky-master-v2.2.0"></script>
+    <script src="/static/app.js?v=20260921-spooky-master-v2.3.0"></script>
 </body>
 </html>

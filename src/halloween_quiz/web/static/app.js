@@ -20,6 +20,17 @@
         paranormal: "EMF meters are commonly used in ghost hunting, although readings can have many ordinary domestic causes.",
     };
 
+    const SPOOKY_GUIDE_HINTS = [
+        "Something strange is waiting inside the Abandoned Manor... Look closely at the ancient portraits.",
+        "Whispers echo across the graveyard: swift answers awaken supernatural score multipliers.",
+        "Ancient folklore speaks of the Samhain veil thinning when the midnight bells strike.",
+        "Beware the Cursed Clock in Haunted Duels — every second lost is stolen by the shadows.",
+        "The spirits favor curious minds. Conquer daily challenges to amass sacred diamonds.",
+        "The Witch's Market holds mystical wards to shield your streak against the spectral unknown.",
+        "Deep in the Carnival of Lost Souls, a phantom barker promises untold Halloween wisdom.",
+        "A streak of three correct answers summons the Ghost Hunter badge from the beyond."
+    ];
+
     const PREDEFINED_AVATARS = [
         { id: "pumpkin_hunter", name: "Pumpkin Hunter", icon: "🎃", asset: "/static/avatars/pumpkin_hunter.svg", desc: "Vigilant guardian of the pumpkin patch" },
         { id: "ghost", name: "Spectral Ghost", icon: "👻", asset: "/static/avatars/ghost.svg", desc: "Playful apparition wandering between realms" },
@@ -675,6 +686,38 @@
                 btnClearCats: document.getElementById("btn-clear-cats"),
                 dailyBadgeCountdown: document.getElementById("daily-badge-countdown"),
 
+                // Haunted Game Lobby Experience
+                btnEnterTheHaunt: document.getElementById("btn-enter-the-haunt"),
+                lobbyAvatarImg: document.getElementById("lobby-avatar-img"),
+                btnLobbyAvatar: document.getElementById("btn-lobby-avatar"),
+                lobbyPlayerName: document.getElementById("lobby-player-name"),
+                lobbyPlayerTier: document.getElementById("lobby-player-tier"),
+                lobbyDiamondsPill: document.getElementById("lobby-diamonds-pill"),
+                lobbyDiamondCount: document.getElementById("lobby-diamond-count"),
+                btnLobbyEditProfile: document.getElementById("btn-lobby-edit-profile"),
+                lobbyJourneyHeading: document.getElementById("lobby-journey-heading"),
+                lobbyJourneyIcon: document.getElementById("lobby-journey-icon"),
+                lobbyJourneyChapter: document.getElementById("lobby-journey-chapter"),
+                lobbyJourneyStage: document.getElementById("lobby-journey-stage"),
+                lobbyJourneyBarFill: document.getElementById("lobby-journey-bar-fill"),
+                lobbyJourneyProgressText: document.getElementById("lobby-journey-progress-text"),
+                btnLobbyContinueJourney: document.getElementById("btn-lobby-continue-journey"),
+                lobbyStageProgressionMap: document.getElementById("lobby-stage-progression-map"),
+                btnLobbyQuickPlay: document.getElementById("btn-lobby-quick-play"),
+                btnLobbyDailyHaunt: document.getElementById("btn-lobby-daily-haunt"),
+                btnLobbyDuels: document.getElementById("btn-lobby-duels"),
+                lobbyGuideQuote: document.getElementById("lobby-guide-quote"),
+                btnGuideNextHint: document.getElementById("btn-guide-next-hint"),
+                lobbyStatGames: document.getElementById("lobby-stat-games"),
+                lobbyStatStreak: document.getElementById("lobby-stat-streak"),
+                lobbyStatBadges: document.getElementById("lobby-stat-badges"),
+                lobbyStatMastery: document.getElementById("lobby-stat-mastery"),
+                lobbyAvatarCarousel: document.getElementById("lobby-avatar-carousel"),
+                lobbyProgressSnapshot: document.getElementById("lobby-progress-snapshot"),
+                btnLobbyProgress: document.getElementById("btn-lobby-progress"),
+                btnLobbyLeaderboard: document.getElementById("btn-lobby-leaderboard"),
+                btnLobbySettings: document.getElementById("btn-lobby-settings"),
+
                 // In-App Notice & Toasts
                 appNotice: document.getElementById("app-notice"),
                 appNoticeText: document.getElementById("app-notice-text"),
@@ -876,6 +919,8 @@
             this.activeRiddleClip = null;
             this.boosterDoublePointsActive = false;
             this.boosterShieldActive = false;
+            this.guideHintIndex = 0;
+            this.guideHintInitialized = false;
 
             // Initialize Player Profile & Migration
             this.profile = this.initPlayerProfile();
@@ -896,7 +941,7 @@
         async purgeObsoleteCaches() {
             if ("caches" in window) {
                 try {
-                    const currentCache = "spooky-master-v2.2.0";
+                    const currentCache = "spooky-master-v2.3.0";
                     const keys = await caches.keys();
                     for (const key of keys) {
                         if (key !== currentCache) {
@@ -1139,6 +1184,7 @@
             document.documentElement.classList.toggle("reduced-motion", Boolean(this.profile.preferences.reduced_motion));
 
             this.syncSettingsUi();
+            this.renderLobbyExperience();
         }
 
         updateAvatar(avatarId) {
@@ -1156,6 +1202,266 @@
             this.profile.nickname = sanitized;
             this.saveProfile();
             this.applyProfileToUi();
+        }
+
+        // ==========================================
+        // HAUNTED GAME LOBBY EXPERIENCE
+        // ==========================================
+        getCurrentCampaignProgress() {
+            const completedStages = (this.profile && this.profile.campaign && this.profile.campaign.completed_stages) || {};
+            const chapters = this.campaignChapters || [];
+
+            if (!chapters || chapters.length === 0) {
+                return {
+                    chapter: {
+                        chapter_number: 1,
+                        title: "The Abandoned Manor",
+                        icon: "🏚️",
+                    },
+                    activeStage: {
+                        id: "ch1_s1",
+                        stage_number: 1,
+                        title: "The Wrought-Iron Gate",
+                        stage_type: "standard",
+                        question_count: 5,
+                        difficulty: "Easy",
+                    },
+                    stages: [
+                        { id: "ch1_s1", stage_number: 1, title: "The Wrought-Iron Gate", stage_type: "standard", question_count: 5, difficulty: "Easy", unlock_requirement: null },
+                        { id: "ch1_s2", stage_number: 2, title: "The Grand Foyer", stage_type: "standard", question_count: 5, difficulty: "Easy", unlock_requirement: "ch1_s1" },
+                        { id: "ch1_s3", stage_number: 3, title: "The Cold Library", stage_type: "standard", question_count: 8, difficulty: "Medium", unlock_requirement: "ch1_s2" },
+                        { id: "ch1_boss", stage_number: 4, title: "Spirit of Blackwood", stage_type: "boss", question_count: 10, difficulty: "Hard", unlock_requirement: "ch1_s3" },
+                    ],
+                    completedInChapter: 0,
+                    totalInChapter: 4,
+                    percent: 0,
+                    isNew: true,
+                    totalCompleted: 0,
+                };
+            }
+
+            let totalCompleted = 0;
+            Object.values(completedStages).forEach((st) => {
+                if (st && (st.stars || st.score)) totalCompleted += 1;
+            });
+
+            let currentChapter = chapters[0];
+            for (let i = 0; i < chapters.length; i++) {
+                const ch = chapters[i];
+                const incomplete = ch.stages.some((s) => !completedStages[s.id]);
+                if (incomplete) {
+                    currentChapter = ch;
+                    break;
+                }
+                currentChapter = ch;
+            }
+
+            const stages = currentChapter.stages || [];
+            let completedInChapter = 0;
+            stages.forEach((s) => {
+                if (completedStages[s.id]) completedInChapter += 1;
+            });
+
+            let activeStage = stages[0];
+            for (let i = 0; i < stages.length; i++) {
+                const s = stages[i];
+                if (!completedStages[s.id]) {
+                    activeStage = s;
+                    break;
+                }
+            }
+
+            const totalInChapter = stages.length || 4;
+            const percent = totalInChapter > 0 ? Math.round((completedInChapter / totalInChapter) * 100) : 0;
+
+            return {
+                chapter: currentChapter,
+                activeStage,
+                stages,
+                completedInChapter,
+                totalInChapter,
+                percent,
+                isNew: totalCompleted === 0,
+                totalCompleted,
+            };
+        }
+
+        renderLobbyExperience() {
+            if (!this.profile) return;
+            const avatar = PREDEFINED_AVATARS.find((a) => a.id === this.profile.avatar_id) || PREDEFINED_AVATARS[0];
+
+            // 1. Player Identity Bar
+            if (this.dom.lobbyAvatarImg) {
+                this.dom.lobbyAvatarImg.src = avatar.asset;
+                this.dom.lobbyAvatarImg.alt = avatar.name;
+            }
+            if (this.dom.lobbyPlayerName) {
+                this.dom.lobbyPlayerName.textContent = this.profile.nickname || "Ghost Hunter";
+            }
+            const overallAccuracy = this.profile.stats?.total_answered > 0
+                ? Math.round((this.profile.stats.total_correct / this.profile.stats.total_answered) * 100)
+                : 0;
+            const tier = getMasteryTier(overallAccuracy);
+            if (this.dom.lobbyPlayerTier) {
+                this.dom.lobbyPlayerTier.textContent = `${tier.title} ${tier.icon}`;
+            }
+            if (this.dom.lobbyDiamondCount) {
+                this.dom.lobbyDiamondCount.textContent = this.getDiamonds();
+            }
+
+            // 2. Continue Journey Card & Dynamic Stage Progression Map
+            const progress = this.getCurrentCampaignProgress();
+            if (this.dom.lobbyJourneyHeading) {
+                this.dom.lobbyJourneyHeading.textContent = progress.isNew ? "BEGIN YOUR JOURNEY" : "CONTINUE YOUR JOURNEY";
+            }
+            if (this.dom.btnLobbyContinueJourney) {
+                const btnSpan = this.dom.btnLobbyContinueJourney.querySelector("span");
+                if (btnSpan) {
+                    btnSpan.textContent = progress.isNew ? "🗺️ Begin Journey" : "🗺️ Continue Journey";
+                }
+            }
+            if (progress.chapter) {
+                if (this.dom.lobbyJourneyIcon) {
+                    this.dom.lobbyJourneyIcon.textContent = progress.chapter.icon || "🏚️";
+                }
+                if (this.dom.lobbyJourneyChapter) {
+                    this.dom.lobbyJourneyChapter.textContent = `Chapter ${progress.chapter.chapter_number}: ${progress.chapter.title}`;
+                }
+            }
+            if (progress.activeStage) {
+                if (this.dom.lobbyJourneyStage) {
+                    this.dom.lobbyJourneyStage.textContent = `Stage ${progress.activeStage.stage_number} — ${progress.activeStage.title}`;
+                }
+            }
+            if (this.dom.lobbyJourneyBarFill) {
+                this.dom.lobbyJourneyBarFill.style.width = `${progress.percent}%`;
+            }
+            if (this.dom.lobbyJourneyProgressText) {
+                this.dom.lobbyJourneyProgressText.textContent = `${progress.completedInChapter} / ${progress.totalInChapter} Stages Cleared (${progress.percent}%)`;
+            }
+
+            // Floating Supernatural Guises Dock Carousel
+            if (this.dom.lobbyAvatarCarousel) {
+                this.dom.lobbyAvatarCarousel.innerHTML = "";
+                PREDEFINED_AVATARS.forEach((av, idx) => {
+                    const isSelected = av.id === this.profile.avatar_id;
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = `lobby-avatar-dock-orb ${isSelected ? "selected" : ""}`;
+                    btn.setAttribute("role", "radio");
+                    btn.setAttribute("aria-checked", isSelected ? "true" : "false");
+                    btn.setAttribute("aria-label", `Switch guise to ${av.name}`);
+                    btn.title = `${av.name} (${av.desc})`;
+                    btn.style.animationDelay = `${(idx * 0.18).toFixed(2)}s`;
+                    btn.innerHTML = `
+                        <img src="${av.asset}" alt="${av.name}" width="34" height="34" class="dock-avatar-img">
+                        <span class="dock-avatar-label">${av.name.split(" ")[0]}</span>
+                    `;
+                    btn.addEventListener("click", () => {
+                        this.updateAvatar(av.id);
+                    });
+                    this.dom.lobbyAvatarCarousel.appendChild(btn);
+                });
+            }
+
+            // Dynamic Stage Map
+            const completedStages = (this.profile && this.profile.campaign && this.profile.campaign.completed_stages) || {};
+            this.renderDynamicStageMap(progress.stages, progress.activeStage?.id, completedStages);
+
+            // 3. Progress Snapshot
+            if (this.dom.lobbyStatGames) {
+                this.dom.lobbyStatGames.textContent = this.profile.stats?.games_played || 0;
+            }
+            if (this.dom.lobbyStatStreak) {
+                this.dom.lobbyStatStreak.textContent = this.profile.stats?.best_streak || 0;
+            }
+            const unlockedBadges = Object.keys(this.profile.achievements || {}).filter((k) => Boolean(this.profile.achievements[k])).length;
+            if (this.dom.lobbyStatBadges) {
+                this.dom.lobbyStatBadges.textContent = `${unlockedBadges}/8`;
+            }
+            if (this.dom.lobbyStatMastery) {
+                this.dom.lobbyStatMastery.textContent = `${overallAccuracy}%`;
+            }
+
+            // 4. Spooky Guide initial hint
+            if (this.dom.lobbyGuideQuote && !this.guideHintInitialized) {
+                this.guideHintInitialized = true;
+                this.dom.lobbyGuideQuote.textContent = `"${SPOOKY_GUIDE_HINTS[this.guideHintIndex]}"`;
+            }
+        }
+
+        renderDynamicStageMap(stages, activeStageId, completedStages) {
+            if (!this.dom.lobbyStageProgressionMap) return;
+            this.dom.lobbyStageProgressionMap.innerHTML = "";
+
+            if (!stages || stages.length === 0) return;
+
+            stages.forEach((st) => {
+                const isCompleted = Boolean(completedStages[st.id]);
+                const isActive = st.id === activeStageId;
+                let isUnlocked = true;
+                if (st.unlock_requirement && !completedStages[st.unlock_requirement]) {
+                    isUnlocked = false;
+                }
+
+                const stars = (completedStages[st.id] && completedStages[st.id].stars) || 0;
+                const starIcons = stars === 3 ? "⭐⭐⭐" : stars === 2 ? "⭐⭐" : stars === 1 ? "⭐" : "✓";
+
+                const node = document.createElement("button");
+                node.type = "button";
+                node.className = `lobby-stage-node ${isCompleted ? "completed" : ""} ${isActive ? "active-node" : ""} ${!isUnlocked ? "locked-node" : ""}`;
+                node.setAttribute("data-stage-id", st.id);
+                node.setAttribute("aria-label", `Stage ${st.stage_number}: ${st.title}. ${isActive ? "You are here" : isCompleted ? "Completed" : isUnlocked ? "Unlocked" : "Locked"}`);
+
+                let statusBadgeHtml = "";
+                if (isActive) {
+                    statusBadgeHtml = `<span class="stage-here-badge"><span class="ghost-float" aria-hidden="true">👻</span> YOU ARE HERE</span>`;
+                } else if (isCompleted) {
+                    statusBadgeHtml = `<span class="stage-done-badge">${starIcons}</span>`;
+                } else if (!isUnlocked) {
+                    statusBadgeHtml = `<span class="stage-lock-badge">🔒 Locked</span>`;
+                }
+
+                node.innerHTML = `
+                    <div class="stage-node-orb" aria-hidden="true">
+                        <span class="stage-orb-glyph">${isCompleted ? "✓" : isUnlocked ? st.stage_number : "🔒"}</span>
+                    </div>
+                    <div class="stage-node-info">
+                        <div class="stage-node-title-row">
+                            <strong class="stage-node-name">${this.escapeHtml(st.title)}</strong>
+                            ${statusBadgeHtml}
+                        </div>
+                        <span class="stage-node-sub">${st.stage_type === "boss" ? "💀 Boss Trial" : `${st.question_count} Questions · ${st.difficulty}`}</span>
+                    </div>
+                `;
+
+                node.addEventListener("click", () => {
+                    this.openCampaign();
+                    this.selectStage(st);
+                });
+
+                this.dom.lobbyStageProgressionMap.appendChild(node);
+            });
+        }
+
+        handleLobbyContinueJourney() {
+            const progress = this.getCurrentCampaignProgress();
+            this.openCampaign();
+            if (progress.activeStage) {
+                this.selectStage(progress.activeStage);
+            }
+        }
+
+        cycleSpookyGuideHint() {
+            if (!this.dom.lobbyGuideQuote) return;
+            this.guideHintIndex = (this.guideHintIndex + 1) % SPOOKY_GUIDE_HINTS.length;
+            this.dom.lobbyGuideQuote.classList.add("hint-fade");
+            setTimeout(() => {
+                if (this.dom.lobbyGuideQuote) {
+                    this.dom.lobbyGuideQuote.textContent = `"${SPOOKY_GUIDE_HINTS[this.guideHintIndex]}"`;
+                    this.dom.lobbyGuideQuote.classList.remove("hint-fade");
+                }
+            }, 180);
         }
 
         // ==========================================
@@ -1192,7 +1498,15 @@
             // UI sound on interactive buttons
             document.addEventListener("click", (event) => {
                 const button = event.target.closest("button");
-                if (!button || button.disabled || button.id === "btn-start" || button.classList.contains("option-btn")) return;
+                if (
+                    !button ||
+                    button.disabled ||
+                    button.id === "btn-start" ||
+                    button.id === "btn-enter-the-haunt" ||
+                    button.id === "btn-lobby-quick-play" ||
+                    button.id === "btn-lobby-daily-haunt" ||
+                    button.classList.contains("option-btn")
+                ) return;
                 const isCategoryAction = button.id === "btn-select-all-cats" || button.id === "btn-clear-cats";
                 this.sound.play(isCategoryAction ? "category_select" : "ui_click");
             }, true);
@@ -1233,6 +1547,60 @@
             this.dom.formStart.addEventListener("submit", (e) => {
                 e.preventDefault();
                 this.startGame();
+            });
+
+            // Haunted Game Lobby Actions
+            this.dom.btnEnterTheHaunt?.addEventListener("click", () => {
+                this.startGame();
+            });
+
+            this.dom.btnLobbyContinueJourney?.addEventListener("click", () => {
+                this.handleLobbyContinueJourney();
+            });
+
+            this.dom.btnLobbyQuickPlay?.addEventListener("click", () => {
+                this.startGameWithParams({ mode: "quick", num_questions: 5 });
+            });
+
+            this.dom.btnLobbyDailyHaunt?.addEventListener("click", () => {
+                this.startGameWithParams({ mode: "daily", num_questions: 10 });
+            });
+
+            this.dom.btnLobbyDuels?.addEventListener("click", () => {
+                this.openDuels();
+            });
+
+            this.dom.btnLobbyAvatar?.addEventListener("click", () => {
+                this.openAvatarPicker();
+            });
+
+            this.dom.btnLobbyEditProfile?.addEventListener("click", () => {
+                this.openSettings();
+            });
+
+            this.dom.lobbyDiamondsPill?.addEventListener("click", () => {
+                this.openShop();
+            });
+
+            this.dom.lobbyProgressSnapshot?.addEventListener("click", () => {
+                this.openMastery();
+            });
+
+            this.dom.btnLobbyProgress?.addEventListener("click", (e) => {
+                e.stopPropagation();
+                this.openMastery();
+            });
+
+            this.dom.btnLobbyLeaderboard?.addEventListener("click", () => {
+                this.openLeaderboard();
+            });
+
+            this.dom.btnLobbySettings?.addEventListener("click", () => {
+                this.openSettings();
+            });
+
+            this.dom.btnGuideNextHint?.addEventListener("click", () => {
+                this.cycleSpookyGuideHint();
             });
 
             // Next Question Button
@@ -1608,6 +1976,7 @@
         openHome() {
             this.closeAllModals();
             this.showScreen("start");
+            this.renderLobbyExperience();
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
@@ -2757,6 +3126,7 @@
             const balance = this.getDiamonds();
             if (this.dom.headerDiamondCount) this.dom.headerDiamondCount.textContent = balance;
             if (this.dom.shopDiamondBalance) this.dom.shopDiamondBalance.textContent = balance;
+            if (this.dom.lobbyDiamondCount) this.dom.lobbyDiamondCount.textContent = balance;
         }
 
         updateBoosterHud() {
@@ -2894,6 +3264,7 @@
                 this.campaignChapters = data.chapters || [];
                 this.renderChapterTabs();
                 this.renderChapterStages(this.activeChapterId);
+                this.renderLobbyExperience();
             } catch (err) {
                 console.warn("Campaign load warning:", err);
             }
@@ -3271,6 +3642,7 @@
                     this.dom.hudStrikes.classList.add("hidden");
                 }
 
+                this.sound.play("quiz_start");
                 this.showScreen("quiz");
                 this.renderQuestion(data.first_question);
             } catch (err) {

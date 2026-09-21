@@ -154,7 +154,7 @@ Browsers isolate PWA storage, Cache Storage, and Service Workers strictly by ori
 
 When moving from local development (`127.0.0.1:5000`) to your custom domain (`https://halloween.jamoloto.dev`):
 1. **HTTPS Is Mandatory**: Service workers require a secure context (`https://`).
-2. **Fresh Cache**: The custom domain will start with a fresh cache of the latest `spooky-master-v2.2.0` assets.
+2. **Fresh Cache**: The custom domain will start with a fresh cache of the latest `spooky-master-v2.3.0` assets.
 3. **PWA Install Banner**: Chrome, Edge, and mobile Safari will show the "Install Spooky Master" prompt once served over HTTPS with a valid manifest.
 
 ---
