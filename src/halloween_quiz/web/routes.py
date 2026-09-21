@@ -17,6 +17,10 @@ from halloween_quiz.core.duels import (
     duel_registry,
 )
 from halloween_quiz.core.engine import QuestionBank, QuizSession, SessionManager
+from halloween_quiz.core.entitlements import (
+    EntitlementStatus,
+    entitlement_service,
+)
 from halloween_quiz.core.models import (
     AnswerResult,
     AnswerSubmission,
@@ -24,6 +28,7 @@ from halloween_quiz.core.models import (
     Difficulty,
     GameMode,
     LeaderboardResponse,
+    PersonalBestResponse,
     QuestionView,
     QuizConfig,
     ScoreRecord,
@@ -38,6 +43,7 @@ router = APIRouter()
 
 class StartQuizRequest(BaseModel):
     player_name: str = Field(default="Ghost Hunter", min_length=1, max_length=40)
+    avatar_id: str = Field(default="pumpkin_hunter")
     difficulty: str = Field(default="medium")
     mode: str = Field(default="classic")
     categories: list[str] = Field(default_factory=lambda: [c.value for c in Category])
@@ -170,16 +176,21 @@ def readiness_check(
 
 
 @router.get("/api/categories")
-def get_categories(bank: QuestionBank = Depends(get_question_bank)):
+def get_categories(
+    include_premium: bool = False,
+    bank: QuestionBank = Depends(get_question_bank),
+):
     """List available trivia categories, difficulties, and modes."""
     return {
-        "categories": bank.get_categories(),
+        "categories": bank.get_categories(include_premium=include_premium),
+        "premium_packs": bank.get_premium_topics(),
         "difficulties": [d.value for d in Difficulty],
         "modes": [m.value for m in GameMode],
     }
 
 
 @router.get("/api/daily")
+@router.get("/api/daily-haunt/info")
 def get_daily_haunt_info():
     """Return info about today's deterministic UTC Daily Haunt challenge."""
     now_utc = datetime.now(timezone.utc)
@@ -197,6 +208,10 @@ def get_daily_haunt_info():
         "title": "Daily Haunt Challenge",
         "seconds_remaining": max(0, seconds_until_tomorrow),
         "rules": "Same 10 spooky questions for all hunters worldwide today.",
+        "challenge_version": "2026-v1",
+        "question_bank_version": "bank-1.0",
+        "booster_restrictions": "Booster multipliers disabled in Daily Haunt (Strict Fair Play)",
+        "scoring_rules": "Base points (Easy: 100, Med: 200, Hard: 300) + Monotonic speed bonus + Streak bonus",
     }
 
 
@@ -207,12 +222,31 @@ def get_daily_haunt_info():
 )
 def start_quiz(
     payload: StartQuizRequest,
+    request: Request,
     bank: QuestionBank = Depends(get_question_bank),
     sessions: SessionManager = Depends(get_active_sessions),
 ):
     """Start a new interactive quiz game session."""
     diff = Difficulty.from_str(payload.difficulty)
     mode_enum = GameMode.from_str(payload.mode)
+    player_id = request.headers.get("X-Player-ID", "player_default")
+    tier = entitlement_service.resolve_tier(player_id)
+
+    # Validate avatar entitlement (fairness: avatars are purely cosmetic)
+    if payload.avatar_id and not entitlement_service.can_use_avatar(tier, payload.avatar_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"The supernatural guise '{payload.avatar_id}' requires the Spooky Master Pass.",
+        )
+
+    # Validate topic/category entitlement
+    if payload.categories:
+        for cat in payload.categories:
+            if not entitlement_service.can_access_topic(tier, cat):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"The premium trivia pack '{cat}' requires the Spooky Master Pass.",
+                )
 
     config = QuizConfig(
         player_name=payload.player_name,
@@ -221,11 +255,25 @@ def start_quiz(
         categories=payload.categories,
         num_questions=payload.num_questions,
         time_limit_per_question=payload.time_limit_per_question,
+        avatar_id=payload.avatar_id,
     )
 
     if payload.stage_id:
         stage = get_stage_by_id(payload.stage_id)
         if stage:
+            ch_num = 1
+            if (
+                stage.chapter_id.startswith("ch")
+                and len(stage.chapter_id) > 2
+                and stage.chapter_id[2].isdigit()
+            ):
+                ch_num = int(stage.chapter_id[2])
+            if ch_num > 3:
+                if not entitlement_service.can_access_chapter(tier, ch_num):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="This campaign chapter requires the Spooky Master Pass.",
+                    )
             config.difficulty = stage.difficulty
             config.categories = stage.categories
             config.num_questions = stage.question_count
@@ -370,7 +418,8 @@ def submit_answer(
     )
 
     # If this answer finished the quiz, persist score to database
-    if session.is_completed:
+    if session.is_completed and not session.score_saved:
+        session.score_saved = True
         try:
             repo.save_score(
                 player_name=session.config.player_name,
@@ -380,6 +429,8 @@ def submit_answer(
                 percentage=session.percentage,
                 mode=session.config.mode.value,
                 max_streak=session.max_streak,
+                avatar_id=getattr(session.config, "avatar_id", "pumpkin_hunter"),
+                is_boosted=session.is_boosted,
             )
             logger.info(
                 f"Session completed and saved: session={session_id}, score={session.score}, mode={session.config.mode.value}"
@@ -422,7 +473,8 @@ def timeout_question(
 
     result = session.timeout_current_question()
 
-    if session.is_completed:
+    if session.is_completed and not session.score_saved:
+        session.score_saved = True
         try:
             repo.save_score(
                 player_name=session.config.player_name,
@@ -432,6 +484,8 @@ def timeout_question(
                 percentage=session.percentage,
                 mode=session.config.mode.value,
                 max_streak=session.max_streak,
+                avatar_id=getattr(session.config, "avatar_id", "pumpkin_hunter"),
+                is_boosted=session.is_boosted,
             )
             logger.info(
                 f"Session completed via timeout and saved: session={session_id}, score={session.score}, mode={session.config.mode.value}"
@@ -454,14 +508,73 @@ def get_leaderboard(
     mode: str | None = Query(
         None, description="Filter by game mode: classic, daily, panic, endless"
     ),
+    timeframe: str | None = Query("all", description="Timeframe: all, daily"),
+    challenge_date: str | None = Query(None, description="Specific challenge date YYYY-MM-DD"),
+    unboosted_only: bool = Query(False, description="Exclude boosted runs from ranked leaderboard"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     repo: ScoreRepository = Depends(get_score_repo),
 ):
-    """Get top scores with optional difficulty/mode filter and pagination."""
-    entries = repo.get_leaderboard(difficulty=difficulty, mode=mode, limit=limit, offset=offset)
-    total = repo.count_scores(difficulty=difficulty, mode=mode)
-    return LeaderboardResponse(entries=entries, total=total)
+    """Get top scores with optional difficulty/mode/timeframe filter and pagination."""
+    entries = repo.get_leaderboard(
+        difficulty=difficulty,
+        mode=mode,
+        timeframe=timeframe,
+        challenge_date=challenge_date,
+        unboosted_only=unboosted_only,
+        limit=limit,
+        offset=offset,
+    )
+    total = repo.count_scores(
+        difficulty=difficulty,
+        mode=mode,
+        timeframe=timeframe,
+        challenge_date=challenge_date,
+        unboosted_only=unboosted_only,
+    )
+    return LeaderboardResponse(entries=entries, total=total, timeframe=timeframe or "all")
+
+
+@router.get("/api/leaderboard/personal-best", response_model=PersonalBestResponse)
+def get_personal_best(
+    player_name: str = Query(..., min_length=1, max_length=100, description="Player name"),
+    repo: ScoreRepository = Depends(get_score_repo),
+):
+    """Retrieve high score, streak, and history for a specific player."""
+    data = repo.get_personal_best(player_name)
+    return PersonalBestResponse(**data)
+
+
+class RestorePurchaseRequest(BaseModel):
+    player_id: str = Field(default="player_default")
+    purchase_token: str | None = None
+
+
+@router.get("/api/entitlements", response_model=EntitlementStatus)
+def get_entitlements(
+    player_id: str = Query("player_default", description="Player identifier"),
+    tier: str | None = Query(None, description="Dev override tier"),
+):
+    """Return player's active entitlement tier, capabilities, and product catalog."""
+    return entitlement_service.get_status(player_id=player_id, requested_tier=tier)
+
+
+@router.post("/api/entitlements/verify")
+def verify_or_restore_purchase(
+    payload: RestorePurchaseRequest,
+):
+    """Receipt verification and restore purchase handler."""
+    status_info = entitlement_service.get_status(player_id=payload.player_id)
+    return {
+        "success": True,
+        "restored": status_info.is_premium,
+        "tier": status_info.tier.value,
+        "message": (
+            "Active purchase restored."
+            if status_info.is_premium
+            else "No active external purchase records found for this account. Real billing connects via payment provider."
+        ),
+    }
 
 
 @router.post("/api/leaderboard", response_model=ScoreRecord)
@@ -473,12 +586,12 @@ def record_score_manually(
     """Score recording endpoint (protected against client manipulation in production)."""
     admin_key = os.getenv("ADMIN_API_KEY")
     env = os.getenv("ENVIRONMENT", "development").lower()
-    if env == "production" and admin_key:
+    if env == "production":
         provided_key = request.headers.get("X-Admin-Key")
-        if provided_key != admin_key:
+        if not admin_key or provided_key != admin_key:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Manual leaderboard submission is disabled in production.",
+                detail="Manual leaderboard submission is disabled in production. Scores must be earned via active quiz sessions.",
             )
 
     return repo.save_score(
@@ -489,6 +602,8 @@ def record_score_manually(
         percentage=payload.percentage,
         mode=getattr(payload, "mode", "classic") or "classic",
         max_streak=getattr(payload, "max_streak", 0) or 0,
+        avatar_id=getattr(payload, "avatar_id", "pumpkin_hunter") or "pumpkin_hunter",
+        is_boosted=getattr(payload, "is_boosted", False),
     )
 
 

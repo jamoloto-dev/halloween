@@ -131,6 +131,7 @@ class QuizConfig(BaseModel):
     categories: list[str] = Field(default_factory=lambda: [c.value for c in Category])
     num_questions: int = Field(default=10, ge=1, le=50)
     time_limit_per_question: int = Field(default=30, ge=5, le=120)
+    avatar_id: str = Field(default="pumpkin_hunter", max_length=50)
 
     @field_validator("player_name")
     @classmethod
@@ -203,6 +204,9 @@ class ScoreRecord(BaseModel):
     percentage: float
     max_streak: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    challenge_date: str | None = None
+    avatar_id: str | None = "pumpkin_hunter"
+    is_boosted: bool = False
 
     @field_validator("player_name")
     @classmethod
@@ -216,6 +220,19 @@ class ScoreRecord(BaseModel):
 class LeaderboardResponse(BaseModel):
     entries: list[ScoreRecord]
     total: int
+    timeframe: str = "all"
+
+
+class PersonalBestResponse(BaseModel):
+    player_name: str
+    high_score: int
+    best_streak: int
+    total_games: int
+    best_percentage: float
+    best_daily: int = 0
+    best_mode: str = "classic"
+    best_record: ScoreRecord | None = None
+    records: list[ScoreRecord] = Field(default_factory=list)
 
 
 class BoosterType(str, Enum):

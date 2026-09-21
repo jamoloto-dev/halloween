@@ -3461,3 +3461,525 @@ html.reduced-motion .particle {
   transform: none !important;
 }
 
+/* ==========================================================================
+   ATMOSPHERIC COSMETIC THEMES (Non-pay-to-win UI Ambience)
+   ========================================================================== */
+html[data-theme="blood_moon"], body[data-theme="blood_moon"] {
+  --canvas: #12060a;
+  --surface: #220d15;
+  --surface-hover: #32131f;
+  --line: rgba(255, 120, 150, 0.16);
+  --line-strong: rgba(255, 120, 150, 0.28);
+  --orange: #ff4757;
+  --orange-light: #ffa4b0;
+  --purple: #e84393;
+  --gold: #fdcb6e;
+}
+
+html[data-theme="phantom_forest"], body[data-theme="phantom_forest"] {
+  --canvas: #05120f;
+  --surface: #0a221c;
+  --surface-hover: #10322a;
+  --line: rgba(85, 239, 196, 0.16);
+  --line-strong: rgba(85, 239, 196, 0.28);
+  --orange: #00b894;
+  --orange-light: #55efc4;
+  --purple: #00cec9;
+  --gold: #ffeaa7;
+}
+
+html[data-theme="neon_crypt"], body[data-theme="neon_crypt"] {
+  --canvas: #090918;
+  --surface: #141432;
+  --surface-hover: #1e1e4a;
+  --line: rgba(180, 140, 255, 0.2);
+  --line-strong: rgba(180, 140, 255, 0.35);
+  --orange: #ff007f;
+  --orange-light: #ff70a6;
+  --purple: #a855f7;
+  --gold: #00f0ff;
+}
+
+html[data-theme="midnight_graveyard"], body[data-theme="midnight_graveyard"] {
+  --canvas: #070c12;
+  --surface: #0f1a26;
+  --surface-hover: #162638;
+  --line: rgba(150, 190, 235, 0.16);
+  --line-strong: rgba(150, 190, 235, 0.28);
+  --orange: #3867d6;
+  --orange-light: #70a1ff;
+  --purple: #4b6584;
+  --gold: #d1d8e0;
+}
+
+/* ==========================================================================
+   SURVIVAL RESULT SHARE CARD
+   ========================================================================== */
+.survival-share-card {
+  background: linear-gradient(145deg, rgba(27, 18, 42, 0.95), rgba(12, 9, 20, 0.98));
+  border: 2px solid rgba(255, 138, 40, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 0 auto 16px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 138, 40, 0.15);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.survival-share-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(168, 85, 247, 0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+.share-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+.share-card-brand {
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  color: var(--orange-light);
+}
+.share-card-mode-badge {
+  background: rgba(192, 132, 252, 0.2);
+  color: var(--purple);
+  border: 1px solid rgba(192, 132, 252, 0.4);
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.share-card-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.share-card-avatar-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.share-card-avatar-img {
+  width: 48px;
+  height: 48px;
+}
+.share-card-hunter {
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.share-card-tier {
+  font-size: 0.8rem;
+  color: var(--gold);
+  background: rgba(255, 217, 138, 0.12);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.share-card-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+.share-card-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.share-stat-lbl {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.share-stat-val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ink);
+  font-family: var(--mono);
+}
+.share-card-footer {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   LEADERBOARD VIEW TABS & PERSONAL BEST
+   ========================================================================== */
+.leaderboard-view-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+}
+.lb-view-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.lb-view-btn:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.lb-view-btn.active {
+  background: rgba(255, 138, 40, 0.18);
+  border-color: var(--orange);
+  color: var(--orange-light);
+}
+.pb-card-display {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.pb-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.pb-stat-box {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+.pb-label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.pb-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--gold);
+  font-family: var(--mono);
+}
+.pb-recent-title {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.lb-row-avatar {
+  vertical-align: middle;
+  margin-right: 6px;
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   SPOOKY MASTER PASS & VIP MODAL
+   ========================================================================== */
+.modal-premium-card {
+  max-width: 800px;
+  width: 95%;
+}
+.modal-subtitle {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.premium-fairness-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(123, 234, 134, 0.08);
+  border: 1px solid rgba(123, 234, 134, 0.3);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+.fairness-icon {
+  font-size: 1.8rem;
+}
+.premium-fairness-banner strong {
+  display: block;
+  color: var(--lime);
+  font-size: 0.92rem;
+  margin-bottom: 2px;
+}
+.premium-fairness-banner p {
+  font-size: 0.8rem;
+  color: var(--ink);
+  line-height: 1.35;
+}
+.premium-catalog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+.premium-card {
+  background: rgba(23, 18, 35, 0.9);
+  border: 2px solid rgba(255, 138, 40, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.premium-card-vip {
+  border-color: rgba(192, 132, 252, 0.45);
+  background: linear-gradient(160deg, rgba(23, 18, 35, 0.95), rgba(35, 18, 55, 0.95));
+}
+.premium-badge-pill {
+  display: inline-block;
+  background: rgba(255, 138, 40, 0.2);
+  color: var(--orange-light);
+  border: 1px solid rgba(255, 138, 40, 0.4);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+.vip-pill {
+  background: rgba(192, 132, 252, 0.2);
+  color: var(--purple);
+  border-color: rgba(192, 132, 252, 0.4);
+}
+.premium-card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.premium-price-display {
+  margin-bottom: 16px;
+}
+.price-val {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--gold);
+  font-family: var(--mono);
+}
+.price-type {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-left: 6px;
+}
+.premium-features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  flex-grow: 1;
+}
+.premium-features-list li {
+  font-size: 0.85rem;
+  color: var(--ink);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.35;
+}
+.check-icon {
+  color: var(--lime);
+  font-weight: bold;
+}
+.card-action-subtext {
+  display: block;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.btn-vip-cta {
+  background: linear-gradient(135deg, #a855f7, #6c5ce7);
+}
+.premium-footer-bar {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.premium-status-info span {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+.premium-status-info small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.premium-footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   CHAPTER LOCK & THEMES GRID STYLES
+   ========================================================================== */
+.premium-chapter-lock-banner {
+  background: linear-gradient(145deg, rgba(35, 18, 55, 0.85), rgba(18, 10, 30, 0.95));
+  border: 2px dashed rgba(192, 132, 252, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  margin: 16px 0;
+}
+.premium-chapter-lock-banner .lock-icon {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+}
+.premium-chapter-lock-banner h4 {
+  font-size: 1.25rem;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.premium-chapter-lock-banner p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  max-width: 480px;
+  margin: 0 auto 16px;
+}
+.themes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+.theme-select-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.theme-select-card:hover {
+  border-color: var(--orange);
+}
+.theme-select-card.selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(255, 217, 138, 0.25);
+}
+.theme-swatch {
+  height: 24px;
+  border-radius: 4px;
+  width: 100%;
+}
+.theme-info strong {
+  font-size: 0.85rem;
+  color: var(--ink);
+  display: block;
+}
+.theme-info small {
+  font-size: 0.72rem;
+  color: var(--muted);
+  display: block;
+  line-height: 1.2;
+}
+.theme-lock-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 0.68rem;
+  background: rgba(255, 138, 40, 0.2);
+  color: var(--orange-light);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+.locked-avatar {
+  position: relative;
+  opacity: 0.85;
+}
+.avatar-card-img-wrap {
+  position: relative;
+}
+.avatar-lock-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: rgba(255, 138, 40, 0.9);
+  color: #000;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 6px;
+}
+.nav-pass-pill {
+  background: rgba(255, 138, 40, 0.14) !important;
+  color: var(--orange-light) !important;
+  border: 1px solid rgba(255, 138, 40, 0.35) !important;
+}
+.nav-pass-pill.pass-active {
+  background: rgba(123, 234, 134, 0.15) !important;
+  color: var(--lime) !important;
+  border-color: rgba(123, 234, 134, 0.4) !important;
+}
+
+@media (max-width: 768px) {
+  .premium-catalog-grid {
+    grid-template-columns: 1fr;
+  }
+  .pb-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .leaderboard-view-tabs {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 480px) {
+  .themes-grid {
+    grid-template-columns: 1fr;
+  }
+  .survival-share-card {
+    padding: 14px;
+  }
+  .share-stat-val {
+    font-size: 0.95rem;
+  }
+}
+
+

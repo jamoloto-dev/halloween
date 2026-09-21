@@ -18,6 +18,7 @@ from halloween_quiz.core.models import (
     QuestionView,
     QuizConfig,
 )
+from halloween_quiz.core.scoring import ScoringService
 
 
 class QuestionBank:
@@ -96,6 +97,31 @@ class QuestionBank:
         except Exception:
             pass
 
+        # Also load additive premium trivia packs if present
+        prem_path = Path("assets/premium_questions.json")
+        if prem_path.exists():
+            try:
+                with open(prem_path, encoding="utf-8") as pf:
+                    p_data = json.load(pf)
+                if isinstance(p_data, dict):
+                    for p_cat, p_items in p_data.items():
+                        for p_item in p_items:
+                            p_id = p_item.get("id") or f"prem_{p_cat}_{idx}"
+                            p_diff = Difficulty.from_str(p_item.get("difficulty", "medium"))
+                            p_obj = Question(
+                                id=str(p_id),
+                                category=p_cat,
+                                difficulty=p_diff,
+                                question=p_item["question"],
+                                options=p_item["options"],
+                                correct_answer=p_item["correct_answer"],
+                                explanation=p_item.get("explanation"),
+                            )
+                            loaded.append(p_obj)
+                            idx += 1
+            except Exception:
+                pass
+
         self.questions = loaded
         self._by_category = {}
         for q in self.questions:
@@ -105,13 +131,27 @@ class QuestionBank:
     def total_count(self) -> int:
         return len(self.questions)
 
-    def get_categories(self) -> list[dict]:
-        """Return available categories with count and metadata."""
+    def get_categories(self, include_premium: bool = False) -> list[dict]:
+        """Return available categories with count and metadata.
+        By default preserves the 6 canonical categories for backward compatibility.
+        """
+        from halloween_quiz.core.entitlements import PREMIUM_TOPICS_METADATA
+
         cats = []
         for cat_key, items in self._by_category.items():
-            meta = CATEGORY_METADATA.get(
-                cat_key, {"name": cat_key.capitalize(), "icon": "🎃", "description": ""}
-            )
+            meta = CATEGORY_METADATA.get(cat_key, None)
+            is_premium = False
+            badge = ""
+            if not meta and cat_key in PREMIUM_TOPICS_METADATA:
+                meta = PREMIUM_TOPICS_METADATA[cat_key]
+                is_premium = True
+                badge = meta.get("badge", "Pass Pack")
+            elif not meta:
+                meta = {"name": cat_key.capitalize(), "icon": "🎃", "description": ""}
+
+            if is_premium and not include_premium:
+                continue
+
             cats.append(
                 {
                     "id": cat_key,
@@ -119,9 +159,33 @@ class QuestionBank:
                     "icon": meta["icon"],
                     "description": meta["description"],
                     "question_count": len(items),
+                    "is_premium": is_premium,
+                    "badge": badge,
+                    "required_entitlement": "spooky_pass" if is_premium else None,
                 }
             )
         return cats
+
+    def get_premium_topics(self) -> list[dict]:
+        """Return additive premium trivia topics."""
+        from halloween_quiz.core.entitlements import PREMIUM_TOPICS_METADATA
+
+        packs = []
+        for cat_key, meta in PREMIUM_TOPICS_METADATA.items():
+            items = self._by_category.get(cat_key, [])
+            packs.append(
+                {
+                    "id": cat_key,
+                    "name": meta["name"],
+                    "icon": meta["icon"],
+                    "description": meta["description"],
+                    "question_count": len(items),
+                    "is_premium": True,
+                    "badge": meta.get("badge", "Pass Pack"),
+                    "required_entitlement": "spooky_pass",
+                }
+            )
+        return packs
 
     def select_questions(
         self,
@@ -255,6 +319,9 @@ class QuizSession:
         self.multiplier: int = 1
         self.shield_active: bool = False
         self.active_trap: str | None = getattr(config, "active_trap", None)
+        self.scoring: ScoringService = ScoringService()
+        self.is_boosted: bool = False
+        self.score_saved: bool = False
 
     @property
     def total_questions(self) -> int:
@@ -320,6 +387,8 @@ class QuizSession:
         q = self.get_current_question()
         if not q or self.is_completed:
             return {"success": False, "error": "No active question"}
+
+        self.is_boosted = True
 
         if booster_type == "hint":
             display_opts = self._display_options.get(q.id, list(q.options))
@@ -423,33 +492,39 @@ class QuizSession:
                 q.difficulty, 30
             )
 
+        mode_val = getattr(self.config, "mode", GameMode.CLASSIC)
+        is_competitive = mode_val in (GameMode.DAILY, GameMode.DUEL)
+
+        score_res = self.scoring.calculate_question_score(
+            difficulty=q.difficulty,
+            is_correct=is_correct,
+            current_streak=self.streak,
+            client_time_taken=time_taken,
+            server_elapsed=server_elapsed,
+            time_limit=time_limit,
+            mode=mode_val,
+            booster_multiplier=self.multiplier,
+            is_competitive=is_competitive,
+        )
+
+        effective_time = score_res.effective_time
         shield_absorbed = False
-        applied_multiplier = 1
+        applied_multiplier = score_res.applied_multiplier
 
         if is_correct:
             self.correct_count += 1
-            self.streak += 1
+            self.streak = score_res.streak
             if self.streak > self.max_streak:
                 self.max_streak = self.streak
 
-            base_pts = self.DIFFICULTY_BASE_POINTS.get(q.difficulty, 100)
-
-            # Streak multiplier: +10% per streak up to 1.5x
-            streak_mult = min(1.5, 1.0 + (self.streak - 1) * 0.10)
-
-            # Authoritative time bonus
-            time_remaining = max(0.0, time_limit - effective_time)
-            if time_limit > 0 and time_remaining > 0:
-                time_ratio = time_remaining / time_limit
-                bonus_mult = 1.0 if getattr(self.config, "mode", None) == GameMode.PANIC else 0.5
-                time_bonus = int(base_pts * time_ratio * bonus_mult)
-
-            applied_multiplier = self.multiplier
-            points = int((base_pts * streak_mult) + time_bonus) * applied_multiplier
+            points = score_res.total_points
+            time_bonus = score_res.time_bonus
             self.multiplier = 1  # Reset multiplier after consumption
             self.score += points
         else:
             self.streak = 0
+            points = 0
+            time_bonus = 0
             if self.shield_active:
                 self.shield_active = False
                 shield_absorbed = True

@@ -58,6 +58,7 @@
             <button id="btn-market-open" class="nav-btn nav-diamond-pill" title="Open The Witch's Market" aria-label="Diamonds and Market">💎 <span id="header-diamond-count">0</span></button>
             <button id="btn-campaign-nav" class="nav-btn" title="The Haunted Journey Campaign Map" aria-label="Campaign Journey">🗺️ Journey</button>
             <button id="btn-duels-nav" class="nav-btn" title="Haunted Duels PvP" aria-label="Haunted Duels">⚔️ Duels</button>
+            <button id="btn-pass-nav" class="nav-btn nav-pass-pill" title="Spooky Master Pass" aria-label="Spooky Master Pass">🎃 Pass</button>
             <button id="btn-pwa-install" class="nav-btn hidden" title="Install Spooky Master App" aria-label="Install App">📲 Install</button>
             <button id="btn-mastery-open" class="nav-btn" title="View Player Profile & Progress" aria-label="View Progress">📜 Progress</button>
             <button id="btn-leaderboard-open" class="nav-btn" title="View High Scores" aria-label="View Leaderboard">🏆 Leaderboard</button>
@@ -586,6 +587,39 @@
 
                 <!-- Social Share Card Action -->
                 <div class="share-box">
+                    <div class="survival-share-card" id="survival-share-card">
+                        <div class="share-card-header">
+                            <span class="share-card-brand">🎃 SPOOKY MASTER</span>
+                            <span class="share-card-mode-badge" id="share-card-mode-badge">CLASSIC</span>
+                        </div>
+                        <div class="share-card-body">
+                            <div class="share-card-avatar-wrap">
+                                <img id="share-card-avatar" class="share-card-avatar-img" src="/static/avatars/pumpkin_hunter.svg" alt="Avatar" width="56" height="56">
+                            </div>
+                            <div class="share-card-info">
+                                <h4 id="share-card-hunter-name" class="share-card-hunter">Ghost Hunter</h4>
+                                <span id="share-card-tier-badge" class="share-card-tier">Curious Ghost 👻</span>
+                            </div>
+                        </div>
+                        <div class="share-card-stats-grid">
+                            <div class="share-card-stat">
+                                <span class="share-stat-lbl">Score</span>
+                                <span class="share-stat-val" id="share-card-score">0</span>
+                            </div>
+                            <div class="share-card-stat">
+                                <span class="share-stat-lbl">Accuracy</span>
+                                <span class="share-stat-val" id="share-card-acc">0%</span>
+                            </div>
+                            <div class="share-card-stat">
+                                <span class="share-stat-lbl">Streak</span>
+                                <span class="share-stat-val" id="share-card-streak">0 🔥</span>
+                            </div>
+                        </div>
+                        <div class="share-card-footer">
+                            <span class="share-card-callout">Can you survive the crypt?</span>
+                        </div>
+                    </div>
+
                     <button id="btn-share-result" class="btn-cta share-btn">
                         <span>🎃 Share Survival Card</span>
                     </button>
@@ -608,13 +642,21 @@
 
         <!-- MODAL 1: LEADERBOARD -->
         <div id="modal-leaderboard" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
-            <div class="modal-card">
+            <div class="modal-card modal-leaderboard-card">
                 <div class="modal-header">
                     <h2 id="leaderboard-title">🎃 Crypt of High Scores</h2>
                     <button id="btn-close-modal" class="btn-close" aria-label="Close high scores modal">✖</button>
                 </div>
 
-                <div class="leaderboard-tabs" role="tablist" aria-label="Leaderboard filters">
+                <!-- Primary View Switcher: All-Time, Today's Daily, Personal Best -->
+                <div class="leaderboard-view-tabs" role="tablist" aria-label="Leaderboard views">
+                    <button class="lb-view-btn active" data-view="all" role="tab" aria-selected="true">👑 All-Time</button>
+                    <button class="lb-view-btn" data-view="daily" role="tab" aria-selected="false">🕯️ Today's Daily</button>
+                    <button class="lb-view-btn" data-view="pb" role="tab" aria-selected="false">👤 Personal Best</button>
+                </div>
+
+                <!-- Secondary Filter Tabs -->
+                <div class="leaderboard-tabs" id="leaderboard-filter-tabs" role="tablist" aria-label="Leaderboard filters">
                     <button class="tab-btn active" data-diff="all" role="tab" aria-selected="true">All</button>
                     <button class="tab-btn" data-diff="easy" role="tab" aria-selected="false">Easy</button>
                     <button class="tab-btn" data-diff="medium" role="tab" aria-selected="false">Medium</button>
@@ -622,6 +664,29 @@
                     <button class="tab-btn tab-mode" data-mode="daily" role="tab" aria-selected="false">🕯️ Daily</button>
                     <button class="tab-btn tab-mode" data-mode="panic" role="tab" aria-selected="false">⏳ Panic</button>
                     <button class="tab-btn tab-mode" data-mode="endless" role="tab" aria-selected="false">💀 Endless</button>
+                </div>
+
+                <!-- Personal Best Card Display (Visible when Personal Best view selected) -->
+                <div id="leaderboard-pb-container" class="pb-card-display hidden">
+                    <div class="pb-grid">
+                        <div class="pb-stat-box">
+                            <span class="pb-label">Personal High Score</span>
+                            <span class="pb-val" id="pb-high-score">0</span>
+                        </div>
+                        <div class="pb-stat-box">
+                            <span class="pb-label">Best Streak</span>
+                            <span class="pb-val" id="pb-best-streak">0 🔥</span>
+                        </div>
+                        <div class="pb-stat-box">
+                            <span class="pb-label">Total Games</span>
+                            <span class="pb-val" id="pb-total-games">0</span>
+                        </div>
+                        <div class="pb-stat-box">
+                            <span class="pb-label">Best Accuracy</span>
+                            <span class="pb-val" id="pb-best-acc">0%</span>
+                        </div>
+                    </div>
+                    <h4 class="pb-recent-title">Recent Verified High Scores</h4>
                 </div>
 
                 <div class="table-responsive">
@@ -664,6 +729,15 @@
                                 <input type="text" id="settings-player-name" maxlength="30" class="input-styled-sm" autocomplete="nickname">
                             </div>
                             <button type="button" id="btn-settings-change-avatar" class="btn-secondary btn-sm">Change Avatar</button>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 1B: COSMETIC THEMES -->
+                    <div class="settings-section">
+                        <h3 class="settings-sec-title">🎨 Atmospheric Themes</h3>
+                        <p class="setting-desc">Select an ambient visual theme. Purely cosmetic — strictly zero gameplay or timer differences.</p>
+                        <div class="themes-grid" id="settings-themes-grid">
+                            <!-- Populated dynamically via JS -->
                         </div>
                     </div>
 
@@ -1185,6 +1259,93 @@
                                 <span>Accept Challenge & Duel!</span> ➔
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: SPOOKY MASTER PASS & VIP -->
+        <div id="modal-premium" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="premium-title">
+            <div class="modal-card modal-premium-card">
+                <div class="modal-header">
+                    <div>
+                        <h2 id="premium-title">🎃 Spooky Master Pass</h2>
+                        <span class="modal-subtitle">Sustainable Freemium Trivia · Strict Zero Pay-To-Win</span>
+                    </div>
+                    <button id="btn-close-premium" class="btn-close" aria-label="Close Spooky Master Pass modal">✖</button>
+                </div>
+
+                <div class="premium-fairness-banner">
+                    <span class="fairness-icon">🛡️</span>
+                    <div>
+                        <strong>Strict Fair Play Guarantee</strong>
+                        <p>Purchases unlock content, cosmetic themes, avatars, and convenience. Premium players receive zero competitive advantages, score multipliers, or leaderboard power.</p>
+                    </div>
+                </div>
+
+                <div class="premium-catalog-grid">
+                    <!-- Option 1: Lifetime Spooky Master Pass -->
+                    <div class="premium-card" id="card-product-pass">
+                        <div class="premium-card-header">
+                            <span class="premium-badge-pill">Lifetime Unlock</span>
+                            <h3>Spooky Master Pass</h3>
+                            <div class="premium-price-display">
+                                <span class="price-val" id="pass-price-val">$4.99</span>
+                                <span class="price-type">one-time purchase</span>
+                            </div>
+                        </div>
+                        <ul class="premium-features-list">
+                            <li><span class="check-icon">✓</span> Unlock Campaign Chapters 4, 5 & 6</li>
+                            <li><span class="check-icon">✓</span> 4 Exclusive Guises: Phantom King, Shadow Witch, Vampire Lord, Banshee</li>
+                            <li><span class="check-icon">✓</span> 4 Atmospheric Themes: Blood Moon, Phantom Forest, Neon Crypt & Midnight Graveyard</li>
+                            <li><span class="check-icon">✓</span> Advanced Trivia Packs: Cryptids, Cinema Masters & Folklore</li>
+                            <li><span class="check-icon">✓</span> Ad-Free Spooky Experience</li>
+                            <li><span class="check-icon">✓</span> +50 Bonus Daily Haunt Diamonds</li>
+                        </ul>
+                        <div class="premium-card-action">
+                            <button type="button" id="btn-purchase-pass" class="btn-cta btn-full">
+                                <span>Get Lifetime Pass</span>
+                            </button>
+                            <small class="card-action-subtext">Permanent unlock across this device</small>
+                        </div>
+                    </div>
+
+                    <!-- Option 2: Haunted VIP Pass (Subscription) -->
+                    <div class="premium-card premium-card-vip" id="card-product-vip">
+                        <div class="premium-card-header">
+                            <span class="premium-badge-pill vip-pill">VIP Subscription</span>
+                            <h3>Haunted VIP Pass</h3>
+                            <div class="premium-price-display">
+                                <span class="price-val" id="vip-price-val">$2.99</span>
+                                <span class="price-type">/ month (cancel anytime)</span>
+                            </div>
+                        </div>
+                        <ul class="premium-features-list">
+                            <li><span class="check-icon">✓</span> Everything in Spooky Master Pass</li>
+                            <li><span class="check-icon">✓</span> Priority Access to Future Seasonal Chapters</li>
+                            <li><span class="check-icon">✓</span> VIP Golden Name Flair on High Scores</li>
+                            <li><span class="check-icon">✓</span> Continuous +50 Daily Diamond Grant</li>
+                            <li><span class="check-icon">✓</span> Continued Ad-Free Gameplay</li>
+                        </ul>
+                        <div class="premium-card-action">
+                            <button type="button" id="btn-subscribe-vip" class="btn-cta btn-full btn-vip-cta">
+                                <span>Join Haunted VIP</span>
+                            </button>
+                            <small class="card-action-subtext">Optional monthly subscription</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account / Subscription Status & Restore Purchases -->
+                <div class="premium-footer-bar">
+                    <div class="premium-status-info">
+                        <span>Current Entitlement: <strong id="premium-current-tier-text">Free Adventurer</strong></span>
+                        <small id="premium-status-note">Real billing connects securely via Stripe, Apple App Store, or Google Play Billing.</small>
+                    </div>
+                    <div class="premium-footer-actions">
+                        <button type="button" id="btn-restore-purchases" class="btn-secondary btn-sm">🔄 Restore Purchases</button>
+                        <!-- Dev Mode Override (Visible only when dev mode is active) -->
+                        <button type="button" id="btn-dev-toggle-pass" class="btn-secondary btn-sm hidden">⚡ Toggle Dev Pass (Test Mode)</button>
                     </div>
                 </div>
             </div>

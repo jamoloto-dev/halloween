@@ -32,14 +32,27 @@
     ];
 
     const PREDEFINED_AVATARS = [
-        { id: "pumpkin_hunter", name: "Pumpkin Hunter", icon: "🎃", asset: "/static/avatars/pumpkin_hunter.svg", desc: "Vigilant guardian of the pumpkin patch" },
-        { id: "ghost", name: "Spectral Ghost", icon: "👻", asset: "/static/avatars/ghost.svg", desc: "Playful apparition wandering between realms" },
-        { id: "vampire", name: "Crimson Vampire", icon: "🧛", asset: "/static/avatars/vampire.svg", desc: "Nocturnal aristocrat with refined tastes" },
-        { id: "witch", name: "Mystic Witch", icon: "🧙", asset: "/static/avatars/witch.svg", desc: "Master of midnight brews and celestial spells" },
-        { id: "skeleton", name: "Crypt Skeleton", icon: "💀", asset: "/static/avatars/skeleton.svg", desc: "Ancient resident of the bone chambers" },
-        { id: "zombie", name: "Grave Walker", icon: "🧟", asset: "/static/avatars/zombie.svg", desc: "Stitched relentless crawler of the graveyard" },
-        { id: "werewolf", name: "Lunar Werewolf", icon: "🐺", asset: "/static/avatars/werewolf.svg", desc: "Fierce beast awakened by the full moon" },
-        { id: "night_bat", name: "Night Creature", icon: "🦇", asset: "/static/avatars/night_bat.svg", desc: "Obsidian shadow swooping through the mist" },
+        { id: "pumpkin_hunter", name: "Pumpkin Hunter", icon: "🎃", asset: "/static/avatars/pumpkin_hunter.svg", desc: "Vigilant guardian of the pumpkin patch", is_premium: false },
+        { id: "ghost", name: "Spectral Ghost", icon: "👻", asset: "/static/avatars/ghost.svg", desc: "Playful apparition wandering between realms", is_premium: false },
+        { id: "vampire", name: "Crimson Vampire", icon: "🧛", asset: "/static/avatars/vampire.svg", desc: "Nocturnal aristocrat with refined tastes", is_premium: false },
+        { id: "witch", name: "Mystic Witch", icon: "🧙", asset: "/static/avatars/witch.svg", desc: "Master of midnight brews and celestial spells", is_premium: false },
+        { id: "skeleton", name: "Crypt Skeleton", icon: "💀", asset: "/static/avatars/skeleton.svg", desc: "Ancient resident of the bone chambers", is_premium: false },
+        { id: "zombie", name: "Grave Walker", icon: "🧟", asset: "/static/avatars/zombie.svg", desc: "Stitched relentless crawler of the graveyard", is_premium: false },
+        { id: "werewolf", name: "Lunar Werewolf", icon: "🐺", asset: "/static/avatars/werewolf.svg", desc: "Fierce beast awakened by the full moon", is_premium: false },
+        { id: "night_bat", name: "Night Creature", icon: "🦇", asset: "/static/avatars/night_bat.svg", desc: "Obsidian shadow swooping through the mist", is_premium: false },
+        // Premium Avatars (Unlocked via Spooky Master Pass · Purely Cosmetic)
+        { id: "phantom_king", name: "Phantom King", icon: "👑", asset: "/static/avatars/phantom_king.svg", desc: "Monarch of the spectral realm", is_premium: true },
+        { id: "shadow_witch", name: "Shadow Witch", icon: "🔮", asset: "/static/avatars/shadow_witch.svg", desc: "High sorceress of midnight eclipse", is_premium: true },
+        { id: "vampire_lord", name: "Vampire Lord", icon: "🩸", asset: "/static/avatars/vampire_lord.svg", desc: "Ancient bloodline aristocrat", is_premium: true },
+        { id: "banshee", name: "Wailing Banshee", icon: "🌫️", asset: "/static/avatars/banshee.svg", desc: "Herald of the misty moors", is_premium: true },
+    ];
+
+    const AVAILABLE_THEMES = [
+        { id: "default", name: "Haunted Mansion", is_premium: false, icon: "🏚️", desc: "Classic purple & ember manor ambiance" },
+        { id: "blood_moon", name: "Blood Moon", is_premium: true, icon: "🩸", desc: "Crimson glow and darkened scarlet accents" },
+        { id: "phantom_forest", name: "Phantom Forest", is_premium: true, icon: "🌲", desc: "Eerie spectral mint & jade woodland mist" },
+        { id: "neon_crypt", name: "Neon Crypt", is_premium: true, icon: "⚡", desc: "Electric magenta & cyan cyberpunk tombs" },
+        { id: "midnight_graveyard", name: "Midnight Graveyard", is_premium: true, icon: "🪦", desc: "Starlight blue and obsidian tombstone calm" },
     ];
 
     // Central source of truth for sampled audio. Web Audio synthesis remains the
@@ -730,13 +743,20 @@
                 btnMasteryOpen: document.getElementById("btn-mastery-open"),
                 btnLeaderboard: document.getElementById("btn-leaderboard-open"),
                 btnSettingsOpen: document.getElementById("btn-settings-open"),
+                btnPassNav: document.getElementById("btn-pass-nav"),
 
                 // Modals
                 modalLeaderboard: document.getElementById("modal-leaderboard"),
                 btnCloseModal: document.getElementById("btn-close-modal"),
                 leaderboardTbody: document.getElementById("leaderboard-tbody"),
+                leaderboardPbContainer: document.getElementById("leaderboard-pb-container"),
+                pbHighScore: document.getElementById("pb-high-score"),
+                pbBestStreak: document.getElementById("pb-best-streak"),
+                pbTotalGames: document.getElementById("pb-total-games"),
+                pbBestAcc: document.getElementById("pb-best-acc"),
 
                 modalSettings: document.getElementById("modal-settings"),
+                settingsThemesGrid: document.getElementById("settings-themes-grid"),
                 btnCloseSettings: document.getElementById("btn-close-settings"),
                 settingsAvatarImg: document.getElementById("settings-avatar-img"),
                 settingsPlayerName: document.getElementById("settings-player-name"),
@@ -810,6 +830,14 @@
                 reviewList: document.getElementById("review-list"),
                 btnShareResult: document.getElementById("btn-share-result"),
                 shareFeedback: document.getElementById("share-feedback"),
+                survivalShareCard: document.getElementById("survival-share-card"),
+                shareCardAvatar: document.getElementById("share-card-avatar"),
+                shareCardHunterName: document.getElementById("share-card-hunter-name"),
+                shareCardTierBadge: document.getElementById("share-card-tier-badge"),
+                shareCardScore: document.getElementById("share-card-score"),
+                shareCardAcc: document.getElementById("share-card-acc"),
+                shareCardStreak: document.getElementById("share-card-streak"),
+                shareCardModeBadge: document.getElementById("share-card-mode-badge"),
                 btnPlayAgain: document.getElementById("btn-play-again"),
                 btnViewBoardFinish: document.getElementById("btn-view-board-finish"),
                 btnViewMasteryFinish: document.getElementById("btn-view-mastery-finish"),
@@ -903,6 +931,15 @@
                 inputJoinDuelCode: document.getElementById("input-join-duel-code"),
                 duelInspectCard: document.getElementById("duel-inspect-card"),
                 btnAcceptAndPlayDuel: document.getElementById("btn-accept-and-play-duel"),
+
+                // Spooky Master Pass & Premium Modal
+                modalPremium: document.getElementById("modal-premium"),
+                btnClosePremium: document.getElementById("btn-close-premium"),
+                btnPurchasePass: document.getElementById("btn-purchase-pass"),
+                btnSubscribeVip: document.getElementById("btn-subscribe-vip"),
+                btnRestorePurchases: document.getElementById("btn-restore-purchases"),
+                btnDevTogglePass: document.getElementById("btn-dev-toggle-pass"),
+                premiumCurrentTierText: document.getElementById("premium-current-tier-text"),
             };
 
             this.noticeTimer = null;
@@ -922,6 +959,12 @@
             this.guideHintIndex = 0;
             this.guideHintInitialized = false;
 
+            // Leaderboard & Entitlement State
+            this.currentLbView = "all";
+            this.currentLbDiff = null;
+            this.currentLbMode = null;
+            this.entitlements = null;
+
             // Initialize Player Profile & Migration
             this.profile = this.initPlayerProfile();
 
@@ -931,6 +974,9 @@
             this.sound.onBgmStateChange = () => this.syncSettingsUi();
             this.loadCategories();
             this.applyProfileToUi();
+            this.applyTheme();
+            this.fetchEntitlements();
+            this.renderThemesGrid();
             this.updateDiamondDisplays();
             this.updateBoosterHud();
             this.purgeObsoleteCaches();
@@ -1038,6 +1084,7 @@
                                 sfx_volume: 0.60,
                                 reduced_motion: false,
                                 vibration: true,
+                                theme: "default",
                             };
                         } else {
                             if (parsed.preferences.music_enabled === undefined) parsed.preferences.music_enabled = true;
@@ -1047,6 +1094,7 @@
                             if (typeof parsed.preferences.sfx_volume !== "number" || isNaN(parsed.preferences.sfx_volume)) parsed.preferences.sfx_volume = 0.60;
                             parsed.preferences.reduced_motion = Boolean(parsed.preferences.reduced_motion);
                             parsed.preferences.vibration = parsed.preferences.vibration !== false;
+                            if (!parsed.preferences.theme) parsed.preferences.theme = "default";
                         }
 
                         this.sound.applyPreferences(parsed.preferences);
@@ -1110,6 +1158,7 @@
                     sfx_volume: Number.isFinite(defaultSfxVol) ? defaultSfxVol : 0.60,
                     reduced_motion: isReducedMotion,
                     vibration: isVibration,
+                    theme: "default",
                 },
             };
 
@@ -1343,7 +1392,8 @@
             // Floating Supernatural Guises Dock Carousel
             if (this.dom.lobbyAvatarCarousel) {
                 this.dom.lobbyAvatarCarousel.innerHTML = "";
-                PREDEFINED_AVATARS.forEach((av, idx) => {
+                const baseAvatars = PREDEFINED_AVATARS.filter((av) => !av.is_premium);
+                baseAvatars.forEach((av, idx) => {
                     const isSelected = av.id === this.profile.avatar_id;
                     const btn = document.createElement("button");
                     btn.type = "button";
@@ -1630,17 +1680,49 @@
                 if (e.target === this.dom.modalLeaderboard) this.closeLeaderboard();
             });
 
-            // Leaderboard Tabs
-            const tabs = this.dom.modalLeaderboard.querySelectorAll(".tab-btn");
-            tabs.forEach((tab) => {
-                tab.addEventListener("click", () => {
-                    tabs.forEach((t) => t.classList.remove("active"));
-                    tab.classList.add("active");
-                    const diff = tab.getAttribute("data-diff");
-                    const mode = tab.getAttribute("data-mode");
-                    this.fetchLeaderboard(diff === "all" ? null : diff, mode || null);
+            // Leaderboard View Switcher (All-Time, Today's Daily, Personal Best)
+            const lbViewBtns = this.dom.modalLeaderboard?.querySelectorAll(".lb-view-btn");
+            lbViewBtns?.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    lbViewBtns.forEach((b) => {
+                        b.classList.remove("active");
+                        b.setAttribute("aria-selected", "false");
+                    });
+                    btn.classList.add("active");
+                    btn.setAttribute("aria-selected", "true");
+                    this.currentLbView = btn.getAttribute("data-view") || "all";
+                    this.fetchLeaderboard(this.currentLbDiff, this.currentLbMode);
                 });
             });
+
+            // Leaderboard Secondary Filter Tabs
+            const tabs = this.dom.modalLeaderboard?.querySelectorAll("#leaderboard-filter-tabs .tab-btn");
+            tabs?.forEach((tab) => {
+                tab.addEventListener("click", () => {
+                    tabs.forEach((t) => {
+                        t.classList.remove("active");
+                        t.setAttribute("aria-selected", "false");
+                    });
+                    tab.classList.add("active");
+                    tab.setAttribute("aria-selected", "true");
+                    const diff = tab.getAttribute("data-diff");
+                    const mode = tab.getAttribute("data-mode");
+                    this.currentLbDiff = diff === "all" ? null : diff;
+                    this.currentLbMode = mode || null;
+                    this.fetchLeaderboard(this.currentLbDiff, this.currentLbMode);
+                });
+            });
+
+            // Spooky Master Pass & VIP Modal Events
+            this.dom.btnPassNav?.addEventListener("click", () => this.openPremiumModal());
+            this.dom.btnClosePremium?.addEventListener("click", () => this.closePremiumModal());
+            this.dom.modalPremium?.addEventListener("click", (e) => {
+                if (e.target === this.dom.modalPremium) this.closePremiumModal();
+            });
+            this.dom.btnPurchasePass?.addEventListener("click", () => this.handlePurchasePass());
+            this.dom.btnSubscribeVip?.addEventListener("click", () => this.handleSubscribeVip());
+            this.dom.btnRestorePurchases?.addEventListener("click", () => this.handleRestorePurchases());
+            this.dom.btnDevTogglePass?.addEventListener("click", () => this.handleDevTogglePass());
 
             // Settings Modal Open/Close
             this.dom.btnSettingsOpen?.addEventListener("click", () => this.openSettings());
@@ -1882,6 +1964,7 @@
                     this.closeStory();
                     this.closeShop();
                     this.closeDuels();
+                    this.closePremiumModal();
                     return;
                 }
 
@@ -1922,7 +2005,8 @@
             if (!this.dom.onboardingAvatarGrid) return;
             this.dom.onboardingAvatarGrid.innerHTML = "";
 
-            PREDEFINED_AVATARS.forEach((avatar, idx) => {
+            const baseAvatars = PREDEFINED_AVATARS.filter((avatar) => !avatar.is_premium);
+            baseAvatars.forEach((avatar, idx) => {
                 const btn = document.createElement("button");
                 btn.type = "button";
                 btn.className = `avatar-option-card ${avatar.id === this.selectedOnboardingAvatar ? "selected" : ""}`;
@@ -1932,15 +2016,11 @@
                 btn.innerHTML = `
                     <img src="${avatar.asset}" alt="${avatar.name}" class="avatar-card-img" width="56" height="56">
                     <span class="avatar-card-name">${avatar.name}</span>
+                    <small class="avatar-card-desc">${avatar.desc}</small>
                 `;
                 btn.addEventListener("click", () => {
                     this.selectedOnboardingAvatar = avatar.id;
-                    this.dom.onboardingAvatarGrid.querySelectorAll(".avatar-option-card").forEach((c) => {
-                        c.classList.remove("selected");
-                        c.setAttribute("aria-checked", "false");
-                    });
-                    btn.classList.add("selected");
-                    btn.setAttribute("aria-checked", "true");
+                    this.renderOnboardingAvatarGrid();
                     this.sound.playUiSound();
                 });
                 this.dom.onboardingAvatarGrid.appendChild(btn);
@@ -1948,12 +2028,13 @@
         }
 
         completeOnboarding() {
-            const rawName = (this.dom.onboardingHunterName?.value || "").trim();
-            const nickname = rawName || "GhostHunter";
-            this.profile.nickname = nickname;
-            this.profile.avatar_id = this.selectedOnboardingAvatar;
-            this.saveProfile();
-            this.applyProfileToUi();
+            const hunterInput = this.dom.onboardingHunterName?.value.trim();
+            const nickname = hunterInput || "Ghost Hunter";
+            const avatarId = this.selectedOnboardingAvatar || "pumpkin_hunter";
+
+            this.updateNickname(nickname);
+            this.updateAvatar(avatarId);
+
             this.closeOnboarding();
             this.showToast("Welcome to Spooky Master!", `Identity established: ${nickname}`, "🎃");
             this.sound.play("quiz_start");
@@ -1971,6 +2052,7 @@
             this.dom.modalSettings?.classList.add("hidden");
             this.dom.modalShop?.classList.add("hidden");
             this.dom.modalAvatarPicker?.classList.add("hidden");
+            this.dom.modalPremium?.classList.add("hidden");
         }
 
         openHome() {
@@ -1989,18 +2071,24 @@
 
             PREDEFINED_AVATARS.forEach((avatar) => {
                 const isCurrent = avatar.id === this.profile.avatar_id;
+                const isLocked = avatar.is_premium && !this.isPremium();
                 const btn = document.createElement("button");
                 btn.type = "button";
-                btn.className = `avatar-option-card ${isCurrent ? "selected" : ""}`;
+                btn.className = `avatar-option-card ${isCurrent ? "selected" : ""} ${isLocked ? "avatar-locked" : ""}`;
                 btn.setAttribute("role", "radio");
                 btn.setAttribute("aria-checked", isCurrent ? "true" : "false");
                 btn.setAttribute("aria-label", avatar.name);
                 btn.innerHTML = `
+                    ${isLocked ? `<span class="avatar-lock-badge">🔒 PASS</span>` : ""}
                     <img src="${avatar.asset}" alt="${avatar.name}" class="avatar-card-img" width="56" height="56">
                     <span class="avatar-card-name">${avatar.name}</span>
                     <small class="avatar-card-desc">${avatar.desc}</small>
                 `;
                 btn.addEventListener("click", () => {
+                    if (isLocked) {
+                        this.openPremiumModal();
+                        return;
+                    }
                     this.updateAvatar(avatar.id);
                     this.closeAvatarPicker();
                 });
@@ -2168,6 +2256,192 @@
             if (this.dom.settingVibration) {
                 this.dom.settingVibration.checked = this.profile?.preferences?.vibration !== false;
             }
+            this.renderThemesGrid();
+        }
+
+        renderThemesGrid() {
+            const grid = this.dom.settingsThemesGrid || document.getElementById("settings-themes-grid");
+            if (!grid) return;
+            grid.innerHTML = "";
+
+            const activeTheme = (this.profile && this.profile.preferences && this.profile.preferences.theme) || "default";
+
+            AVAILABLE_THEMES.forEach((theme) => {
+                const isCurrent = theme.id === activeTheme;
+                const isLocked = theme.is_premium && !this.isPremium();
+                const card = document.createElement("button");
+                card.type = "button";
+                card.className = `theme-select-card ${isCurrent ? "active" : ""} ${isLocked ? "theme-locked" : ""}`;
+                card.setAttribute("role", "radio");
+                card.setAttribute("aria-checked", isCurrent ? "true" : "false");
+                card.innerHTML = `
+                    <div class="theme-card-icon">${theme.icon}</div>
+                    <div class="theme-card-body">
+                        <strong class="theme-card-name">${this.escapeHtml(theme.name)}</strong>
+                        <small class="theme-card-desc">${this.escapeHtml(theme.desc)}</small>
+                    </div>
+                    ${isLocked ? `<span class="theme-lock-badge">🔒 PASS</span>` : ""}
+                `;
+                card.addEventListener("click", () => {
+                    if (isLocked) {
+                        this.openPremiumModal();
+                        return;
+                    }
+                    this.setTheme(theme.id);
+                });
+                grid.appendChild(card);
+            });
+        }
+
+        setTheme(themeId) {
+            if (!this.profile.preferences) this.profile.preferences = {};
+            this.profile.preferences.theme = themeId;
+            this.saveProfile();
+            this.applyTheme(themeId);
+            this.renderThemesGrid();
+            this.showToast("Atmosphere Set", `Theme changed to ${themeId.replace("_", " ")}`, "🎨");
+        }
+
+        applyTheme(themeId) {
+            const theme = themeId || (this.profile?.preferences?.theme) || "default";
+            if (theme === "default") {
+                document.documentElement.removeAttribute("data-theme");
+                document.body.removeAttribute("data-theme");
+            } else {
+                document.documentElement.setAttribute("data-theme", theme);
+                document.body.setAttribute("data-theme", theme);
+            }
+        }
+
+        // ==========================================
+        // ENTITLEMENTS & SPOOKY MASTER PASS SYSTEM
+        // ==========================================
+        async fetchEntitlements(devTier = null) {
+            try {
+                const playerId = this.profile?.player_id || "player_default";
+                let url = `/api/entitlements?player_id=${encodeURIComponent(playerId)}`;
+                if (devTier) {
+                    url += `&tier=${encodeURIComponent(devTier)}`;
+                }
+                const res = await fetch(url);
+                if (res.ok) {
+                    this.entitlements = await res.json();
+                    this.syncEntitlementsUi();
+                }
+            } catch (err) {
+                console.warn("Failed to fetch entitlements:", err);
+            }
+        }
+
+        isPremium() {
+            return Boolean(this.entitlements && this.entitlements.is_premium);
+        }
+
+        syncEntitlementsUi() {
+            if (!this.entitlements) return;
+
+            // Dev mode button in premium modal
+            if (this.dom.btnDevTogglePass) {
+                if (this.entitlements.dev_mode_active) {
+                    this.dom.btnDevTogglePass.classList.remove("hidden");
+                    const isVip = this.entitlements.tier === "haunted_vip";
+                    const isPass = this.entitlements.tier === "spooky_pass";
+                    this.dom.btnDevTogglePass.textContent = isVip
+                        ? "⚡ Dev Pass: VIP (Click to Reset Free)"
+                        : isPass
+                        ? "⚡ Dev Pass: Pass (Click for VIP)"
+                        : "⚡ Toggle Dev Pass (Test Mode)";
+                } else {
+                    this.dom.btnDevTogglePass.classList.add("hidden");
+                }
+            }
+
+            // Top Nav Pass Button
+            if (this.dom.btnPassNav) {
+                if (this.entitlements.tier === "haunted_vip") {
+                    this.dom.btnPassNav.textContent = "👑 VIP";
+                    this.dom.btnPassNav.classList.add("nav-pass-active");
+                } else if (this.entitlements.is_premium) {
+                    this.dom.btnPassNav.textContent = "🎃 Pass Active";
+                    this.dom.btnPassNav.classList.add("nav-pass-active");
+                } else {
+                    this.dom.btnPassNav.textContent = "🎃 Pass";
+                    this.dom.btnPassNav.classList.remove("nav-pass-active");
+                }
+            }
+
+            // Status indicator in modal footer
+            if (this.dom.premiumCurrentTierText) {
+                if (this.entitlements.tier === "haunted_vip") {
+                    this.dom.premiumCurrentTierText.textContent = "Haunted VIP Pass 👑";
+                } else if (this.entitlements.is_premium) {
+                    this.dom.premiumCurrentTierText.textContent = "Spooky Master Pass 🎃";
+                } else {
+                    this.dom.premiumCurrentTierText.textContent = "Free Adventurer";
+                }
+            }
+
+            this.renderThemesGrid();
+            if (this.campaignChapters && this.campaignChapters.length > 0) {
+                this.renderChapterTabs();
+            }
+        }
+
+        openPremiumModal() {
+            this.closeAllModals();
+            this.dom.modalPremium?.classList.remove("hidden");
+            this.fetchEntitlements();
+        }
+
+        closePremiumModal() {
+            this.dom.modalPremium?.classList.add("hidden");
+        }
+
+        async handlePurchasePass() {
+            if (this.entitlements?.dev_mode_active) {
+                await this.fetchEntitlements("spooky_pass");
+                this.showToast("Spooky Pass Activated!", "Test purchase completed in local dev mode.", "🎃");
+            } else {
+                this.showNotice("Payment Gateway: Secure billing connects to Stripe Checkout, Apple App Store, and Google Play Billing. In local development, enable DEV_PREMIUM_MODE in .env for instant testing.");
+                this.showToast("Billing Notice", "Secure checkout connects via Stripe / App Stores.", "💳");
+            }
+        }
+
+        async handleSubscribeVip() {
+            if (this.entitlements?.dev_mode_active) {
+                await this.fetchEntitlements("haunted_vip");
+                this.showToast("Haunted VIP Active!", "Test VIP subscription enabled in local dev mode.", "👑");
+            } else {
+                this.showNotice("Subscription Gateway: Haunted VIP connects to Stripe Billing and mobile app store subscriptions. In local development, enable DEV_PREMIUM_MODE in .env for instant testing.");
+                this.showToast("VIP Notice", "Secure subscriptions connect via Stripe / App Stores.", "👑");
+            }
+        }
+
+        async handleRestorePurchases() {
+            try {
+                const res = await fetch("/api/entitlements/verify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ player_id: this.profile?.player_id || "player_default" }),
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    await this.fetchEntitlements();
+                    this.showToast("Restore Purchases", data.message, data.restored ? "✨" : "ℹ️");
+                }
+            } catch (e) {
+                this.showToast("Restore Failed", "Could not verify purchase status with the server.", "⚠️");
+            }
+        }
+
+        async handleDevTogglePass() {
+            if (!this.entitlements?.dev_mode_active) return;
+            const currentTier = this.entitlements.tier;
+            let nextTier = "spooky_pass";
+            if (currentTier === "spooky_pass") nextTier = "haunted_vip";
+            else if (currentTier === "haunted_vip") nextTier = "free";
+            await this.fetchEntitlements(nextTier);
+            this.showToast("Dev Mode Changed", `Entitlement set to: ${nextTier}`, "⚡");
         }
 
         showScreen(screenName) {
@@ -2303,7 +2577,10 @@
 
                 const res = await fetch("/api/quiz/start", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Player-ID": this.profile?.player_id || "player_default",
+                    },
                     body: JSON.stringify({
                         player_name: playerName,
                         difficulty: difficulty,
@@ -2311,6 +2588,7 @@
                         categories: selectedCategories,
                         num_questions: numQuestions,
                         time_limit_per_question: timeLimit,
+                        avatar_id: this.profile?.avatar_id || "pumpkin_hunter",
                     }),
                 });
 
@@ -2762,6 +3040,17 @@
                 this.dom.statCorrect.textContent = `${summary.correct_count || 0}/${summary.total_questions || 10}`;
                 this.dom.statMaxStreak.textContent = summary.max_streak || 0;
 
+                // Populate Visual Survival Share Card
+                const currentAvatar = PREDEFINED_AVATARS.find((a) => a.id === this.profile.avatar_id) || PREDEFINED_AVATARS[0];
+                const masteryTier = getMasteryTier(summary.percentage || 0);
+                if (this.dom.shareCardAvatar) this.dom.shareCardAvatar.src = currentAvatar.asset;
+                if (this.dom.shareCardHunterName) this.dom.shareCardHunterName.textContent = this.profile.nickname;
+                if (this.dom.shareCardTierBadge) this.dom.shareCardTierBadge.textContent = `${masteryTier.title} ${masteryTier.icon}`;
+                if (this.dom.shareCardScore) this.dom.shareCardScore.textContent = Number(data.score || 0).toLocaleString();
+                if (this.dom.shareCardAcc) this.dom.shareCardAcc.textContent = `${summary.percentage || 0}%`;
+                if (this.dom.shareCardStreak) this.dom.shareCardStreak.textContent = `${summary.max_streak || 0} 🔥`;
+                if (this.dom.shareCardModeBadge) this.dom.shareCardModeBadge.textContent = this.gameMode.toUpperCase();
+
                 // Render review list
                 this.dom.reviewList.innerHTML = "";
                 const history = summary.history || [];
@@ -2857,14 +3146,15 @@
         // SHARE SURVIVAL CARD
         // ==========================================
         async shareSurvivalCard() {
-            const score = this.dom.statFinalScore.textContent;
-            const accuracy = this.dom.statAccuracy.textContent;
-            const correct = this.dom.statCorrect.textContent;
-            const maxStreak = this.dom.statMaxStreak.textContent;
+            const score = this.dom.statFinalScore?.textContent || "0";
+            const accuracy = this.dom.statAccuracy?.textContent || "0%";
+            const correct = this.dom.statCorrect?.textContent || "0";
+            const maxStreak = this.dom.statMaxStreak?.textContent || "0";
             const mode = this.gameMode.toUpperCase();
+            const hunter = this.profile?.nickname || "Ghost Hunter";
 
             const shareText = `🎃 Spooky Master Survival Card 🎃\n` +
-                `Hunter: ${this.profile.nickname}\n` +
+                `Hunter: ${hunter}\n` +
                 `Score: ${score} pts | Accuracy: ${accuracy} (${correct})\n` +
                 `Max Streak: ${maxStreak} 🔥 | Mode: ${mode}\n` +
                 `Dare to enter the crypt: ${window.location.origin}`;
@@ -2896,7 +3186,7 @@
         async openLeaderboard() {
             this.closeAllModals();
             this.dom.modalLeaderboard.classList.remove("hidden");
-            this.fetchLeaderboard(null, null);
+            this.fetchLeaderboard(this.currentLbDiff, this.currentLbMode);
         }
 
         closeLeaderboard() {
@@ -2904,10 +3194,67 @@
         }
 
         async fetchLeaderboard(difficulty = null, mode = null) {
+            // Handle Personal Best View
+            if (this.currentLbView === "pb") {
+                if (this.dom.leaderboardPbContainer) {
+                    this.dom.leaderboardPbContainer.classList.remove("hidden");
+                }
+                this.dom.leaderboardTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;">Gathering personal haunt history...</td></tr>`;
+
+                try {
+                    const playerName = this.profile?.nickname || "Ghost Hunter";
+                    const res = await fetch(`/api/leaderboard/personal-best?player_name=${encodeURIComponent(playerName)}`);
+                    if (!res.ok) throw new Error("Personal best fetch failed");
+                    const data = await res.json();
+
+                    if (this.dom.pbHighScore) this.dom.pbHighScore.textContent = Number(data.high_score || 0).toLocaleString();
+                    if (this.dom.pbBestStreak) this.dom.pbBestStreak.textContent = `${data.best_streak || 0} 🔥`;
+                    if (this.dom.pbTotalGames) this.dom.pbTotalGames.textContent = data.total_games || 0;
+                    if (this.dom.pbBestAcc) this.dom.pbBestAcc.textContent = `${data.best_percentage || 0}%`;
+
+                    if (!data.recent_records || data.recent_records.length === 0) {
+                        this.dom.leaderboardTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;">No personal runs recorded under "${this.escapeHtml(playerName)}" yet.</td></tr>`;
+                        return;
+                    }
+
+                    this.dom.leaderboardTbody.innerHTML = "";
+                    data.recent_records.forEach((entry, idx) => {
+                        const tr = document.createElement("tr");
+                        const dateStr = entry.created_at ? new Date(entry.created_at).toLocaleDateString() : "-";
+                        const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`;
+                        const entryMode = entry.mode ? entry.mode.toUpperCase() : "CLASSIC";
+                        const av = PREDEFINED_AVATARS.find((a) => a.id === entry.avatar_id);
+                        const avIcon = av ? av.icon : "🎃";
+
+                        tr.innerHTML = `
+                            <td class="rank-col">${medal}</td>
+                            <td class="name-col"><span class="table-avatar-icon">${avIcon}</span> <strong>${this.escapeHtml(entry.player_name)}</strong></td>
+                            <td><span class="badge badge-${entry.difficulty}">${entry.difficulty.toUpperCase()}</span></td>
+                            <td><span class="badge badge-mode">${entryMode}</span></td>
+                            <td class="score-col">${entry.score.toLocaleString()}</td>
+                            <td>${entry.percentage}%</td>
+                            <td class="date-col">${dateStr}</td>
+                        `;
+                        this.dom.leaderboardTbody.appendChild(tr);
+                    });
+                } catch (err) {
+                    console.error("Personal best error:", err);
+                    this.dom.leaderboardTbody.innerHTML = `<tr><td colspan="7" style="color:#ff5a5a;text-align:center;padding:24px;">Failed to load personal records.</td></tr>`;
+                }
+                return;
+            }
+
+            // Normal / Daily Leaderboard View
+            if (this.dom.leaderboardPbContainer) {
+                this.dom.leaderboardPbContainer.classList.add("hidden");
+            }
             this.dom.leaderboardTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;">Summoning records from the crypt...</td></tr>`;
 
             try {
                 let url = "/api/leaderboard?limit=25";
+                if (this.currentLbView === "daily") {
+                    url += "&timeframe=daily";
+                }
                 if (difficulty) url += `&difficulty=${encodeURIComponent(difficulty)}`;
                 if (mode) url += `&mode=${encodeURIComponent(mode)}`;
 
@@ -2926,10 +3273,12 @@
                     const dateStr = entry.created_at ? new Date(entry.created_at).toLocaleDateString() : "-";
                     const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`;
                     const entryMode = entry.mode ? entry.mode.toUpperCase() : "CLASSIC";
+                    const av = PREDEFINED_AVATARS.find((a) => a.id === entry.avatar_id);
+                    const avIcon = av ? av.icon : "🎃";
 
                     tr.innerHTML = `
                         <td class="rank-col">${medal}</td>
-                        <td class="name-col"><strong>${this.escapeHtml(entry.player_name)}</strong></td>
+                        <td class="name-col"><span class="table-avatar-icon">${avIcon}</span> <strong>${this.escapeHtml(entry.player_name)}</strong></td>
                         <td><span class="badge badge-${entry.difficulty}">${entry.difficulty.toUpperCase()}</span></td>
                         <td><span class="badge badge-mode">${entryMode}</span></td>
                         <td class="score-col">${entry.score.toLocaleString()}</td>
@@ -3303,18 +3652,28 @@
                 btn.type = "button";
                 btn.className = `tab-btn ${ch.id === this.activeChapterId ? "active" : ""}`;
 
-                // Unlock check: Ch 1 unlocked. Ch N requires Ch N-1 boss completed
-                let isUnlocked = idx === 0;
+                // Progression unlock check: Ch 1 unlocked. Ch N requires Ch N-1 boss completed
+                let isProgressionUnlocked = idx === 0;
                 if (idx > 0 && this.campaignChapters[idx - 1]) {
                     const prevBossId = this.campaignChapters[idx - 1].stages.find((s) => s.stage_type === "boss")?.id;
                     if (prevBossId && completedStages[prevBossId]) {
-                        isUnlocked = true;
+                        isProgressionUnlocked = true;
                     }
                 }
 
-                btn.disabled = !isUnlocked;
-                btn.innerHTML = `${ch.icon} Ch ${ch.chapter_number}${!isUnlocked ? " 🔒" : ""}`;
+                const isPremiumLocked = (ch.chapter_number > 3 || idx >= 3) && !this.isPremium();
+                const lockText = isPremiumLocked ? " 🔒 PASS" : !isProgressionUnlocked ? " 🔒" : "";
+
+                btn.innerHTML = `${ch.icon} Ch ${ch.chapter_number}${lockText}`;
                 btn.addEventListener("click", () => {
+                    if (isPremiumLocked) {
+                        this.openPremiumModal();
+                        return;
+                    }
+                    if (!isProgressionUnlocked) {
+                        this.showToast("Chapter Locked", "Conquer the previous chapter's Boss Trial first!", "🔒");
+                        return;
+                    }
                     this.activeChapterId = ch.id;
                     this.renderChapterTabs();
                     this.renderChapterStages(ch.id);
@@ -3334,6 +3693,26 @@
 
             if (!this.dom.stagesTrailList) return;
             this.dom.stagesTrailList.innerHTML = "";
+
+            const isPremiumLocked = (ch.chapter_number > 3 || this.campaignChapters.indexOf(ch) >= 3) && !this.isPremium();
+            if (isPremiumLocked) {
+                const banner = document.createElement("div");
+                banner.className = "premium-chapter-lock-banner";
+                banner.innerHTML = `
+                    <div class="banner-icon">🎃</div>
+                    <div class="banner-content">
+                        <h4>Spooky Master Pass Required</h4>
+                        <p>Chapters 4, 5 & 6 are premium expansions. Unlock 18 additional stages, boss trials, and cosmetic rewards permanently.</p>
+                        <button type="button" class="btn-cta btn-sm" id="btn-chapter-unlock-pass">Unlock Pass ($4.99)</button>
+                    </div>
+                `;
+                banner.querySelector("#btn-chapter-unlock-pass")?.addEventListener("click", () => {
+                    this.openPremiumModal();
+                });
+                this.dom.stagesTrailList.appendChild(banner);
+                if (this.dom.stageDetailPanel) this.dom.stageDetailPanel.classList.add("hidden");
+                return;
+            }
 
             const completedStages = (this.profile && this.profile.campaign && this.profile.campaign.completed_stages) || {};
 
@@ -3401,6 +3780,11 @@
         }
 
         startStageGame(stageId) {
+            const ch = this.campaignChapters.find((c) => c.stages.some((s) => s.id === stageId));
+            if (ch && (ch.chapter_number > 3 || this.campaignChapters.indexOf(ch) >= 3) && !this.isPremium()) {
+                this.openPremiumModal();
+                return;
+            }
             this.closeCampaign();
             this.currentStageId = stageId;
             this.gameMode = "campaign";
@@ -3608,6 +3992,7 @@
             const playerName = this.profile?.nickname || "Ghost Hunter";
             const payload = {
                 player_name: playerName,
+                avatar_id: this.profile?.avatar_id || "pumpkin_hunter",
                 mode: extraParams.mode || this.gameMode,
                 difficulty: extraParams.difficulty || "medium",
                 ...extraParams,
@@ -3616,7 +4001,10 @@
             try {
                 const res = await fetch("/api/quiz/start", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Player-ID": this.profile?.player_id || "player_default",
+                    },
                     body: JSON.stringify(payload),
                 });
 

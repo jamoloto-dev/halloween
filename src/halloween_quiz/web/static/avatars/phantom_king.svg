@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <radialGradient id="pk-glow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#70e1ff"/>
+      <stop offset="100%" stop-color="#8a2be2"/>
+    </radialGradient>
+    <linearGradient id="gold-crown" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffeaa7"/>
+      <stop offset="50%" stop-color="#fdcb6e"/>
+      <stop offset="100%" stop-color="#d63031"/>
+    </linearGradient>
+    <filter id="pk-blur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="46" fill="#0c071a" stroke="#fdcb6e" stroke-width="3"/>
+  <!-- Crown Aura -->
+  <circle cx="50" cy="24" r="14" fill="#fdcb6e" opacity="0.25"/>
+  <!-- Phantom Robe / Spectral Body -->
+  <path d="M50 36 C30 36, 22 52, 22 70 C22 84, 28 88, 34 85 C40 82, 44 87, 50 83 C56 87, 60 82, 66 85 C72 88, 78 84, 78 70 C78 52, 70 36, 50 36 Z" fill="url(#pk-glow)" filter="url(#pk-blur)"/>
+  <!-- Royal Crown -->
+  <path d="M30 34 L33 18 L42 26 L50 14 L58 26 L67 18 L70 34 Z" fill="url(#gold-crown)" stroke="#63340b" stroke-width="1.5"/>
+  <rect x="30" y="32" width="40" height="4.5" rx="1.5" fill="#e17055"/>
+  <circle cx="50" cy="34" r="2.2" fill="#00cec9"/>
+  <circle cx="38" cy="34" r="1.6" fill="#d63031"/>
+  <circle cx="62" cy="34" r="1.6" fill="#d63031"/>
+  <!-- Regal Glowing Eyes -->
+  <ellipse cx="43" cy="53" rx="4.5" ry="5.5" fill="#090414"/>
+  <circle cx="43" cy="53" r="2.2" fill="#00f0ff"/>
+  <ellipse cx="57" cy="53" rx="4.5" ry="5.5" fill="#090414"/>
+  <circle cx="57" cy="53" r="2.2" fill="#00f0ff"/>
+  <!-- Regal Phantom Mouth -->
+  <path d="M46 64 Q50 67 54 64" stroke="#090414" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- Royal Cloak Collar -->
+  <path d="M26 62 C34 56, 42 66, 50 64 C58 66, 66 56, 74 62" stroke="#fdcb6e" stroke-width="2.5" fill="none"/>
+</svg>

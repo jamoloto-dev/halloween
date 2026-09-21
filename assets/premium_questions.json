@@ -1,0 +1,104 @@
+{
+  "cryptids": [
+    {
+      "id": "cryptid_01",
+      "question": "Which winged cryptid with glowing red eyes was famously sighted in Point Pleasant, West Virginia in 1966?",
+      "options": ["Mothman", "Jersey Devil", "Thunderbird", "Flatwoods Monster"],
+      "correct_answer": "Mothman",
+      "difficulty": "medium",
+      "explanation": "The Mothman was first reported in November 1966 in Point Pleasant, later linked in folklore to the Silver Bridge collapse."
+    },
+    {
+      "id": "cryptid_02",
+      "question": "According to Pine Barrens legend, who was the mother of the 13th child that became the Jersey Devil?",
+      "options": ["Mother Leeds", "Mary Worth", "Goody Proctor", "Bridget Bishop"],
+      "correct_answer": "Mother Leeds",
+      "difficulty": "hard",
+      "explanation": "Folklore tells that in 1735, Deborah Leeds cursed her 13th child, stating 'let it be a devil'."
+    },
+    {
+      "id": "cryptid_03",
+      "question": "In Algonquian folklore, what monstrous being represents cannibalism, greed, and the desolate winter cold?",
+      "options": ["Wendigo", "Skinwalker", "Gorgon", "Chupacabra"],
+      "correct_answer": "Wendigo",
+      "difficulty": "medium",
+      "explanation": "The Wendigo is a mythological cannibal monster associated with winter, starvation, and greed in First Nations lore."
+    },
+    {
+      "id": "cryptid_04",
+      "question": "The name 'Chupacabra', first reported in Puerto Rico in 1995, translates directly to what?",
+      "options": ["Goat sucker", "Blood beast", "Night hound", "Shadow stalker"],
+      "correct_answer": "Goat sucker",
+      "difficulty": "easy",
+      "explanation": "'Chupa' means to suck and 'cabra' means goat in Spanish, describing its alleged livestock prey."
+    }
+  ],
+  "cinema_masters": [
+    {
+      "id": "cinema_01",
+      "question": "Which legendary Italian director crafted the vivid technicolor supernatural horror masterpiece 'Suspiria' (1977)?",
+      "options": ["Dario Argento", "Lucio Fulci", "Mario Bava", "Federico Fellini"],
+      "correct_answer": "Dario Argento",
+      "difficulty": "medium",
+      "explanation": "Dario Argento directed Suspiria, celebrated for its vibrant surrealist colors and Goblin synthesizer score."
+    },
+    {
+      "id": "cinema_02",
+      "question": "In F.W. Murnau's 1922 silent horror landmark 'Nosferatu', what was Count Dracula's name changed to due to copyright issues?",
+      "options": ["Count Orlok", "Count Karnstein", "Lord Ruthven", "Baron Latos"],
+      "correct_answer": "Count Orlok",
+      "difficulty": "hard",
+      "explanation": "Prana Film lacked rights to Bram Stoker's Dracula, so Max Schreck portrayed 'Graf Orlok'."
+    },
+    {
+      "id": "cinema_03",
+      "question": "Who composed the chilling, minimalist piano score for John Carpenter's 1978 slasher 'Halloween'?",
+      "options": ["John Carpenter himself", "Bernard Herrmann", "Ennio Morricone", "Jerry Goldsmith"],
+      "correct_answer": "John Carpenter himself",
+      "difficulty": "easy",
+      "explanation": "Director John Carpenter composed the iconic 5/4 time signature theme himself in just three days."
+    },
+    {
+      "id": "cinema_04",
+      "question": "What 1920 German Expressionist masterpiece features Cesare the somnambulist predicting murder in a distorted asylum city?",
+      "options": ["The Cabinet of Dr. Caligari", "The Golem", "Faust", "Vampyr"],
+      "correct_answer": "The Cabinet of Dr. Caligari",
+      "difficulty": "medium",
+      "explanation": "Robert Wiene's 'The Cabinet of Dr. Caligari' pioneered psychological twist endings and sharp expressionist set angles."
+    }
+  ],
+  "global_folklore": [
+    {
+      "id": "folklore_01",
+      "question": "In Irish mythology, what headless rider carries a severed head and rides a dark steed bearing a human spine whip?",
+      "options": ["The Dullahan", "The Púca", "The Banshee", "The Changeling"],
+      "correct_answer": "The Dullahan",
+      "difficulty": "medium",
+      "explanation": "The Dullahan is an unseelie fairy rider who calls out the name of the person about to die."
+    },
+    {
+      "id": "folklore_02",
+      "question": "In Japanese folklore, what slit-mouthed spirit asks travelers 'Am I pretty?' before revealing her surgical mask?",
+      "options": ["Kuchisake-onna", "Yuki-onna", "Rokurokubi", "Ame-onna"],
+      "correct_answer": "Kuchisake-onna",
+      "difficulty": "medium",
+      "explanation": "Kuchisake-onna is an urban legend spirit dating from the Heian period through modern 1970s school rumors."
+    },
+    {
+      "id": "folklore_03",
+      "question": "In Mexican folklore, what weeping ghost wanders waterways eternally searching for her drowned children?",
+      "options": ["La Llorona", "La Lechuza", "La Pascualita", "La Muerte"],
+      "correct_answer": "La Llorona",
+      "difficulty": "easy",
+      "explanation": "La Llorona (The Weeping Woman) is one of Latin America's most enduring supernatural ghost legends."
+    },
+    {
+      "id": "folklore_04",
+      "question": "In Slavic folklore, what witch flies around in a giant mortar and lives in a hut that spins on chicken legs?",
+      "options": ["Baba Yaga", "Kikimora", "Rusalka", "Morana"],
+      "correct_answer": "Baba Yaga",
+      "difficulty": "easy",
+      "explanation": "Baba Yaga resides deep in birch forests inside a mysterious hut that stands and turns on giant chicken legs."
+    }
+  ]
+}
