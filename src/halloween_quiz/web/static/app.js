@@ -32,13 +32,11 @@ export const AUDIO_EVENTS = Object.freeze({
 window.AUDIO_EVENTS = AUDIO_EVENTS;
 window.CATEGORY_FACTS = CATEGORY_FACTS;
 
-// Initialize application when DOM is ready
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-        window.halloweenApp = new HalloweenQuizApp();
-    });
-} else {
+// Initialize application immediately (DOM is fully parsed before module execution)
+try {
     window.halloweenApp = new HalloweenQuizApp();
+} catch (err) {
+    console.error("Failed to initialize HalloweenQuizApp:", err);
 }
 
 export { HalloweenQuizApp };

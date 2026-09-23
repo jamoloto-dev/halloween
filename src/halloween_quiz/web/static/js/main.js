@@ -1108,6 +1108,16 @@ export class HalloweenQuizApp {
     async cycleSpookyGuideHint() {
         if (!this.dom.lobbyGuideQuote) return;
         this.dom.lobbyGuideQuote.classList.add("hint-fade");
+        this.guideHintIndex = (this.guideHintIndex + 1) % SPOOKY_GUIDE_HINTS.length;
+        const localHint = SPOOKY_GUIDE_HINTS[this.guideHintIndex];
+
+        // Immediate responsive update within 50ms
+        setTimeout(() => {
+            if (this.dom.lobbyGuideQuote) {
+                this.dom.lobbyGuideQuote.textContent = `"${localHint}"`;
+                this.dom.lobbyGuideQuote.classList.remove("hint-fade");
+            }
+        }, 50);
 
         try {
             const res = await fetch("/api/ai/hint", {
@@ -1123,27 +1133,13 @@ export class HalloweenQuizApp {
             });
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.hint) {
-                    setTimeout(() => {
-                        if (this.dom.lobbyGuideQuote) {
-                            this.dom.lobbyGuideQuote.textContent = `"${data.hint}"`;
-                            this.dom.lobbyGuideQuote.classList.remove("hint-fade");
-                        }
-                    }, 180);
-                    return;
+                if (data && data.hint && this.dom.lobbyGuideQuote) {
+                    this.dom.lobbyGuideQuote.textContent = `"${data.hint}"`;
                 }
             }
         } catch (_) {
-            // Graceful offline fallback below
+            // Graceful offline fallback already displayed
         }
-
-        this.guideHintIndex = (this.guideHintIndex + 1) % SPOOKY_GUIDE_HINTS.length;
-        setTimeout(() => {
-            if (this.dom.lobbyGuideQuote) {
-                this.dom.lobbyGuideQuote.textContent = `"${SPOOKY_GUIDE_HINTS[this.guideHintIndex]}"`;
-                this.dom.lobbyGuideQuote.classList.remove("hint-fade");
-            }
-        }, 180);
     }
 
     // ==========================================

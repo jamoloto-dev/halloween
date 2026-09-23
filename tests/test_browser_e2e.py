@@ -1149,5 +1149,154 @@ def test_final_manual_journey_complete_sequence(live_page: Page):
     expect(live_page.locator("#screen-start")).to_be_visible()
 
 
+def test_v25_full_regression_journey_complete_flow(live_page: Page):
+    """
+    Spooky Master v2.5 Canonical Full Regression Journey:
+    Open game -> Profile loads -> Background audio -> Journey -> Read Lore ->
+    Select stage -> Start stage -> Return Home -> Quick Play -> Answer questions ->
+    Smart Hint -> Complete round -> Progress -> Hunter Studio -> Generate/equip hunter ->
+    Leaderboard -> Settings -> Daily Haunt -> Confirm AI hints unavailable -> Duels ->
+    Return Home.
+    Verifies 0 broken buttons and 0 unhandled console/page errors.
+    """
+    console_errors: list[str] = []
+    live_page.on(
+        "console",
+        lambda msg: console_errors.append(msg.text) if msg.type == "error" else None,
+    )
+    page_errors: list[str] = []
+    live_page.on("pageerror", lambda err: page_errors.append(str(err)))
+
+    # 1. Open game
+    live_page.goto(BASE_URL)
+    live_page.wait_for_load_state("networkidle")
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 2. Profile loads
+    expect(live_page.locator("#lobby-avatar-img")).to_be_visible()
+    expect(live_page.locator("#lobby-player-name")).to_be_visible()
+    expect(live_page.locator("#lobby-diamond-count")).to_be_visible()
+
+    # 3. Background audio
+    bgm_src = live_page.evaluate("""() => {
+        const sound = window.halloweenApp?.sound;
+        const audioEl = sound?.bgmAudio;
+        const sourceEl = audioEl ? audioEl.querySelector('source') : null;
+        return audioEl ? (audioEl.src || (sourceEl ? sourceEl.src : '')) : '';
+    }""")
+    assert "spooky-master-main.mp3" in bgm_src
+
+    # 4. Journey
+    live_page.locator("#btn-campaign-nav").click()
+    campaign_modal = live_page.locator("#modal-campaign")
+    expect(campaign_modal).to_be_visible()
+
+    # 5. Read Lore
+    live_page.locator("#btn-read-chapter-story").click()
+    story_modal = live_page.locator("#modal-chapter-story")
+    expect(story_modal).to_be_visible()
+    expect(story_modal.locator("#story-text")).not_to_be_empty()
+    live_page.locator("#btn-close-story").click()
+    expect(story_modal).not_to_be_visible()
+
+    # 6. Select stage
+    first_stage = campaign_modal.locator("#stages-trail-list .stage-node-card").first
+    first_stage.click()
+    expect(campaign_modal.locator("#stage-detail-panel")).to_be_visible()
+
+    # 7. Start stage
+    campaign_modal.locator("#btn-start-stage").click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
+
+    # 8. Return Home
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 9. Quick Play
+    live_page.locator("#btn-lobby-quick-play").click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
+
+    # 10. Smart Hint
+    expect(live_page.locator("#btn-ask-spooky-guide")).to_be_visible()
+    live_page.locator("#btn-ask-spooky-guide").click()
+    expect(live_page.locator("#quiz-spooky-guide-box")).to_be_visible()
+    expect(live_page.locator("#quiz-guide-hint-text")).not_to_be_empty()
+    live_page.locator("#btn-close-guide-bubble").click()
+    expect(live_page.locator("#quiz-spooky-guide-box")).not_to_be_visible()
+
+    # 11. Answer questions (5 questions in quick play)
+    for _ in range(5):
+        expect(live_page.locator("#options-grid")).to_be_visible()
+        options = live_page.locator(".option-btn")
+        expect(options).to_have_count(4)
+        options.nth(0).click()
+
+        feedback = live_page.locator("#feedback-panel")
+        expect(feedback).to_be_visible()
+        live_page.locator("#btn-next-question").click()
+
+    # 12. Complete round
+    expect(live_page.locator("#screen-gameover")).to_be_visible(timeout=5000)
+    expect(live_page.locator("#stat-final-score")).to_be_visible()
+    live_page.locator("#btn-play-again").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 13. Progress
+    live_page.locator("#btn-lobby-progress").click()
+    expect(live_page.locator("#modal-mastery")).to_be_visible()
+    live_page.locator("#btn-close-mastery").click()
+    expect(live_page.locator("#modal-mastery")).not_to_be_visible()
+
+    # 14. Hunter Studio
+    live_page.locator("#btn-start-change-avatar").click()
+    expect(live_page.locator("#modal-avatar-picker")).to_be_visible()
+    live_page.locator("#tab-avatar-generator").click()
+    expect(live_page.locator("#picker-generator-body")).to_be_visible()
+
+    # 15. Generate / equip hunter
+    live_page.locator("#btn-generate-hunter").click()
+    equip_btn = live_page.locator("#btn-equip-generated-hunter")
+    expect(equip_btn).to_be_visible(timeout=5000)
+    equip_btn.click()
+    expect(live_page.locator("#modal-avatar-picker")).not_to_be_visible()
+
+    # 16. Leaderboard
+    live_page.locator("#btn-lobby-leaderboard").click()
+    expect(live_page.locator("#modal-leaderboard")).to_be_visible()
+    live_page.locator("#btn-close-modal").click()
+    expect(live_page.locator("#modal-leaderboard")).not_to_be_visible()
+
+    # 17. Settings
+    live_page.locator("#btn-lobby-settings").click()
+    expect(live_page.locator("#modal-settings")).to_be_visible()
+    live_page.locator("#btn-close-settings").click()
+    expect(live_page.locator("#modal-settings")).not_to_be_visible()
+
+    # 18. Daily Haunt
+    live_page.locator("#btn-lobby-daily-haunt").click()
+    expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
+
+    # 19. Confirm AI hints unavailable in Daily Haunt
+    expect(live_page.locator("#btn-ask-spooky-guide")).to_be_hidden()
+
+    # 20. Duels
+    live_page.locator("#nav-branding-home").click()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+    live_page.locator("#btn-lobby-duels").click()
+    expect(live_page.locator("#modal-duels")).to_be_visible()
+
+    # 21. Return Home
+    live_page.locator("#btn-close-duels").click()
+    expect(live_page.locator("#modal-duels")).not_to_be_visible()
+    expect(live_page.locator("#screen-start")).to_be_visible()
+
+    # 22. Console & Page Error verification
+    assert len(page_errors) == 0, f"Page errors encountered: {page_errors}"
+    # Filter benign favicon/asset warnings if any
+    filtered_console = [err for err in console_errors if "favicon" not in err.lower()]
+    assert len(filtered_console) == 0, f"Console errors encountered: {filtered_console}"
+
+
+
 
 

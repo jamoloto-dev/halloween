@@ -527,22 +527,6 @@ export class SoundEngine {
         }
     }
 
-    stopBackgroundAmbience(reset = false, fadeDuration = 0) {
-        if (!this.bgmAudio) return;
-        this.ambienceRequested = false;
-        if (this.duckRestoreTimer) clearTimeout(this.duckRestoreTimer);
-        const stop = () => {
-            this.bgmAudio.pause();
-            if (reset) this.bgmAudio.currentTime = 0;
-            this.bgmPlaying = false;
-            this.notifyBgmStateChange();
-        };
-        if (fadeDuration > 0 && !this.bgmAudio.paused) {
-            this.fadeBackgroundTo(0.05, fadeDuration, stop);
-        } else {
-            stop();
-        }
-    }
 
     play(soundKey) {
         if (!this.sfxEnabled) return;
