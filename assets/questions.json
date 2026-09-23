@@ -233,6 +233,452 @@
       "correct_answer": "Lemuria",
       "difficulty": "hard",
       "explanation": "During Lemuria, the head of the household would walk barefoot at midnight spitting black beans to pacify spirits."
+    },
+    {
+      "id": "spooky_19",
+      "question": "In Latin American folklore, who is the weeping spirit doomed to wander riverbanks mourning her lost children?",
+      "options": [
+        "La Llorona",
+        "La Sayona",
+        "La Siguanaba",
+        "La Ciguapa"
+      ],
+      "correct_answer": "La Llorona",
+      "difficulty": "easy",
+      "explanation": "La Llorona ('The Weeping Woman') is a renowned figure in Hispanic folklore whose mournful cries echo near rivers."
+    },
+    {
+      "id": "spooky_20",
+      "question": "What legendary phantom ship is cursed to sail the oceans forever, unable to make port?",
+      "options": [
+        "The Flying Dutchman",
+        "The Mary Celeste",
+        "The Queen Anne's Revenge",
+        "The Black Pearl"
+      ],
+      "correct_answer": "The Flying Dutchman",
+      "difficulty": "easy",
+      "explanation": "Maritime folklore holds that sighting the glowing phantom ship 'The Flying Dutchman' portends impending doom."
+    },
+    {
+      "id": "spooky_21",
+      "question": "In Slavic folklore, what elderly witch lives deep in the forest in a bizarre hut standing on dancing chicken legs?",
+      "options": [
+        "Baba Yaga",
+        "Morana",
+        "Kikimora",
+        "Rusalka"
+      ],
+      "correct_answer": "Baba Yaga",
+      "difficulty": "easy",
+      "explanation": "Baba Yaga is an iconic Slavic figure who travels in a flying mortar and pestle and dwells in a hut perched on chicken legs."
+    },
+    {
+      "id": "spooky_22",
+      "question": "In Washington Irving's classic tale 'The Legend of Sleepy Hollow', what terrifying horseman pursues Ichabod Crane?",
+      "options": [
+        "The Headless Horseman",
+        "The Pale Rider",
+        "The Black Knight",
+        "The Phantom Dragoon"
+      ],
+      "correct_answer": "The Headless Horseman",
+      "difficulty": "easy",
+      "explanation": "The Headless Horseman is rumored to be the ghost of a Hessian trooper whose head was severed by a cannonball during the American Revolution."
+    },
+    {
+      "id": "spooky_23",
+      "question": "Which Japanese Yōkai spirit appears as a beautiful, pale woman during snowstorms and freezes lost travelers with her icy breath?",
+      "options": [
+        "Yuki-onna",
+        "Kuchisake-onna",
+        "Jorōgumo",
+        "Rokurokubi"
+      ],
+      "correct_answer": "Yuki-onna",
+      "difficulty": "easy",
+      "explanation": "Yuki-onna ('Snow Woman') is an ethereal spirit in Japanese folklore who glides over fresh snow without leaving footprints."
+    },
+    {
+      "id": "spooky_24",
+      "question": "In W. W. Jacobs' famous 1902 gothic short story, what macabre talisman grants its owner three wishes with devastating consequences?",
+      "options": [
+        "The Monkey's Paw",
+        "The Cursed Coin",
+        "The Raven Claw",
+        "The Jade Scarab"
+      ],
+      "correct_answer": "The Monkey's Paw",
+      "difficulty": "easy",
+      "explanation": "The Monkey's Paw is a cautionary tale warning that interfering with fate brings unforeseen, tragic consequences."
+    },
+    {
+      "id": "spooky_25",
+      "question": "What classic urban legend tells of a roadside passenger who disappears from the back seat of a car before reaching their destination?",
+      "options": [
+        "The Vanishing Hitchhiker",
+        "The Hookman",
+        "The Babysitter",
+        "The Midnight Caller"
+      ],
+      "correct_answer": "The Vanishing Hitchhiker",
+      "difficulty": "easy",
+      "explanation": "The Vanishing Hitchhiker is one of the oldest and most widespread folklore motifs documented worldwide."
+    },
+    {
+      "id": "spooky_26",
+      "question": "In Chinese folklore, what undead creature—often translated as a 'hopping vampire'—moves by leaping and is stilled by paper talismans?",
+      "options": [
+        "Jiangshi",
+        "Mogwai",
+        "Guixi",
+        "Yurei"
+      ],
+      "correct_answer": "Jiangshi",
+      "difficulty": "easy",
+      "explanation": "Jiangshi are reanimated corpses dressed in Qing Dynasty robes that advance with stiff hopping motions."
+    },
+    {
+      "id": "spooky_27",
+      "question": "According to American folklore, which famous Bell family farm in Adams, Tennessee was haunted by an invisible, speaking entity from 1817 to 1821?",
+      "options": [
+        "The Bell Witch",
+        "The Borden Manor",
+        "The Myrtles Estate",
+        "The Villisca Homestead"
+      ],
+      "correct_answer": "The Bell Witch",
+      "difficulty": "easy",
+      "explanation": "The Bell Witch haunting was documented in historic accounts and even allegedly investigated by future U.S. President Andrew Jackson."
+    },
+    {
+      "id": "spooky_28",
+      "question": "In Irish folklore, what headless fairy rider carries their own severed head under one arm and rides a black stallion?",
+      "options": [
+        "Dullahan",
+        "Púca",
+        "Banshee",
+        "Leprechaun"
+      ],
+      "correct_answer": "Dullahan",
+      "difficulty": "easy",
+      "explanation": "The Dullahan is an ominous herald of mortality in Celtic mythology whose whip is said to be crafted from a human spine."
+    },
+    {
+      "id": "spooky_29",
+      "question": "What ghostly black dog with burning red eyes is said to stalk churchyards and lonely roads across East Anglia, England?",
+      "options": [
+        "Black Shuck",
+        "Cu Sith",
+        "Cerberus",
+        "Barghest"
+      ],
+      "correct_answer": "Black Shuck",
+      "difficulty": "easy",
+      "explanation": "Black Shuck is a spectral hound of English legend, famously blamed for storming through churches in Bungay and Blythburgh in 1577."
+    },
+    {
+      "id": "spooky_30",
+      "question": "What eerie silhouette is depicted in this visual trivia illustration?",
+      "options": [
+        "Gothic Haunted Mansion",
+        "Ancient Clock Tower",
+        "Lighthouse on the Coast",
+        "Abandoned Windmill"
+      ],
+      "correct_answer": "Gothic Haunted Mansion",
+      "difficulty": "easy",
+      "explanation": "This silhouette features the spires, gables, and glowing attic window of an iconic Victorian gothic haunted manor.",
+      "media_type": "image",
+      "media_url": "/static/images/trivia/silhouette_haunted_mansion.svg",
+      "media_alt": "Dark silhouette of a Gothic Victorian mansion with sharp turrets, bare twisted branches, and a solitary glowing attic window against a pale moon.",
+      "media_caption": "Visual Clue: Identify this spooky estate silhouette."
+    },
+    {
+      "id": "spooky_31",
+      "question": "In Caribbean folklore (notably Dominica and Trinidad), what supernatural old woman sheds her human skin and flies through the night as a fireball?",
+      "options": [
+        "Soucouyant",
+        "Mama Dlo",
+        "Ligarroo",
+        "La Diablesse"
+      ],
+      "correct_answer": "Soucouyant",
+      "difficulty": "medium",
+      "explanation": "The Soucouyant hides her shed skin in a mortar; legend says sprinkling salt or rice around will trap or defeat her."
+    },
+    {
+      "id": "spooky_32",
+      "question": "In Algonquian Indigenous folklore, what malevolent spirit embodies extreme cold, isolation, famine, and insatiable greed?",
+      "options": [
+        "Wendigo",
+        "Sasquatch",
+        "Thunderbird",
+        "Mishipeshu"
+      ],
+      "correct_answer": "Wendigo",
+      "difficulty": "medium",
+      "explanation": "The Wendigo tradition serves as an important cultural warning against greed, selfishness, and breaching community ethics during harsh winters."
+    },
+    {
+      "id": "spooky_33",
+      "question": "According to 16th-century Jewish folklore in Prague, what anthropomorphic clay figure did Rabbi Judah Loew animate with sacred Hebrew inscriptions?",
+      "options": [
+        "The Golem",
+        "The Dybbuk",
+        "The Homunculus",
+        "The Nephilim"
+      ],
+      "correct_answer": "The Golem",
+      "difficulty": "medium",
+      "explanation": "The Golem was fashioned from river clay and animated by writing 'Emet' (Truth) on its forehead to defend the community against persecution."
+    },
+    {
+      "id": "spooky_34",
+      "question": "In Norse mythology and Icelandic sagas, what physical undead creature dwells in barrows guarding treasure and possessing immense superhuman strength?",
+      "options": [
+        "Draugr",
+        "Valkyrie",
+        "Nisse",
+        "Huldra"
+      ],
+      "correct_answer": "Draugr",
+      "difficulty": "medium",
+      "explanation": "Draugr are corporeal revenants capable of increasing their body mass, breathing foul mist, and guarding burial hoards."
+    },
+    {
+      "id": "spooky_35",
+      "question": "In Venezuelan folklore, who is the tall, gaunt wanderer carrying a sack of bones whose whistle sounds deceptively distant when he is right behind you?",
+      "options": [
+        "El Silbón",
+        "El Cuco",
+        "El Cadejo",
+        "El Sombrerón"
+      ],
+      "correct_answer": "El Silbón",
+      "difficulty": "medium",
+      "explanation": "El Silbón ('The Whistler') is a cautionary folkloric figure of Los Llanos whose seven-tone musical whistle warns travelers."
+    },
+    {
+      "id": "spooky_36",
+      "question": "In modern Japanese urban legends, what masked figure asks passersby 'Am I pretty?' before revealing her disfigured smile?",
+      "options": [
+        "Kuchisake-onna",
+        "Teke Teke",
+        "Hanako-san",
+        "Hachishakusama"
+      ],
+      "correct_answer": "Kuchisake-onna",
+      "difficulty": "medium",
+      "explanation": "Kuchisake-onna ('Slit-Mouthed Woman') is a popular contemporary urban legend that swept across Japanese schools in 1979."
+    },
+    {
+      "id": "spooky_37",
+      "question": "Which famous 1936 photograph taken in Norfolk, England purportedly captured the ethereal staircase apparition of Lady Dorothy Walpole?",
+      "options": [
+        "The Brown Lady of Raynham Hall",
+        "The Tulip Staircase Ghost",
+        "The Wem Ghost",
+        "The Corroboree Rock Specter"
+      ],
+      "correct_answer": "The Brown Lady of Raynham Hall",
+      "difficulty": "medium",
+      "explanation": "Photographers Indre Shira and Captain Provand captured 'The Brown Lady' while on assignment for Country Life magazine."
+    },
+    {
+      "id": "spooky_38",
+      "question": "In the folklore of Puerto Rico and the Americas, what legendary cryptid first reported in 1995 is blamed for bloodless puncture wounds in livestock?",
+      "options": [
+        "El Chupacabra",
+        "El Peuchen",
+        "El Guije",
+        "La Mona Bruja"
+      ],
+      "correct_answer": "El Chupacabra",
+      "difficulty": "medium",
+      "explanation": "El Chupacabra translates directly as 'goat sucker', named after mysterious livestock attacks in Canóvanas, Puerto Rico."
+    },
+    {
+      "id": "spooky_39",
+      "question": "What 1950s lovers' lane urban legend features a radio broadcast warning that a mental patient with a prosthetic limb has escaped into the woods?",
+      "options": [
+        "The Hook",
+        "The Babysitter",
+        "The Spider Bite",
+        "The Kidney Heist"
+      ],
+      "correct_answer": "The Hook",
+      "difficulty": "medium",
+      "explanation": "The Hook is an archetypal American moral caution story analyzed extensively by folklorist Jan Harold Brunvand."
+    },
+    {
+      "id": "spooky_40",
+      "question": "In modern paranormal lore, what eerie nocturnal phenomena involves young children with completely solid dark eyes knocking on front doors asking to be let inside?",
+      "options": [
+        "Black Eyed Children",
+        "Shadow Sprites",
+        "Night Terrors",
+        "Changelings"
+      ],
+      "correct_answer": "Black Eyed Children",
+      "difficulty": "medium",
+      "explanation": "The Black Eyed Children (or BEKs) legend originated from journalist Brian Bethel's 1996 personal account in Abilene, Texas."
+    },
+    {
+      "id": "spooky_41",
+      "question": "According to New Jersey pine barrens legend, which creature born in 1735 as Mother Leeds's 13th child possesses bat-like wings and hooves?",
+      "options": [
+        "The Jersey Devil",
+        "The Flatwoods Monster",
+        "The Snallygaster",
+        "The Ozark Howler"
+      ],
+      "correct_answer": "The Jersey Devil",
+      "difficulty": "medium",
+      "explanation": "The Jersey Devil has been a staple of Pine Barrens folklore for nearly three centuries, even inspiring sightings in 1909."
+    },
+    {
+      "id": "spooky_42",
+      "question": "In Australian Indigenous mythology, what amphibious creature is said to lurk in swamps, billabongs, and waterholes making booming nocturnal calls?",
+      "options": [
+        "Bunyip",
+        "Yowie",
+        "Drop Bear",
+        "Megalania"
+      ],
+      "correct_answer": "Bunyip",
+      "difficulty": "medium",
+      "explanation": "The Bunyip appears in many First Nations Australian oral histories and 19th-century colonial accounts of swamp monsters."
+    },
+    {
+      "id": "spooky_43",
+      "question": "In Victorian London folklore of 1837, what bizarre leaping entity was reported spitting blue flames and bounding effortlessly over tall garden walls?",
+      "options": [
+        "Spring-Heeled Jack",
+        "The Highgate Vampire",
+        "Jack the Stripper",
+        "The Hammersmith Ghost"
+      ],
+      "correct_answer": "Spring-Heeled Jack",
+      "difficulty": "hard",
+      "explanation": "Spring-Heeled Jack became a fixture of Victorian penny dreadfuls after sensational accounts in London newspapers."
+    },
+    {
+      "id": "spooky_44",
+      "question": "In Philippine folklore, what supernatural predatory creature severs its upper torso to fly away with bat-like wings while leaving its lower half behind?",
+      "options": [
+        "Manananggal",
+        "Tikbalang",
+        "Kapre",
+        "Aswang"
+      ],
+      "correct_answer": "Manananggal",
+      "difficulty": "hard",
+      "explanation": "To defeat a Manananggal, one must locate its abandoned lower torso and sprinkle crushed garlic, salt, or ash upon it before dawn."
+    },
+    {
+      "id": "spooky_45",
+      "question": "In Irish folklore, what beautiful woman died of a broken heart and rose as an undead spirit hungry for blood, pre-dating modern Dracula lore?",
+      "options": [
+        "Dearg Due",
+        "Caoránach",
+        "Sluagh",
+        "Muireartach"
+      ],
+      "correct_answer": "Dearg Due",
+      "difficulty": "hard",
+      "explanation": "The Dearg Due ('Red Blood Sucker') of Waterford, Ireland is buried beneath Strongbow's Tree, where tradition says heavy stones keep her resting."
+    },
+    {
+      "id": "spooky_46",
+      "question": "What 18th-century French beast terrorized the former province of Gévaudan from 1764 to 1767, inspiring hundreds of eyewitness accounts and royal hunts?",
+      "options": [
+        "Beast of Gévaudan",
+        "The Loup-Garou",
+        "The Tarasque",
+        "The Peluda"
+      ],
+      "correct_answer": "Beast of Gévaudan",
+      "difficulty": "hard",
+      "explanation": "King Louis XV dispatched royal hunters and troops to eliminate the formidable carnivore in the mountainous Gévaudan region."
+    },
+    {
+      "id": "spooky_47",
+      "question": "In Japanese folklore, household objects that acquire a living soul and spirit after reaching 100 years of age are known as what category of Yōkai?",
+      "options": [
+        "Tsukumogami",
+        "Shikigami",
+        "Oni",
+        "Tengu"
+      ],
+      "correct_answer": "Tsukumogami",
+      "difficulty": "hard",
+      "explanation": "Tsukumogami include items like umbrella spirits (Kasa-obake), paper lanterns (Chōchin-obake), and unrolled scrolls (Mokumokuren)."
+    },
+    {
+      "id": "spooky_48",
+      "question": "In Jewish folklore, what is the name of a disembodied wandering soul that enters and possesses the living body of a person to complete unfinished business?",
+      "options": [
+        "Dybbuk",
+        "Ibbur",
+        "Shedu",
+        "Mazikin"
+      ],
+      "correct_answer": "Dybbuk",
+      "difficulty": "hard",
+      "explanation": "A Dybbuk is traditionally exorcised through a religious ritual presided over by a pious rabbi blowing a shofar."
+    },
+    {
+      "id": "spooky_49",
+      "question": "What Scottish water spirit is notorious for appearing as a tame pony by lochs, luring riders onto its back before plunging beneath the water?",
+      "options": [
+        "Each-uisge",
+        "Selkie",
+        "Baobhan Sith",
+        "Wurzel"
+      ],
+      "correct_answer": "Each-uisge",
+      "difficulty": "hard",
+      "explanation": "The Each-uisge is the fiercer marine loch counterpart to the river Kelpie; its skin adheres like glue to whoever mounts it."
+    },
+    {
+      "id": "spooky_50",
+      "question": "In early Japanese internet folklore from the late 1990s, what creepy browser pop-up was said to ask users if they like a certain colored room before cursing them?",
+      "options": [
+        "The Red Room",
+        "The Blue Corridor",
+        "The Dark Web Window",
+        "The Black Screen"
+      ],
+      "correct_answer": "The Red Room",
+      "difficulty": "hard",
+      "explanation": "The Red Room ('Aka no Heya') was a foundational Flash-era Japanese internet urban legend and creepypasta."
+    },
+    {
+      "id": "spooky_51",
+      "question": "In classic children's horror folklore, what color was the mysterious ribbon around Jenny's neck that she refused to untie until her dying day?",
+      "options": [
+        "Green",
+        "Black",
+        "Crimson",
+        "Violet"
+      ],
+      "correct_answer": "Green",
+      "difficulty": "hard",
+      "explanation": "In 'The Green Ribbon' (popularized in Alvin Schwartz's 'In a Dark, Dark Room'), Jenny unties the ribbon and her head falls off."
+    },
+    {
+      "id": "spooky_52",
+      "question": "In West African Akan folklore, what shape-shifting vampire spirit takes the form of a firefly by night but attacks victims in their sleep?",
+      "options": [
+        "Adze",
+        "Obayifo",
+        "Sasabonsam",
+        "Asiman"
+      ],
+      "correct_answer": "Adze",
+      "difficulty": "hard",
+      "explanation": "In Ewe and Akan traditions, the Adze travels as a harmless firefly to slip through locked doors and closed window shutters."
     }
   ],
   "costumes": [
@@ -469,6 +915,460 @@
       "correct_answer": "Ben Cooper, Inc.",
       "difficulty": "hard",
       "explanation": "Ben Cooper, Inc. produced cheap vacuum-formed vinyl masks packaged in cardboard window boxes."
+    },
+    {
+      "id": "costumes_19",
+      "question": "What vibrant orange flower is traditionally strewn across altars and graves during Día de los Muertos to guide spirits home with its scent?",
+      "options": [
+        "Cempasúchil (Mexican Marigold)",
+        "Red Rose",
+        "White Lily",
+        "Sunflower"
+      ],
+      "correct_answer": "Cempasúchil (Mexican Marigold)",
+      "difficulty": "easy",
+      "explanation": "The vibrant scent and golden color of Cempasúchil petals create pathways helping welcoming spirits locate family altars."
+    },
+    {
+      "id": "costumes_20",
+      "question": "What decorative sugar creations adorned with colorful foil and icing are placed on Día de los Muertos ofrendas?",
+      "options": [
+        "Calaveras de azúcar (Sugar Skulls)",
+        "Candy Pumpkins",
+        "Gingerbread Bats",
+        "Marzipan Bones"
+      ],
+      "correct_answer": "Calaveras de azúcar (Sugar Skulls)",
+      "difficulty": "easy",
+      "explanation": "Calaveras de azúcar celebrate deceased relatives with joyous decorations and the name of the departed written on the forehead."
+    },
+    {
+      "id": "costumes_21",
+      "question": "What traditional sweet bread adorned with bone-shaped dough pieces is baked for Day of the Dead observances?",
+      "options": [
+        "Pan de Muerto",
+        "Challah",
+        "Brioche",
+        "Panettone"
+      ],
+      "correct_answer": "Pan de Muerto",
+      "difficulty": "easy",
+      "explanation": "Pan de Muerto is a tender egg bread scented with orange blossom water and anise, topped with crossed dough bones."
+    },
+    {
+      "id": "costumes_22",
+      "question": "What is the traditional name for the family altar created during Día de los Muertos to honor departed ancestors?",
+      "options": [
+        "Ofrenda",
+        "Retablo",
+        "Capilla",
+        "Ermita"
+      ],
+      "correct_answer": "Ofrenda",
+      "difficulty": "easy",
+      "explanation": "An ofrenda gathers photographs, candles, food, water, and treasured keepsakes to welcome spirits during the holiday."
+    },
+    {
+      "id": "costumes_23",
+      "question": "What classic Halloween silhouette is shown in this festive visual illustration?",
+      "options": [
+        "Carved Jack-o'-Lantern",
+        "Full Moon Witch",
+        "Hanging Bat",
+        "Flying Ghost"
+      ],
+      "correct_answer": "Carved Jack-o'-Lantern",
+      "difficulty": "easy",
+      "explanation": "The smiling carved pumpkin jack-o'-lantern is the quintessential global symbol of Halloween night.",
+      "media_type": "image",
+      "media_url": "/static/images/trivia/silhouette_jack_o_lantern.svg",
+      "media_alt": "Carved orange Jack-o'-Lantern with glowing triangular eyes, nose, and a wide toothy grin.",
+      "media_caption": "Visual Clue: Name this iconic carved harvest figure."
+    },
+    {
+      "id": "costumes_24",
+      "question": "Which animal silhouette with arched back and curved tail has been associated with Halloween superstition since the Middle Ages?",
+      "options": [
+        "Black Cat",
+        "Howling Wolf",
+        "Barn Owl",
+        "Creeping Toad"
+      ],
+      "correct_answer": "Black Cat",
+      "difficulty": "easy",
+      "explanation": "Medieval folklore mistakenly linked black cats to witch craft, turning them into an enduring holiday motif.",
+      "media_type": "image",
+      "media_url": "/static/images/trivia/silhouette_black_cat.svg",
+      "media_alt": "Black cat silhouette with arched back, pointed ears, glowing green slit eyes, and a curled tail.",
+      "media_caption": "Visual Clue: Identify this superstition-laden feline silhouette."
+    },
+    {
+      "id": "costumes_25",
+      "question": "What boiling iron vessel associated with witches and potions is depicted in this visual silhouette?",
+      "options": [
+        "Bubbling Cauldron",
+        "Iron Mortar",
+        "Brazier of Embers",
+        "Witches' Teapot"
+      ],
+      "correct_answer": "Bubbling Cauldron",
+      "difficulty": "easy",
+      "explanation": "A heavy cast-iron cauldron over wood embers has represented magical potion-brewing for centuries.",
+      "media_type": "image",
+      "media_url": "/static/images/trivia/silhouette_cauldron.svg",
+      "media_alt": "Dark cast-iron cauldron with tripod legs, glowing green potion surface, and rising smoke bubbles.",
+      "media_caption": "Visual Clue: What classic witch's vessel is shown here?"
+    },
+    {
+      "id": "costumes_26",
+      "question": "What agricultural effigy stuffed with straw is frequently displayed on porches alongside Halloween pumpkins?",
+      "options": [
+        "Scarecrow",
+        "Nutcracker",
+        "Mannequin",
+        "Snowman"
+      ],
+      "correct_answer": "Scarecrow",
+      "difficulty": "easy",
+      "explanation": "Scarecrows were originally built by farmers to protect autumn crops from birds and transitioned into beloved fall decorations."
+    },
+    {
+      "id": "costumes_27",
+      "question": "What lightweight flexible glow-in-the-dark devices are snapped to illuminate children's wrists and necklaces on Halloween night?",
+      "options": [
+        "Glow Sticks",
+        "Strobe Lights",
+        "Phosphor Beads",
+        "LED Lanterns"
+      ],
+      "correct_answer": "Glow Sticks",
+      "difficulty": "easy",
+      "explanation": "Chemiluminescent glow sticks bend to mix hydrogen peroxide and oxalate ester, glowing brightly for nocturnal trick-or-treat safety."
+    },
+    {
+      "id": "costumes_28",
+      "question": "What classic white linen household item was famously repurposed by generations of kids as an impromptu trick-or-treat candy bag?",
+      "options": [
+        "Pillowcase",
+        "Curtain panel",
+        "Tablecloth",
+        "Apron"
+      ],
+      "correct_answer": "Pillowcase",
+      "difficulty": "easy",
+      "explanation": "A standard pillowcase provided sturdy handles and cavernous room for a prolific Halloween haul."
+    },
+    {
+      "id": "costumes_29",
+      "question": "What pointed headwear became the stereotypical emblem of witches in 17th-century European illustrations and nursery rhymes?",
+      "options": [
+        "Pointed Witch Hat",
+        "Tricorn Hat",
+        "Bonnet",
+        "Beret"
+      ],
+      "correct_answer": "Pointed Witch Hat",
+      "difficulty": "easy",
+      "explanation": "The conical high-crowned hat evolved from Elizabethan alewife hats and folk illustrations into the quintessential witch costume piece."
+    },
+    {
+      "id": "costumes_30",
+      "question": "What modern community Halloween event gathers decorated car trunks in a church or school parking lot for convenient trick-or-treating?",
+      "options": [
+        "Trunk-or-Treat",
+        "Tailgate Haunt",
+        "Parking Spook",
+        "Caravan Boo"
+      ],
+      "correct_answer": "Trunk-or-Treat",
+      "difficulty": "easy",
+      "explanation": "Trunk-or-Treat events gained widespread popularity in the 1990s as a centralized, community-focused trick-or-treating option."
+    },
+    {
+      "id": "costumes_31",
+      "question": "In traditional Scottish Halloween folklore, what vegetable stalk was pulled from the garden in the dark to divine a future spouse's height and shape?",
+      "options": [
+        "Kale (Cabbage)",
+        "Parsnip",
+        "Carrot",
+        "Turnip"
+      ],
+      "correct_answer": "Kale (Cabbage)",
+      "difficulty": "medium",
+      "explanation": "Robert Burns commemorated 'pulling the green kail' in his famous 1785 poem 'Halloween' as an ancient courtship divination game."
+    },
+    {
+      "id": "costumes_32",
+      "question": "In Roman mythology, which goddess of fruit trees and harvest abundance was honored with rituals involving apples, influencing apple bobbing?",
+      "options": [
+        "Pomona",
+        "Flora",
+        "Ceres",
+        "Vesta"
+      ],
+      "correct_answer": "Pomona",
+      "difficulty": "medium",
+      "explanation": "The festival of Pomona celebrated orchard harvests; when Roman culture reached Celtic Britain, apple rituals merged with harvest rites."
+    },
+    {
+      "id": "costumes_33",
+      "question": "What term describes the historic seasonal performance of folk plays by disguised actors traveling house to house in medieval Britain?",
+      "options": [
+        "Mumming",
+        "Caroling",
+        "Wassailing",
+        "Pageantry"
+      ],
+      "correct_answer": "Mumming",
+      "difficulty": "medium",
+      "explanation": "Mummers wore elaborate disguises and masks, performing rhymes and miniature plays in exchange for food and seasonal refreshments."
+    },
+    {
+      "id": "costumes_34",
+      "question": "Which historic white Venetian mask, characterized by a jutting square jawline allowing the wearer to speak and eat, was popular at masquerades?",
+      "options": [
+        "Bauta",
+        "Moretta",
+        "Volto",
+        "Medico della Peste"
+      ],
+      "correct_answer": "Bauta",
+      "difficulty": "medium",
+      "explanation": "The Bauta mask guaranteed total anonymity across Venetian society and was commonly worn with a black tricorn hat and cloak."
+    },
+    {
+      "id": "costumes_35",
+      "question": "What dramatic architectural stone water-spouts carved as grotesques on gothic cathedrals were believed to frighten away evil spirits?",
+      "options": [
+        "Gargoyles",
+        "Corbels",
+        "Caryatids",
+        "Finials"
+      ],
+      "correct_answer": "Gargoyles",
+      "difficulty": "medium",
+      "explanation": "From the French word 'gargouille' (throat), gargoyles channeled rainwater away from stone walls while serving as apotropaic guardians."
+    },
+    {
+      "id": "costumes_36",
+      "question": "Which 1922 archaeological discovery by Howard Carter ignited a global obsession with ancient curses and inspired classic mummy costumes?",
+      "options": [
+        "Tomb of Tutankhamun",
+        "Valley of the Queens",
+        "Pyramid of Djoser",
+        "Rosetta Stone Site"
+      ],
+      "correct_answer": "Tomb of Tutankhamun",
+      "difficulty": "medium",
+      "explanation": "The unearthing of King Tutankhamun's intact tomb and subsequent press rumors of a 'mummy's curse' permanently shaped horror cinema and costumes."
+    },
+    {
+      "id": "costumes_37",
+      "question": "What night preceding Halloween (October 30th) is traditionally known in parts of the United States and Canada for harmless pranks?",
+      "options": [
+        "Mischief Night (Devil's Night)",
+        "Cabbage Night",
+        "Goosey Night",
+        "Phantom Eve"
+      ],
+      "correct_answer": "Mischief Night (Devil's Night)",
+      "difficulty": "medium",
+      "explanation": "Known locally as Mischief Night, Devil's Night, or Cabbage Night, October 30th has a long history of neighborhood pranking."
+    },
+    {
+      "id": "costumes_38",
+      "question": "According to European folk superstition, what should you do with your coat or clothing if you become lost in enchanted woods on Halloween?",
+      "options": [
+        "Turn it inside out",
+        "Throw it on the ground",
+        "Button it backwards",
+        "Burn the sleeves"
+      ],
+      "correct_answer": "Turn it inside out",
+      "difficulty": "medium",
+      "explanation": "Wearing a garment inside out was believed to break the glamorous disorientation cast by mischievous fairies or woodland spirits."
+    },
+    {
+      "id": "costumes_39",
+      "question": "What silent, solemn Halloween dinner ritual was held in complete silence with an empty place setting prepared for departed ancestors?",
+      "options": [
+        "The Dumb Supper",
+        "The Silent Wake",
+        "The Ghost Feast",
+        "The Phantom Repast"
+      ],
+      "correct_answer": "The Dumb Supper",
+      "difficulty": "medium",
+      "explanation": "The Dumb Supper required complete silence during preparation and dining so that spirits of ancestors or future spouses could visit undisturbed."
+    },
+    {
+      "id": "costumes_40",
+      "question": "What was the primary confection given out to trick-or-treaters in North America before individually factory-wrapped candy became dominant in the 1960s?",
+      "options": [
+        "Fresh apples, nuts, and homemade baked treats",
+        "Commercial chocolate bars",
+        "Hard rock candy sticks",
+        "Saltwater taffy"
+      ],
+      "correct_answer": "Fresh apples, nuts, and homemade baked treats",
+      "difficulty": "medium",
+      "explanation": "Before mass-produced sealed packaging became standard for safety convenience, neighbors distributed fruit, nuts, cookies, and popcorn balls."
+    },
+    {
+      "id": "costumes_41",
+      "question": "What famous 1927 Broadway play stage costume solidified the image of Dracula wearing white tie, tails, and a high-collared black cape?",
+      "options": [
+        "Hamilton Deane's 'Dracula' with Bela Lugosi",
+        "John Barrymore's 'The Bat'",
+        "Lon Chaney's 'Phantom'",
+        "Orson Welles' 'Macbeth'"
+      ],
+      "correct_answer": "Hamilton Deane's 'Dracula' with Bela Lugosi",
+      "difficulty": "medium",
+      "explanation": "Deane's stage adaptation introduced the evening cape with high stand-up collar so Dracula could vanish smoothly through a stage trapdoor."
+    },
+    {
+      "id": "costumes_42",
+      "question": "What traditional Mexican folk art craft involves cutting intricate, lace-like banners from colored tissue paper for Day of the Dead altars?",
+      "options": [
+        "Papel Picado",
+        "Alebrijes",
+        "Barro Negro",
+        "Talavera"
+      ],
+      "correct_answer": "Papel Picado",
+      "difficulty": "medium",
+      "explanation": "Papel Picado banners flutter delicately in the autumn breeze, representing the wind and the fragility of human existence."
+    },
+    {
+      "id": "costumes_43",
+      "question": "Which Hollywood mask-making studio, founded in 1938, pioneered the modern commercial foam latex and vinyl monster masks?",
+      "options": [
+        "Don Post Studios",
+        "Burt Lancaster Effects",
+        "Distortions Unlimited",
+        "Topstone Industries"
+      ],
+      "correct_answer": "Don Post Studios",
+      "difficulty": "hard",
+      "explanation": "Don Post Studios created the first officially licensed Universal Monster masks and created the William Shatner mask adapted for Michael Myers."
+    },
+    {
+      "id": "costumes_44",
+      "question": "In historic Halloween divination games, what did peering into a mirror by candlelight at midnight while eating an apple purportedly reveal?",
+      "options": [
+        "The face of your future spouse",
+        "The date of your wedding",
+        "A hidden pot of gold",
+        "The ghost of your ancestor"
+      ],
+      "correct_answer": "The face of your future spouse",
+      "difficulty": "hard",
+      "explanation": "Mirror scrying was a popular Victorian parlor superstition; legend held you would see your true love's reflection looking over your shoulder."
+    },
+    {
+      "id": "costumes_45",
+      "question": "What iconic Mexican satirical printmaker created 'La Calavera Catrina' in 1910, depicting an aristocratic skeleton in an elegant French hat?",
+      "options": [
+        "José Guadalupe Posada",
+        "Diego Rivera",
+        "David Alfaro Siqueiros",
+        "Rufino Tamayo"
+      ],
+      "correct_answer": "José Guadalupe Posada",
+      "difficulty": "hard",
+      "explanation": "Posada's zinc etching caricatured upper-class pretensions with the reminder that mortality unites all social classes equally."
+    },
+    {
+      "id": "costumes_46",
+      "question": "What early 20th-century novelty company published the beloved 'Bogie Books' (1909–1934) providing parties, decorations, and costume ideas?",
+      "options": [
+        "Dennison Manufacturing Company",
+        "Beistle Company",
+        "Gibson Art Company",
+        "Milton Bradley"
+      ],
+      "correct_answer": "Dennison Manufacturing Company",
+      "difficulty": "hard",
+      "explanation": "Dennison's crepe paper and Bogie Books popularized tissue paper decorating and standardized American Halloween aesthetics."
+    },
+    {
+      "id": "costumes_47",
+      "question": "Which Pennsylvania company founded in 1900 became the world's most prolific manufacturer of honeycomb tissue paper and die-cut Halloween decorations?",
+      "options": [
+        "The Beistle Company",
+        "The Luhrs Company",
+        "Eureka Party Goods",
+        "Amscan"
+      ],
+      "correct_answer": "The Beistle Company",
+      "difficulty": "hard",
+      "explanation": "Martin Luther Beistle partnered with German paper craftsmen to produce millions of honeycomb pumpkins, black cats, and skeleton cutouts."
+    },
+    {
+      "id": "costumes_48",
+      "question": "In Scottish and English folklore, what was the practice of 'Nutcrack Night' on Halloween where lovers placed two hazelnuts in the hearth fire?",
+      "options": [
+        "If they burned together quietly, the marriage would be peaceful",
+        "If they exploded, it meant a long journey",
+        "If they turned to ash first, it meant wealth",
+        "If they cracked loudly, it meant good harvest"
+      ],
+      "correct_answer": "If they burned together quietly, the marriage would be peaceful",
+      "difficulty": "hard",
+      "explanation": "Nutcrack Night divined love: if the nuts burned steadily together, harmony followed; if they hissed or popped apart, conflict was predicted."
+    },
+    {
+      "id": "costumes_49",
+      "question": "In medieval European tradition, what was the 'Danse Macabre' (Dance of Death) depicted in murals, costumes, and woodcuts?",
+      "options": [
+        "A reminder of the universality of death where skeletons lead pope and peasant alike",
+        "A pagan fertility dance celebrating autumn grain",
+        "A victory jig danced over conquered battlefields",
+        "A theatrical duel fought between knights and dragons"
+      ],
+      "correct_answer": "A reminder of the universality of death where skeletons lead pope and peasant alike",
+      "difficulty": "hard",
+      "explanation": "The Danse Macabre was an allegory on the inevitability of death, emphasizing that all earthly status vanishes in the grave."
+    },
+    {
+      "id": "costumes_50",
+      "question": "Which historic costume manufacturing company founded in Collegeville, Pennsylvania in the 1920s popularized boxed costumes with lithographed character masks?",
+      "options": [
+        "Collegeville Flag & Manufacturing Company",
+        "Ben Cooper, Inc.",
+        "Halco Costumes",
+        "Rubie's Costume Company"
+      ],
+      "correct_answer": "Collegeville Flag & Manufacturing Company",
+      "difficulty": "hard",
+      "explanation": "Collegeville and its rival Ben Cooper dominated mid-20th-century department stores with boxed rayon smocks and molded plastic masks."
+    },
+    {
+      "id": "costumes_51",
+      "question": "In northern England and Scotland, what was 'Neep lantern' carving?",
+      "options": [
+        "Hollowing out hard swedes and purple-top rutabagas for lanterns",
+        "Carving decorative wax candles from sheep fat",
+        "Weaving woven reed lanterns for river spirits",
+        "Etching painted wooden gourds"
+      ],
+      "correct_answer": "Hollowing out hard swedes and purple-top rutabagas for lanterns",
+      "difficulty": "hard",
+      "explanation": "'Neep' is the traditional Scots term for turnip/rutabaga, which required immense carving effort before soft pumpkins became available."
+    },
+    {
+      "id": "costumes_52",
+      "question": "What 16th-century Italian theatrical tradition introduced masked stock archetypes such as Arlecchino and Pantalone that influenced masquerade attire?",
+      "options": [
+        "Commedia dell'arte",
+        "Teatro Olimpico",
+        "Opera Buffa",
+        "Intermedio"
+      ],
+      "correct_answer": "Commedia dell'arte",
+      "difficulty": "hard",
+      "explanation": "Commedia dell'arte troupes performed in leather half-masks, establishing enduring carnival, harlequin, and masquerade costume archetypes."
     }
   ],
   "movies": [
@@ -705,6 +1605,452 @@
       "correct_answer": "Night of the Living Dead",
       "difficulty": "hard",
       "explanation": "The film referred to the creatures exclusively as 'ghouls' or 'flesh-eaters'."
+    },
+    {
+      "id": "movies_19",
+      "question": "What winged nocturnal creature silhouette is shown in this horror movie visual trivia?",
+      "options": [
+        "Vampire Bat",
+        "Gargoyle",
+        "Flying Dragon",
+        "Giant Moth"
+      ],
+      "correct_answer": "Vampire Bat",
+      "difficulty": "easy",
+      "explanation": "The bat with outstretched wings is the universal herald of gothic vampire cinema from Dracula to modern horror.",
+      "media_type": "image",
+      "media_url": "/static/images/trivia/silhouette_vampire_bat.svg",
+      "media_alt": "Stylized purple and violet silhouette of a vampire bat with widespread wings, pointed ears, and glowing red eyes against a luminous full moon.",
+      "media_caption": "Visual Clue: What gothic creature of the night is pictured?"
+    },
+    {
+      "id": "movies_20",
+      "question": "In the 1999 supernatural psychological thriller 'The Sixth Sense', what iconic phrase does young Cole Sear whisper to Dr. Malcolm Crowe?",
+      "options": [
+        "'I see dead people.'",
+        "'They're inside the house.'",
+        "'Don't go to sleep.'",
+        "'Listen to the whispers.'"
+      ],
+      "correct_answer": "'I see dead people.'",
+      "difficulty": "easy",
+      "explanation": "Haley Joel Osment delivered the famous line 'I see dead people' to Bruce Willis in M. Night Shyamalan's Oscar-nominated thriller."
+    },
+    {
+      "id": "movies_21",
+      "question": "Which comedic actor portrayed the 'ghost with the most' in Tim Burton's 1988 supernatural comedy 'Beetlejuice'?",
+      "options": [
+        "Michael Keaton",
+        "Bill Murray",
+        "Jack Nicholson",
+        "Jim Carrey"
+      ],
+      "correct_answer": "Michael Keaton",
+      "difficulty": "easy",
+      "explanation": "Michael Keaton donned striped suits and green hair for his manic, unforgettable turn as bio-exorcist Betelgeuse."
+    },
+    {
+      "id": "movies_22",
+      "question": "In Disney's 1993 Halloween favorite 'Hocus Pocus', what are the first names of the three resurrected Sanderson sisters?",
+      "options": [
+        "Winifred, Sarah, and Mary",
+        "Glinda, Elphaba, and Nessarose",
+        "Prue, Piper, and Phoebe",
+        "Nancy, Bonnie, and Rochelle"
+      ],
+      "correct_answer": "Winifred, Sarah, and Mary",
+      "difficulty": "easy",
+      "explanation": "Bette Midler (Winifred), Sarah Jessica Parker (Sarah), and Kathy Najimy (Mary) starred as the comedic Salem witch trio."
+    },
+    {
+      "id": "movies_23",
+      "question": "Who reigns as the beloved 'Pumpkin King' of Halloween Town in Henry Selick and Tim Burton's 'The Nightmare Before Christmas'?",
+      "options": [
+        "Jack Skellington",
+        "Oogie Boogie",
+        "Dr. Finkelstein",
+        "The Mayor"
+      ],
+      "correct_answer": "Jack Skellington",
+      "difficulty": "easy",
+      "explanation": "Jack Skellington stumbles upon Christmas Town and attempts to take over the festive holiday with delightfully chaotic results."
+    },
+    {
+      "id": "movies_24",
+      "question": "In Alfred Hitchcock's 1960 masterwork 'Psycho', what is the name of the remote motel run by Norman Bates?",
+      "options": [
+        "Bates Motel",
+        "Overlook Lodge",
+        "Camp Crystal Lake Inn",
+        "The Shady Rest"
+      ],
+      "correct_answer": "Bates Motel",
+      "difficulty": "easy",
+      "explanation": "The Bates Motel and its ominous Gothic Victorian manor house on the hill above created one of cinema's most famous silhouettes."
+    },
+    {
+      "id": "movies_25",
+      "question": "Which actor portrayed the gentle artificial creature with scissors for hands in Tim Burton's 1990 dark fantasy classic?",
+      "options": [
+        "Johnny Depp",
+        "Winona Ryder",
+        "Christian Bale",
+        "Robert Smith"
+      ],
+      "correct_answer": "Johnny Depp",
+      "difficulty": "easy",
+      "explanation": "Johnny Depp's performance as Edward Scissorhands marked his first of many legendary collaborations with director Tim Burton."
+    },
+    {
+      "id": "movies_26",
+      "question": "What doll possessed by the spirit of serial killer Charles Lee Ray terrorizes victims in the 'Child's Play' movie franchise?",
+      "options": [
+        "Chucky",
+        "Annabelle",
+        "Slappy",
+        "Talky Tina"
+      ],
+      "correct_answer": "Chucky",
+      "difficulty": "easy",
+      "explanation": "Chucky is a red-haired 'Good Guy' doll voiced by Brad Dourif who made his bloody debut in Tom Holland's 1988 film 'Child's Play'."
+    },
+    {
+      "id": "movies_27",
+      "question": "In Steven Spielberg's 1975 blockbuster thriller 'Jaws', what marine predator terrorizes the summer beaches of Amity Island?",
+      "options": [
+        "Great White Shark",
+        "Giant Squid",
+        "Megalodon",
+        "Killer Orca"
+      ],
+      "correct_answer": "Great White Shark",
+      "difficulty": "easy",
+      "explanation": "John Williams' iconic two-note leitmotif heralded the terrifying underwater presence of the giant Great White Shark."
+    },
+    {
+      "id": "movies_28",
+      "question": "What 1984 paranormal comedy follows three eccentric parapsychology professors who start a ghost extermination business in New York City?",
+      "options": [
+        "Ghostbusters",
+        "The Frighteners",
+        "Monster Squad",
+        "Casper"
+      ],
+      "correct_answer": "Ghostbusters",
+      "difficulty": "easy",
+      "explanation": "Bill Murray, Dan Aykroyd, and Harold Ramis strapped on proton packs to battle Gozer the Gozerian in Ivan Reitman's 'Ghostbusters'."
+    },
+    {
+      "id": "movies_29",
+      "question": "In Stephen King's 'It', what guise does the ancient shape-shifting entity frequently adopt to lure children into the sewers of Derry?",
+      "options": [
+        "Pennywise the Dancing Clown",
+        "A Friendly Policeman",
+        "A Carnival Magician",
+        "A Balloon Salesman"
+      ],
+      "correct_answer": "Pennywise the Dancing Clown",
+      "difficulty": "easy",
+      "explanation": "Pennywise uses bright red floating balloons and circus humor to disguise his horrifying supernatural appetite."
+    },
+    {
+      "id": "movies_30",
+      "question": "What 1996 meta-horror film directed by Wes Craven revitalized the slasher genre with teenagers discussing horror movie 'rules'?",
+      "options": [
+        "Scream",
+        "I Know What You Did Last Summer",
+        "Urban Legend",
+        "The Faculty"
+      ],
+      "correct_answer": "Scream",
+      "difficulty": "easy",
+      "explanation": "'Scream' introduced the Ghostface mask, satirized slasher conventions, and became a monumental commercial hit written by Kevin Williamson."
+    },
+    {
+      "id": "movies_31",
+      "question": "What 1922 German expressionist silent masterpiece directed by F. W. Murnau is an unauthorized adaptation of Bram Stoker's 'Dracula'?",
+      "options": [
+        "Nosferatu",
+        "The Cabinet of Dr. Caligari",
+        "Metropolis",
+        "Vampyr"
+      ],
+      "correct_answer": "Nosferatu",
+      "difficulty": "medium",
+      "explanation": "Actor Max Schreck portrayed the rat-like Count Orlok in 'Nosferatu, eine Symphonie des Grauens', an enduring masterpiece of silent cinema."
+    },
+    {
+      "id": "movies_32",
+      "question": "In Stanley Kubrick's 1980 adaptation of 'The Shining', what isolated Colorado mountain hotel does Jack Torrance agree to oversee as winter caretaker?",
+      "options": [
+        "The Overlook Hotel",
+        "The Stanley Hotel",
+        "The Timberline Lodge",
+        "The Blackwood Manor"
+      ],
+      "correct_answer": "The Overlook Hotel",
+      "difficulty": "medium",
+      "explanation": "The Overlook Hotel's labyrinthine corridors, haunted Room 237, and eerie Gold Room drove Jack Torrance to madness."
+    },
+    {
+      "id": "movies_33",
+      "question": "Which legendary special makeup effects artist created the iconic, terrifying practical creature transformations in John Carpenter's 1982 film 'The Thing'?",
+      "options": [
+        "Rob Bottin",
+        "Tom Savini",
+        "Stan Winston",
+        "Rick Baker"
+      ],
+      "correct_answer": "Rob Bottin",
+      "difficulty": "medium",
+      "explanation": "At just 22 years old, Rob Bottin led the crew that created the groundbreaking animatronics and prosthetic effects for 'The Thing'."
+    },
+    {
+      "id": "movies_34",
+      "question": "What 1968 independent black-and-white film by George A. Romero established modern cinematic zombie lore and conventions?",
+      "options": [
+        "Night of the Living Dead",
+        "Dawn of the Dead",
+        "White Zombie",
+        "Carnival of Souls"
+      ],
+      "correct_answer": "Night of the Living Dead",
+      "difficulty": "medium",
+      "explanation": "Filmed on a modest budget in rural Pennsylvania, 'Night of the Living Dead' revolutionized horror with its unrelenting tension and social commentary."
+    },
+    {
+      "id": "movies_35",
+      "question": "In Ridley Scott's 1979 sci-fi horror masterpiece 'Alien', which Swiss surrealist artist designed the biomechanical Xenomorph creature?",
+      "options": [
+        "H. R. Giger",
+        "Moebius",
+        "Zdzisław Beksiński",
+        "Salvador Dalí"
+      ],
+      "correct_answer": "H. R. Giger",
+      "difficulty": "medium",
+      "explanation": "H. R. Giger won an Academy Award for visual design after director Ridley Scott was captivated by his art monograph 'Necronomicon'."
+    },
+    {
+      "id": "movies_36",
+      "question": "What 1973 landmark horror film directed by William Friedkin became the first horror film nominated for the Academy Award for Best Picture?",
+      "options": [
+        "The Exorcist",
+        "Rosemary's Baby",
+        "The Omen",
+        "Don't Look Now"
+      ],
+      "correct_answer": "The Exorcist",
+      "difficulty": "medium",
+      "explanation": "Adapted from William Peter Blatty's novel, 'The Exorcist' garnered 10 Academy Award nominations and remains a cultural touchstone."
+    },
+    {
+      "id": "movies_37",
+      "question": "In the 'Saw' horror franchise created by James Wan and Leigh Whannell, what name is given to the mechanical puppet that delivers puzzle recordings?",
+      "options": [
+        "Billy the Puppet",
+        "Jigsaw Jr.",
+        "Spiral",
+        "Brahms"
+      ],
+      "correct_answer": "Billy the Puppet",
+      "difficulty": "medium",
+      "explanation": "Billy rolls into view on a red tricycle with spiraled red cheeks, announcing: 'I want to play a game.'"
+    },
+    {
+      "id": "movies_38",
+      "question": "Which 2017 psychological horror film earned writer-director Jordan Peele the Academy Award for Best Original Screenplay?",
+      "options": [
+        "Get Out",
+        "Us",
+        "Nope",
+        "Midsommar"
+      ],
+      "correct_answer": "Get Out",
+      "difficulty": "medium",
+      "explanation": "Jordan Peele's directorial debut 'Get Out' brilliantly merged psychological suspense with biting social critique."
+    },
+    {
+      "id": "movies_39",
+      "question": "What 1999 low-budget indie phenomenon made by Daniel Myrick and Eduardo Sánchez popularized viral internet marketing and modern found-footage horror?",
+      "options": [
+        "The Blair Witch Project",
+        "Paranormal Activity",
+        "Cloverfield",
+        "[REC]"
+      ],
+      "correct_answer": "The Blair Witch Project",
+      "difficulty": "medium",
+      "explanation": "'The Blair Witch Project' grossed nearly $250 million worldwide on a modest student budget after convincing audiences its footage was real."
+    },
+    {
+      "id": "movies_40",
+      "question": "In Guillermo del Toro's 2006 dark fantasy masterpiece 'Pan's Labyrinth', what horrifying feast-table monster has eyeballs set in the palms of its hands?",
+      "options": [
+        "The Pale Man",
+        "The Faun",
+        "The Mandrake",
+        "The Manticore"
+      ],
+      "correct_answer": "The Pale Man",
+      "difficulty": "medium",
+      "explanation": "Actor Doug Jones portrayed the Pale Man, creating one of the most chilling visual sequences in 21st-century cinema."
+    },
+    {
+      "id": "movies_41",
+      "question": "What 2018 post-apocalyptic horror film directed by and starring John Krasinski features blind predatory creatures that hunt purely by sound?",
+      "options": [
+        "A Quiet Place",
+        "Bird Box",
+        "The Silence",
+        "Don't Breathe"
+      ],
+      "correct_answer": "A Quiet Place",
+      "difficulty": "medium",
+      "explanation": "'A Quiet Place' used innovative diegetic sound design and American Sign Language to build extraordinary cinematic tension."
+    },
+    {
+      "id": "movies_42",
+      "question": "In the 2002 American remake of the Japanese horror film 'Ringu', how many days do victims have to live after watching the cursed videotape?",
+      "options": [
+        "Seven days",
+        "Three days",
+        "Thirteen days",
+        "One month"
+      ],
+      "correct_answer": "Seven days",
+      "difficulty": "medium",
+      "explanation": "After viewing the eerie black-and-white tape, the telephone immediately rings with a whispered warning: 'Seven days.'"
+    },
+    {
+      "id": "movies_43",
+      "question": "What 1932 Universal monster movie directed by Karl Freund starred Boris Karloff as the resurrected high priest Imhotep?",
+      "options": [
+        "The Mummy",
+        "The Bride of Frankenstein",
+        "The Old Dark House",
+        "The Ghoul"
+      ],
+      "correct_answer": "The Mummy",
+      "difficulty": "hard",
+      "explanation": "Jack Pierce spent eight hours applying cotton, collodion, and clay makeup to Boris Karloff for Imhotep's unforgettable awakening."
+    },
+    {
+      "id": "movies_44",
+      "question": "Which legendary British horror studio, founded in 1934, dominated color gothic cinema in the 1950s and 60s with Peter Cushing and Christopher Lee?",
+      "options": [
+        "Hammer Film Productions",
+        "Amicus Productions",
+        "Tigon British Film",
+        "Ealing Studios"
+      ],
+      "correct_answer": "Hammer Film Productions",
+      "difficulty": "hard",
+      "explanation": "Hammer revolutionized horror cinema with vivid Eastmancolor blood, lavish Victorian sets, and dynamic adaptations of classic gothic monsters."
+    },
+    {
+      "id": "movies_45",
+      "question": "In the 1974 horror classic 'The Texas Chain Saw Massacre', what is the culinary occupation of the eccentric family living in the remote farmhouse?",
+      "options": [
+        "Barbecue and meat processing",
+        "Taxidermy and fur tanning",
+        "Moonshine brewing",
+        "Grave excavation"
+      ],
+      "correct_answer": "Barbecue and meat processing",
+      "difficulty": "hard",
+      "explanation": "Director Tobe Hooper drew inspiration from the crimes of Ed Gein to create the Sawyer family meat-packing macabre household."
+    },
+    {
+      "id": "movies_46",
+      "question": "What 1986 body horror film directed by David Cronenberg starred Jeff Goldblum as eccentric scientist Seth Brundle who accidentally fuses his DNA with an insect?",
+      "options": [
+        "The Fly",
+        "Scanners",
+        "Videodrome",
+        "Dead Ringers"
+      ],
+      "correct_answer": "The Fly",
+      "difficulty": "hard",
+      "explanation": "'The Fly' won the Academy Award for Best Makeup, famous for the tagline: 'Be afraid. Be very afraid.'"
+    },
+    {
+      "id": "movies_47",
+      "question": "Which 1968 Roman Polanski psychological horror film about an expectant mother living in the Bramford apartment building stars Mia Farrow?",
+      "options": [
+        "Rosemary's Baby",
+        "Repulsion",
+        "The Tenant",
+        "Don't Look Now"
+      ],
+      "correct_answer": "Rosemary's Baby",
+      "difficulty": "hard",
+      "explanation": "Ruth Gordon won an Academy Award for Best Supporting Actress as the intrusive neighbor Minnie Castevet in 'Rosemary's Baby'."
+    },
+    {
+      "id": "movies_48",
+      "question": "What 2014 Australian indie horror film directed by Jennifer Kent features a terrifying shadowy storybook entity wearing a top hat and coat?",
+      "options": [
+        "The Babadook",
+        "Relic",
+        "Talk to Me",
+        "Lake Mungo"
+      ],
+      "correct_answer": "The Babadook",
+      "difficulty": "hard",
+      "explanation": "'The Babadook' was lauded by critics worldwide as an extraordinary psychological metaphor for grief and depression."
+    },
+    {
+      "id": "movies_49",
+      "question": "In Dario Argento's 1977 Italian Giallo/supernatural masterpiece 'Suspiria', what elite German dance academy harbors a coven of witches?",
+      "options": [
+        "Tanz Dance Academy in Freiburg",
+        "Berlin Royal Ballet",
+        "Munich Conservatory",
+        "Black Forest Arts Institute"
+      ],
+      "correct_answer": "Tanz Dance Academy in Freiburg",
+      "difficulty": "hard",
+      "explanation": "'Suspiria' is renowned for its hyper-stylized Technicolor primary color palettes and thunderous progressive rock score by Goblin."
+    },
+    {
+      "id": "movies_50",
+      "question": "What 1960 British psychological thriller directed by Michael Powell ruined the director's career at release before being re-evaluated as a masterpiece of voyeurism?",
+      "options": [
+        "Peeping Tom",
+        "The Innocents",
+        "Village of the Damned",
+        "Taste of Fear"
+      ],
+      "correct_answer": "Peeping Tom",
+      "difficulty": "hard",
+      "explanation": "Released the same year as Hitchcock's 'Psycho', 'Peeping Tom' shocked British critics with its unflinching study of a cameraman obsessed with filming fear."
+    },
+    {
+      "id": "movies_51",
+      "question": "What 2011 clever meta-horror film written by Joss Whedon and Drew Goddard reveals that slasher clichés are orchestrated by underground technicians appeasing ancient gods?",
+      "options": [
+        "The Cabin in the Woods",
+        "Tucker and Dale vs. Evil",
+        "Behind the Mask",
+        "Final Girls"
+      ],
+      "correct_answer": "The Cabin in the Woods",
+      "difficulty": "hard",
+      "explanation": "'The Cabin in the Woods' deconstructed every established horror archetype while featuring an elevator bank filled with hundreds of nightmare monsters."
+    },
+    {
+      "id": "movies_52",
+      "question": "In the 1931 Universal film 'Frankenstein', what was the original profession and title of Colin Clive's character, changed from the novel's student status?",
+      "options": [
+        "Henry Frankenstein (Doctor)",
+        "Victor Frankenstein (Student)",
+        "Baron von Frankenstein",
+        "Herr Frankenstein (Chemist)"
+      ],
+      "correct_answer": "Henry Frankenstein (Doctor)",
+      "difficulty": "hard",
+      "explanation": "Universal switched the names: Colin Clive played Henry Frankenstein, while his friend was named Victor Moritz."
     }
   ],
   "history": [
@@ -941,6 +2287,452 @@
       "correct_answer": "Robert Burns",
       "difficulty": "hard",
       "explanation": "Robert Burns recorded Scottish customs like pulling kale stalks and sowing hemp seed in his famous 28-stanza poem."
+    },
+    {
+      "id": "history_19",
+      "question": "What ancient Celtic festival marked the end of the harvest season and the beginning of the dark winter, serving as the ancestor of Halloween?",
+      "options": [
+        "Samhain",
+        "Beltane",
+        "Imbolc",
+        "Lughnasadh"
+      ],
+      "correct_answer": "Samhain",
+      "difficulty": "easy",
+      "explanation": "Samhain (pronounced 'SOW-in') was celebrated across Celtic lands on October 31–November 1 as a liminal festival where spirits could cross over."
+    },
+    {
+      "id": "history_20",
+      "question": "How is the ancient Gaelic festival name 'Samhain' traditionally pronounced?",
+      "options": [
+        "SOW-in",
+        "SAM-hayne",
+        "SAH-mayn",
+        "SEM-ween"
+      ],
+      "correct_answer": "SOW-in",
+      "difficulty": "easy",
+      "explanation": "In Irish Gaelic, 'Samhain' is pronounced 'SOW-in', deriving from the Old Irish word meaning 'summer's end'."
+    },
+    {
+      "id": "history_21",
+      "question": "What is the English meaning of the historical phrase 'All Hallows' Eve' from which the word 'Halloween' is contracted?",
+      "options": [
+        "The evening before All Saints' Day",
+        "The night of the harvest moon",
+        "The feast of the autumn equinox",
+        "The vigil of lost souls"
+      ],
+      "correct_answer": "The evening before All Saints' Day",
+      "difficulty": "easy",
+      "explanation": "'Hallow' is an archaic English word meaning 'holy person' or 'saint'; All Hallows' Eve was the vigil before All Hallows' Day (November 1)."
+    },
+    {
+      "id": "history_22",
+      "question": "What historic dark bird perched on a gnarled branch silhouette is featured in this history visual trivia?",
+      "options": [
+        "Raven",
+        "Vulture",
+        "Barn Owl",
+        "Falcon"
+      ],
+      "correct_answer": "Raven",
+      "difficulty": "easy",
+      "explanation": "The raven has been deeply rooted in gothic literature and European lore from Odin's messengers to Edgar Allan Poe's 1845 poem.",
+      "media_type": "image",
+      "media_url": "/static/images/trivia/silhouette_raven.svg",
+      "media_alt": "Silhouetted black raven with sharp beak perched on a gnarled autumn branch under a deep indigo twilight sky.",
+      "media_caption": "Visual Clue: Name this iconic literary bird silhouette."
+    },
+    {
+      "id": "history_23",
+      "question": "Which Catholic holiday dedicated to praying for departed souls is officially observed immediately following All Saints' Day on November 2nd?",
+      "options": [
+        "All Souls' Day",
+        "Epiphany",
+        "Corpus Christi",
+        "Advent"
+      ],
+      "correct_answer": "All Souls' Day",
+      "difficulty": "easy",
+      "explanation": "All Souls' Day was established in the 11th century by Saint Odilo of Cluny to offer prayers and alms for souls in purgatory."
+    },
+    {
+      "id": "history_24",
+      "question": "In the Irish legend of Stingy Jack, what did the Devil give Jack when he was turned away from both Heaven and Hell?",
+      "options": [
+        "A burning coal from hellfire placed in a carved turnip",
+        "A cursed gold sovereign",
+        "A pair of winged iron shoes",
+        "A magic mirror that never aged"
+      ],
+      "correct_answer": "A burning coal from hellfire placed in a carved turnip",
+      "difficulty": "easy",
+      "explanation": "Jack placed the burning ember inside a hollowed-out turnip to light his endless wandering, becoming 'Jack of the Lantern'."
+    },
+    {
+      "id": "history_25",
+      "question": "What tragic 19th-century historic event caused over a million Irish people to emigrate, bringing Halloween traditions to the United States?",
+      "options": [
+        "The Great Famine (Potato Famine)",
+        "The Nine Years' War",
+        "The Industrial Revolution",
+        "The Napoleonic Wars"
+      ],
+      "correct_answer": "The Great Famine (Potato Famine)",
+      "difficulty": "easy",
+      "explanation": "The devastating potato crop blight between 1845 and 1852 spurred massive emigration that transplanted Irish folklore into American culture."
+    },
+    {
+      "id": "history_26",
+      "question": "Why did European immigrants in North America switch from carving turnips to carving pumpkins for their Halloween lanterns?",
+      "options": [
+        "Pumpkins were native, abundant, and far easier to hollow out",
+        "Turnips were banned by colonial law",
+        "Pumpkins lasted longer through the winter",
+        "Pumpkins smelled sweeter when heated"
+      ],
+      "correct_answer": "Pumpkins were native, abundant, and far easier to hollow out",
+      "difficulty": "easy",
+      "explanation": "Native to the Americas, large round pumpkins provided an ideal, pliable canvas compared to dense, woody European rutabagas and turnips."
+    },
+    {
+      "id": "history_27",
+      "question": "What small spiced circular cakes were baked in medieval Britain and offered to soulers praying for deceased ancestors?",
+      "options": [
+        "Soul Cakes",
+        "Barmbrack Slices",
+        "Shortbread Triangles",
+        "Hot Cross Buns"
+      ],
+      "correct_answer": "Soul Cakes",
+      "difficulty": "easy",
+      "explanation": "Medieval soul cakes were marked with a cross and distributed to children and mendicants singing: 'A soul cake, a soul cake, have mercy on all Christian souls!'"
+    },
+    {
+      "id": "history_28",
+      "question": "What British city or town is officially recognized as the 'Halloween Capital of the World' for hosting the first organized civic celebration in 1920?",
+      "options": [
+        "Anoka, Minnesota",
+        "Salem, Massachusetts",
+        "Sleepy Hollow, New York",
+        "Derry, Northern Ireland"
+      ],
+      "correct_answer": "Anoka, Minnesota",
+      "difficulty": "easy",
+      "explanation": "In 1920, civic leaders in Anoka, Minnesota organized a community parade and bonfire to curb rowdy pranks, earning the official title in 1937."
+    },
+    {
+      "id": "history_29",
+      "question": "In what decade did UNICEF launch its iconic orange trick-or-treat collection boxes to raise funds for international children's aid?",
+      "options": [
+        "1950s",
+        "1930s",
+        "1970s",
+        "1990s"
+      ],
+      "correct_answer": "1950s",
+      "difficulty": "easy",
+      "explanation": "In 1950, Mary Emma Allison and her Presbyterian minister husband in Philadelphia started Trick-or-Treat for UNICEF, raising millions worldwide."
+    },
+    {
+      "id": "history_30",
+      "question": "What colonial Massachusetts town became infamous in 1692 for witch trials that resulted in the execution of twenty innocent people?",
+      "options": [
+        "Salem",
+        "Plymouth",
+        "Concord",
+        "Boston"
+      ],
+      "correct_answer": "Salem",
+      "difficulty": "easy",
+      "explanation": "The 1692 Salem Witch Trials remain an enduring historic lesson in the perils of mass hysteria and judicial prejudice."
+    },
+    {
+      "id": "history_31",
+      "question": "In what country was the earliest known printed appearance of the phrase 'trick or treat' recorded in a newspaper article in November 1927?",
+      "options": [
+        "Canada (Alberta)",
+        "United States (Oregon)",
+        "Scotland (Edinburgh)",
+        "Ireland (Dublin)"
+      ],
+      "correct_answer": "Canada (Alberta)",
+      "difficulty": "medium",
+      "explanation": "The Blackie, Alberta newspaper reported on November 4, 1927 that youthful trick-or-treaters made 'trick or treat' the order of the evening."
+    },
+    {
+      "id": "history_32",
+      "question": "Which Pope officially fixed the date of All Saints' Day to November 1st in the 8th century by dedicating a chapel in St. Peter's Basilica?",
+      "options": [
+        "Pope Gregory III",
+        "Pope Boniface IV",
+        "Pope Urban II",
+        "Pope Leo X"
+      ],
+      "correct_answer": "Pope Gregory III",
+      "difficulty": "medium",
+      "explanation": "Pope Gregory III (731–741) consecrated a chapel to all saints on November 1, establishing the date that would later be made universal by Gregory IV."
+    },
+    {
+      "id": "history_33",
+      "question": "What British holiday celebrated on November 5th with bonfires and effigies historically absorbed many pre-existing Samhain traditions in England?",
+      "options": [
+        "Guy Fawkes Night (Bonfire Night)",
+        "St. George's Day",
+        "Boxing Day",
+        "May Day"
+      ],
+      "correct_answer": "Guy Fawkes Night (Bonfire Night)",
+      "difficulty": "medium",
+      "explanation": "Commemorating the failed Gunpowder Plot of 1605, Bonfire Night featured communal pyres and costumes that largely supplanted Halloween in England for centuries."
+    },
+    {
+      "id": "history_34",
+      "question": "What traditional Irish yeast bread containing sultanas and raisins is baked on Halloween with hidden objects used for fortune telling?",
+      "options": [
+        "Barmbrack",
+        "Soda Farl",
+        "Blaa",
+        "Boxty"
+      ],
+      "correct_answer": "Barmbrack",
+      "difficulty": "medium",
+      "explanation": "Finding a ring in your barmbrack slice predicted marriage within a year; finding a coin predicted impending wealth."
+    },
+    {
+      "id": "history_35",
+      "question": "In ancient Celtic tradition, why did villagers extinguish their household hearths during Samhain before relighting them from a sacred communal bonfire?",
+      "options": [
+        "To symbolize unity and ensure spiritual protection through the winter",
+        "To prevent accidental forest fires",
+        "To preserve firewood during scarcity",
+        "To hide their homes from Roman patrols"
+      ],
+      "correct_answer": "To symbolize unity and ensure spiritual protection through the winter",
+      "difficulty": "medium",
+      "explanation": "Druids kindled a sacred ceremonial bonfire, from which each household took an ember to reignite their domestic hearth for the new year."
+    },
+    {
+      "id": "history_36",
+      "question": "What is the traditional Scots term for the popular Halloween game of retrieving floating apples from a tub of water using only one's teeth?",
+      "options": [
+        "Dooking for apples",
+        "Bobbing for pippins",
+        "Dunking the russets",
+        "Catching the harvest"
+      ],
+      "correct_answer": "Dooking for apples",
+      "difficulty": "medium",
+      "explanation": "In Scotland and Northern Ireland, apple bobbing has been affectionately called 'dooking' (ducking) for centuries."
+    },
+    {
+      "id": "history_37",
+      "question": "Which First Lady hosted the first officially documented White House Halloween celebration in 1958, decorating with pumpkins and corn stalks?",
+      "options": [
+        "Mamie Eisenhower",
+        "Eleanor Roosevelt",
+        "Jacqueline Kennedy",
+        "Lady Bird Johnson"
+      ],
+      "correct_answer": "Mamie Eisenhower",
+      "difficulty": "medium",
+      "explanation": "Mamie Eisenhower decorated the State Dining Room with hanging skeletons, yellow jack-o'-lanterns, and autumn foliage for the wives of executive staff."
+    },
+    {
+      "id": "history_38",
+      "question": "What Irish Gaelic phrase is the traditional native name for Halloween night?",
+      "options": [
+        "Oíche Shamhna",
+        "Lá Fhéile Pádraig",
+        "Oíche Nollag",
+        "Lá Bealtaine"
+      ],
+      "correct_answer": "Oíche Shamhna",
+      "difficulty": "medium",
+      "explanation": "'Oíche Shamhna' translates directly as 'the night of Samhain', celebrated across Ireland with barmbrack, storytelling, and bonfires."
+    },
+    {
+      "id": "history_39",
+      "question": "During the Middle Ages in England and Scotland, what was the disguise-wearing practice of going door-to-door performing songs for food called?",
+      "options": [
+        "Guising",
+        "Caroling",
+        "Tinkering",
+        "Bordering"
+      ],
+      "correct_answer": "Guising",
+      "difficulty": "medium",
+      "explanation": "Derived from 'disguise', guisers had to perform an entertaining party piece, song, or poem before receiving treats from householders."
+    },
+    {
+      "id": "history_40",
+      "question": "What late autumn festival on November 11th celebrating St. Martin of Tours features children carrying paper lanterns in Germany and the Netherlands?",
+      "options": [
+        "Martinmas (Sankt Martin)",
+        "Walpurgisnacht",
+        "Krampusnacht",
+        "Nikolaustag"
+      ],
+      "correct_answer": "Martinmas (Sankt Martin)",
+      "difficulty": "medium",
+      "explanation": "St. Martin's Day celebrates generosity and charity with evening lantern processions (Laternenumzug) and sweet pastries."
+    },
+    {
+      "id": "history_41",
+      "question": "Why did civic authorities and civic clubs actively organize parades and community costume parties in American towns in the 1920s and 30s?",
+      "options": [
+        "To redirect youth energy away from destructive pranks and vandalism",
+        "To encourage sales of local pumpkin farmers",
+        "To celebrate the end of World War I",
+        "To raise funds for municipal libraries"
+      ],
+      "correct_answer": "To redirect youth energy away from destructive pranks and vandalism",
+      "difficulty": "medium",
+      "explanation": "Growing problems with overturned outhouses, soap-smeared streetcars, and blocked roads prompted communities to organize safe civic festivities."
+    },
+    {
+      "id": "history_42",
+      "question": "Which historic German spring festival celebrated on the eve of May 1st (Walpurgisnacht) is famously regarded as the 'other Halloween' of witch folklore?",
+      "options": [
+        "Walpurgis Night",
+        "Fasching",
+        "Oktoberfest",
+        "Erntedankfest"
+      ],
+      "correct_answer": "Walpurgis Night",
+      "difficulty": "medium",
+      "explanation": "Folklore held that witches gathered on the Brocken peak in the Harz Mountains on Walpurgis Night, exactly six months opposite Halloween."
+    },
+    {
+      "id": "history_43",
+      "question": "At which ancient royal hill in County Meath, Ireland was the central sacred fire of Samhain historically kindled by the High Kings and Druids?",
+      "options": [
+        "Hill of Ward (Tlachtga)",
+        "Hill of Tara",
+        "Rock of Cashel",
+        "Emain Macha"
+      ],
+      "correct_answer": "Hill of Ward (Tlachtga)",
+      "difficulty": "hard",
+      "explanation": "Archaeological excavations at Tlachtga (Hill of Ward) revealed evidence of extensive ceremonial autumn bonfires dating back over 2,000 years."
+    },
+    {
+      "id": "history_44",
+      "question": "What 18th-century Scottish poet published the celebrated 1785 narrative poem 'Halloween', which meticulously documented folk customs and courtship games?",
+      "options": [
+        "Robert Burns",
+        "Walter Scott",
+        "Allan Ramsay",
+        "James Macpherson"
+      ],
+      "correct_answer": "Robert Burns",
+      "difficulty": "hard",
+      "explanation": "Burns' poem provides an invaluable ethnological record of 18th-century Scottish rituals like pulling kale stalks and sowing hemp seed."
+    },
+    {
+      "id": "history_45",
+      "question": "In Celtic belief, what term describes a time or place—such as Samhain midnight—where ordinary boundaries dissolve and the spirit veil thins?",
+      "options": [
+        "Liminal",
+        "Eschatological",
+        "Apocryphal",
+        "Hermetic"
+      ],
+      "correct_answer": "Liminal",
+      "difficulty": "hard",
+      "explanation": "From the Latin 'limen' (threshold), liminal periods exist between two defined states—in this case, between the old year and the new."
+    },
+    {
+      "id": "history_46",
+      "question": "Which Roman Catholic Pope first dedicated the Roman Pantheon as the Church of St. Mary and the Martyrs on May 13th, 609 AD, before the feast was moved to November?",
+      "options": [
+        "Pope Boniface IV",
+        "Pope Gregory I",
+        "Pope Innocent III",
+        "Pope Urban I"
+      ],
+      "correct_answer": "Pope Boniface IV",
+      "difficulty": "hard",
+      "explanation": "Pope Boniface IV established the original springtime feast of All Martyrs on May 13 before Pope Gregory III shifted the expanded celebration to November 1."
+    },
+    {
+      "id": "history_47",
+      "question": "In pre-Christian Celtic Ireland, the mythological deities and magical Tuatha Dé Danann who retreated into ancient burial mounds were known as what?",
+      "options": [
+        "Aos Sí",
+        "Fomorians",
+        "Milesians",
+        "Fir Bolg"
+      ],
+      "correct_answer": "Aos Sí",
+      "difficulty": "hard",
+      "explanation": "The Aos Sí ('people of the mounds') were supernatural beings who could freely enter our realm during the festival of Samhain."
+    },
+    {
+      "id": "history_48",
+      "question": "What 9th-century French monastery abbot formalized the liturgical celebration of All Souls' Day on November 2nd, leading to its adoption throughout Christendom?",
+      "options": [
+        "Saint Odilo of Cluny",
+        "Saint Bernard of Clairvaux",
+        "Saint Benedict of Nursia",
+        "Alcuin of York"
+      ],
+      "correct_answer": "Saint Odilo of Cluny",
+      "difficulty": "hard",
+      "explanation": "Saint Odilo, fifth abbot of the Benedictine abbey of Cluny, instituted the annual commemoration of all the faithful departed in 998 AD."
+    },
+    {
+      "id": "history_49",
+      "question": "Which historic medieval Irish legal code, dating from the early Christian era, explicitly mentions Samhain as one of the four cardinal quarter days of the year?",
+      "options": [
+        "Brehon Laws",
+        "Statutes of Kilkenny",
+        "Domesday Book",
+        "Salic Law"
+      ],
+      "correct_answer": "Brehon Laws",
+      "difficulty": "hard",
+      "explanation": "The ancient Brehon legal tracts recognized Samhain, Imbolc, Bealtaine, and Lughnasadh as governing agricultural tenancy and legal contracts."
+    },
+    {
+      "id": "history_50",
+      "question": "In late 19th-century America, what popular party game involved placing three bowls before a blindfolded guest to divine their marriage prospects?",
+      "options": [
+        "The Three Luggies (Bowls of clean water, dirty water, and empty)",
+        "The Three Apples",
+        "The Three Candles",
+        "The Three Coins"
+      ],
+      "correct_answer": "The Three Luggies (Bowls of clean water, dirty water, and empty)",
+      "difficulty": "hard",
+      "explanation": "Touching clean water meant marrying a maiden/youth; dirty water meant marrying a widow/widower; the empty bowl foretold remaining single."
+    },
+    {
+      "id": "history_51",
+      "question": "What 1938 radio broadcast directed by Orson Welles caused widespread sensational headlines claiming that listeners panicked over a fictitious Martian invasion on Halloween eve?",
+      "options": [
+        "The War of the Worlds",
+        "The Shadow",
+        "Lights Out",
+        "Suspense"
+      ],
+      "correct_answer": "The War of the Worlds",
+      "difficulty": "hard",
+      "explanation": "Aired on October 30, 1938 by the Mercury Theatre on the Air, the broadcast's realistic mock news bulletins created lasting media lore."
+    },
+    {
+      "id": "history_52",
+      "question": "In early modern Scottish folklore, what was the 'Sluagh' said to ride through the night sky on Samhain looking to steal mortal souls?",
+      "options": [
+        "A restless host of unforgiven ancestral spirits",
+        "A parliament of giant barn owls",
+        "A legion of mountain trolls",
+        "A fleet of cloud dragons"
+      ],
+      "correct_answer": "A restless host of unforgiven ancestral spirits",
+      "difficulty": "hard",
+      "explanation": "The Sluagh (the Wild Host) of Highland lore were restless wanderers; folk kept windows on the west side of houses closed to keep them out."
     }
   ],
   "candy": [
@@ -1177,6 +2969,448 @@
       "correct_answer": "Halloween Peanut Butter Kisses (Mary Janes/Chews)",
       "difficulty": "hard",
       "explanation": "These molasses and peanut butter chews wrapped in plain orange and black paper were a classic trick-or-treat staple."
+    },
+    {
+      "id": "candy_19",
+      "question": "Under what original agricultural brand name was Candy Corn marketed when it was first manufactured in the 1880s?",
+      "options": [
+        "Chicken Feed",
+        "Harvest Gold",
+        "Barnyard Sweets",
+        "Corn Kernel Chews"
+      ],
+      "correct_answer": "Chicken Feed",
+      "difficulty": "easy",
+      "explanation": "The Wunderle Candy Company first created candy corn, and Goelitz Candy Company packaged it in boxes marked 'Chicken Feed' for rural America."
+    },
+    {
+      "id": "candy_20",
+      "question": "Which chocolate-coated peanut butter cup confection created in 1928 by H. B. Reese is consistently ranked as the top-selling Halloween candy in the USA?",
+      "options": [
+        "Reese's Peanut Butter Cups",
+        "Snickers",
+        "Butterfinger",
+        "Baby Ruth"
+      ],
+      "correct_answer": "Reese's Peanut Butter Cups",
+      "difficulty": "easy",
+      "explanation": "Former Hershey dairy employee H. B. Reese created the peanut butter cups in his basement, and Hershey eventually acquired the brand in 1963."
+    },
+    {
+      "id": "candy_21",
+      "question": "What chewy chocolate-flavored taffy cylinder candy was invented in 1896 by Leo Hirschfield and named after his young daughter?",
+      "options": [
+        "Tootsie Roll",
+        "Milk Dud",
+        "Charleston Chew",
+        "Sugar Daddy"
+      ],
+      "correct_answer": "Tootsie Roll",
+      "difficulty": "easy",
+      "explanation": "Leo Hirschfield named the cocoa-infused chew after his five-year-old daughter Clara, whose family nickname was 'Tootsie'."
+    },
+    {
+      "id": "candy_22",
+      "question": "What iconic chocolate bar introduced in 1930 by Mars was named after the favorite thoroughbred riding horse of the Mars family?",
+      "options": [
+        "Snickers",
+        "Milky Way",
+        "3 Musketeers",
+        "Twix"
+      ],
+      "correct_answer": "Snickers",
+      "difficulty": "easy",
+      "explanation": "Frank and Ethel Mars owned a prized Tennessee horse named Snickers and named their nougat, caramel, and peanut candy bar after him."
+    },
+    {
+      "id": "candy_23",
+      "question": "What candy-coated chocolate buttons were created in 1941 to provide soldiers in World War II with chocolate that 'melts in your mouth, not in your hand'?",
+      "options": [
+        "M&M's",
+        "Sixlets",
+        "Smarties",
+        "Skittles"
+      ],
+      "correct_answer": "M&M's",
+      "difficulty": "easy",
+      "explanation": "Forrest Mars Sr. partnered with Bruce Murrie (the two M's) to create hard-shelled chocolate pellets that resisted summer heat."
+    },
+    {
+      "id": "candy_24",
+      "question": "What twin-finger chocolate bar introduced in 1967 features a crunchy biscuit cookie topped with caramel and milk chocolate?",
+      "options": [
+        "Twix",
+        "Kit Kat",
+        "100 Grand",
+        "Whatchamacallit"
+      ],
+      "correct_answer": "Twix",
+      "difficulty": "easy",
+      "explanation": "First produced in the United Kingdom, Twix was originally known as 'Raider' across mainland Europe for decades."
+    },
+    {
+      "id": "candy_25",
+      "question": "What four-finger wafer chocolate bar produced by Rowntree's in 1935 is famous for its slogan 'Have a break, have a...'?",
+      "options": [
+        "Kit Kat",
+        "Crunch Bar",
+        "Crispy Crunch",
+        "Aero"
+      ],
+      "correct_answer": "Kit Kat",
+      "difficulty": "easy",
+      "explanation": "Originally launched as 'Rowntree's Chocolate Crisp', the wafer bar was renamed Kit Kat Chocolate Crisp in 1937."
+    },
+    {
+      "id": "candy_26",
+      "question": "What bright red autumn orchard treat made by dipping whole fresh apples into boiled cinnamon sugar syrup was created by William Kolb in 1908?",
+      "options": [
+        "Candy Apple",
+        "Caramel Apple",
+        "Taffy Apple",
+        "Chocolate Apple"
+      ],
+      "correct_answer": "Candy Apple",
+      "difficulty": "easy",
+      "explanation": "New Jersey confectioner William Kolb created glossy red hard-candy apples as a window display to advertise his cinnamon candies."
+    },
+    {
+      "id": "candy_27",
+      "question": "What pocket candy dispenser featuring pop-up character heads like pumpkins and monsters was invented in Vienna, Austria in 1927?",
+      "options": [
+        "Pez",
+        "Chupa Chups",
+        "Push Pop",
+        "Ring Pop"
+      ],
+      "correct_answer": "Pez",
+      "difficulty": "easy",
+      "explanation": "Eduard Haas III created PEZ as a compressed peppermint tablet, taking the name from the German word 'PfeffErminZ'."
+    },
+    {
+      "id": "candy_28",
+      "question": "What carbonated novelty candy invented by food chemist William A. Mitchell in 1956 pops and crackles violently on your tongue?",
+      "options": [
+        "Pop Rocks",
+        "Fun Dip",
+        "Pixy Stix",
+        "Fizzies"
+      ],
+      "correct_answer": "Pop Rocks",
+      "difficulty": "easy",
+      "explanation": "Pop Rocks contain tiny pockets of pressurized carbon dioxide gas (600 psi) that release with a sudden sizzle as the sugar dissolves."
+    },
+    {
+      "id": "candy_29",
+      "question": "What pioneer brand of pink bubble gum was invented in 1928 by accountant Walter Diemer when experimenting with rubber recipes?",
+      "options": [
+        "Dubble Bubble",
+        "Bazooka",
+        "Bubble Yum",
+        "Hubba Bubba"
+      ],
+      "correct_answer": "Dubble Bubble",
+      "difficulty": "easy",
+      "explanation": "Walter Diemer was an accountant at Fleer Chewing Gum; he colored his successful batch pink because it was the only food dye available in the factory."
+    },
+    {
+      "id": "candy_30",
+      "question": "What sour-then-sweet humanoid gummy candies were originally called 'Mars Men' in the 1970s before being renamed for 1980s pop culture?",
+      "options": [
+        "Sour Patch Kids",
+        "Warheads",
+        "Sour Skittles",
+        "Trolli Crawlers"
+      ],
+      "correct_answer": "Sour Patch Kids",
+      "difficulty": "easy",
+      "explanation": "Originally shaped like alien visitors, they were rebranded in 1985 to capitalize on the massive craze for Cabbage Patch Kids dolls."
+    },
+    {
+      "id": "candy_31",
+      "question": "Which chocolate-covered caramel drops were named 'Duds' in 1928 because factory machines failed to roll them into perfect round balls?",
+      "options": [
+        "Milk Duds",
+        "Whoppers",
+        "Maltesers",
+        "Junior Mints"
+      ],
+      "correct_answer": "Milk Duds",
+      "difficulty": "medium",
+      "explanation": "The Hoffman Candy Company acknowledged the machine's inability to form spherical caramel bites, cheerfully labeling the odd drops 'Duds'."
+    },
+    {
+      "id": "candy_32",
+      "question": "What crisp, flaky peanut butter candy bar coated in chocolate was invented in 1923 by Otto Schnering's Curtiss Candy Company?",
+      "options": [
+        "Butterfinger",
+        "Clark Bar",
+        "Fifth Avenue",
+        "Zagnut"
+      ],
+      "correct_answer": "Butterfinger",
+      "difficulty": "medium",
+      "explanation": "The company held a public naming contest; 'butterfingers' was popular slang for a clumsy baseball player who drops routine catches."
+    },
+    {
+      "id": "candy_33",
+      "question": "What candy brand features dual-chamber cardboard boxes with separate spouts providing two contrasting tangy crunchy flavors?",
+      "options": [
+        "Nerds",
+        "Spree",
+        "Sweetarts",
+        "Bottle Caps"
+      ],
+      "correct_answer": "Nerds",
+      "difficulty": "medium",
+      "explanation": "Invented by the Willy Wonka Candy Factory in 1983, Nerds was awarded 'Candy of the Year' by the National Confectioners Association in 1985."
+    },
+    {
+      "id": "candy_34",
+      "question": "What popular lollipop introduced by Charms in 1969 became famous as the first commercial candy to put bubble gum inside a hard candy shell?",
+      "options": [
+        "Blow Pop",
+        "Tootsie Pop",
+        "Dum Dums",
+        "Ring Pop"
+      ],
+      "correct_answer": "Blow Pop",
+      "difficulty": "medium",
+      "explanation": "While Tootsie Pops hid chocolate taffy inside, Charms Blow Pops revolutionized the candy aisle by sealing bubble gum inside."
+    },
+    {
+      "id": "candy_35",
+      "question": "Which iconic German candy company, founded in Bonn in 1920 by Hans Riegel, invented the 'Goldbear' gummy bear in 1922?",
+      "options": [
+        "Haribo",
+        "Storck",
+        "Katjes",
+        "Trolli"
+      ],
+      "correct_answer": "Haribo",
+      "difficulty": "medium",
+      "explanation": "The company name HARIBO is a syllabic abbreviation of founder and city: HAns RIegel BOnn."
+    },
+    {
+      "id": "candy_36",
+      "question": "What paper-wrapped rolls of pastel dextrose candy tablets, known as 'Rockets' in Canada, were invented in 1949 by Edward Dee?",
+      "options": [
+        "Smarties",
+        "Necco Wafers",
+        "Runts",
+        "Spree"
+      ],
+      "correct_answer": "Smarties",
+      "difficulty": "medium",
+      "explanation": "Manufactured by Ce De Candy, they are called Smarties in the US and Rockets in Canada to avoid confusion with Nestlé chocolate Smarties."
+    },
+    {
+      "id": "candy_37",
+      "question": "What smooth, creamy caramel apple treat on a stick was invented in the 1950s by Kraft Foods salesman Dan Walker using surplus caramels?",
+      "options": [
+        "Caramel Apple",
+        "Toffee Apple",
+        "Jelly Apple",
+        "Butterscotch Apple"
+      ],
+      "correct_answer": "Caramel Apple",
+      "difficulty": "medium",
+      "explanation": "Dan Walker melted down excess Kraft holiday caramels and dipped tart green apples into the warm mixture, creating a harvest staple."
+    },
+    {
+      "id": "candy_38",
+      "question": "What paper-tube candy filled with fine flavored sugar powder originated from a drink mix kids were caught eating raw with spoons?",
+      "options": [
+        "Pixy Stix",
+        "Fun Dip",
+        "Lik-m-aid",
+        "Candy Straws"
+      ],
+      "correct_answer": "Pixy Stix",
+      "difficulty": "medium",
+      "explanation": "The manufacturer noticed children were ignoring the instructions to mix 'Fruzola' powder into water, instead eating the powder directly."
+    },
+    {
+      "id": "candy_39",
+      "question": "What theater candy featuring small dome-shaped starch gelatin gumdrops in assorted fruit flavors was introduced by Mason, Au & Magenheimer in 1945?",
+      "options": [
+        "Dots",
+        "Gum Drops",
+        "Jujyfruits",
+        "Swedish Fish"
+      ],
+      "correct_answer": "Dots",
+      "difficulty": "medium",
+      "explanation": "Dots produces over 4 billion gumdrops annually in Chicago, remaining one of the most recognizable shelf-stable box candies."
+    },
+    {
+      "id": "candy_40",
+      "question": "What dark licorice specialty seasoned with ammonium chloride (salmiak) is an intense traditional favorite across Scandinavia and Finland?",
+      "options": [
+        "Salmiakki",
+        "Red Vines",
+        "Twizzlers",
+        "Lakrids"
+      ],
+      "correct_answer": "Salmiakki",
+      "difficulty": "medium",
+      "explanation": "Salmiakki has a sharp, tongue-numbing salty sting from ammonium chloride, widely celebrated as an acquired northern European taste."
+    },
+    {
+      "id": "candy_41",
+      "question": "What crunchy, oven-toasted snack made from the scooped-out insides of carved pumpkins is seasoned with salt, paprika, and garlic?",
+      "options": [
+        "Roasted Pepitas (Pumpkin Seeds)",
+        "Pumpkin Chips",
+        "Squash Crisps",
+        "Harvest Bark"
+      ],
+      "correct_answer": "Roasted Pepitas (Pumpkin Seeds)",
+      "difficulty": "medium",
+      "explanation": "Pepitas are packed with zinc, magnesium, and healthy fats, making them a nutritious reward following pumpkin carving."
+    },
+    {
+      "id": "candy_42",
+      "question": "In the traditional Irish Halloween fruit loaf 'Barmbrack', what future fate was foretold for the guest who found the hidden cloth rag?",
+      "options": [
+        "Hard times and poverty",
+        "Impending wealth and riches",
+        "A lifetime of good health",
+        "Travel across the sea"
+      ],
+      "correct_answer": "Hard times and poverty",
+      "difficulty": "medium",
+      "explanation": "Barmbrack divination hid several tokens: the ring meant romance, the coin meant prosperity, and the rag foretold financial hardship."
+    },
+    {
+      "id": "candy_43",
+      "question": "What historic American candy disc, manufactured since 1847 by Oliver Chase using America's first patented candy lozenge cutter, went to war with Civil War soldiers?",
+      "options": [
+        "Necco Wafers",
+        "Smarties",
+        "Sweetarts",
+        "Conversation Hearts"
+      ],
+      "correct_answer": "Necco Wafers",
+      "difficulty": "hard",
+      "explanation": "New England Confectionery Company (NECCO) produced durable sugar discs that didn't melt in saddlebags or military kit bags."
+    },
+    {
+      "id": "candy_44",
+      "question": "Which chocolate-covered peppermint theater patty introduced in 1949 was named after Sally Benson's Broadway comedy 'Junior Miss'?",
+      "options": [
+        "Junior Mints",
+        "York Peppermint Pattie",
+        "After Eight",
+        "Peppermint Crunch"
+      ],
+      "correct_answer": "Junior Mints",
+      "difficulty": "hard",
+      "explanation": "James O. Welch named the dimpled mint chocolates in honor of the Broadway comedy 'Junior Miss', which ran from 1941 to 1943."
+    },
+    {
+      "id": "candy_45",
+      "question": "In Mexican culinary traditions for Día de los Muertos, what is the term for the intricate sugar paste sculpting craft used to mold skulls and figurines?",
+      "options": [
+        "Alfeñique",
+        "Mazapán",
+        "Ate",
+        "Churrigueresco"
+      ],
+      "correct_answer": "Alfeñique",
+      "difficulty": "hard",
+      "explanation": "Alfeñique is a confection dating back to Moorish Spain, blending cane sugar, egg whites, and lemon juice into malleable sculptural paste."
+    },
+    {
+      "id": "candy_46",
+      "question": "What 1923 Frank C. Mars chocolate bar was engineered to recreate the decadent flavor profile of a popular malted milkshake?",
+      "options": [
+        "Milky Way",
+        "Mars Bar",
+        "Three Musketeers",
+        "Marathon Bar"
+      ],
+      "correct_answer": "Milky Way",
+      "difficulty": "hard",
+      "explanation": "Frank Mars formulated Milky Way with malted milk nougat, caramel, and chocolate to taste like the malted shakes of 1920s soda fountains."
+    },
+    {
+      "id": "candy_47",
+      "question": "What fish-shaped gummy candy was developed in the late 1950s by Swedish confectionery manufacturer Malaco specifically for export to North America?",
+      "options": [
+        "Swedish Fish",
+        "Haribo Trout",
+        "Nordic Cod",
+        "Katjes Herring"
+      ],
+      "correct_answer": "Swedish Fish",
+      "difficulty": "hard",
+      "explanation": "Malaco created the gelatin-free starch chew shaped like an Atlantic fish with 'Swedish' embossed on the side to reflect Sweden's fishing heritage."
+    },
+    {
+      "id": "candy_48",
+      "question": "What chemical alkaloid found naturally in cocoa beans gives dark chocolate its subtle bitterness and is toxic to dogs and cats?",
+      "options": [
+        "Theobromine",
+        "Capsaicin",
+        "Quinine",
+        "Theophylline"
+      ],
+      "correct_answer": "Theobromine",
+      "difficulty": "hard",
+      "explanation": "From the Greek 'Theobroma' ('food of the gods'), theobromine is an adenosine receptor antagonist that pets metabolize far too slowly."
+    },
+    {
+      "id": "candy_49",
+      "question": "At what exact sub-zero temperature does dry ice (solid carbon dioxide) sublimate, creating theatrical Halloween cauldron fog in punch bowls?",
+      "options": [
+        "-78.5°C (-109.3°F)",
+        "-40°C (-40°F)",
+        "-100°C (-148°F)",
+        "-196°C (-320°F)"
+      ],
+      "correct_answer": "-78.5°C (-109.3°F)",
+      "difficulty": "hard",
+      "explanation": "Solid CO2 transitions directly from solid to dense vapor at -78.5°C, chilling surrounding water and condensing air moisture into fog."
+    },
+    {
+      "id": "candy_50",
+      "question": "What traditional Mexican candied pumpkin dessert, simmered slowly with piloncillo raw cane sugar and cinnamon sticks, is served during Day of the Dead?",
+      "options": [
+        "Calabaza en Tacha",
+        "Capirotada",
+        "Dulce de Tejocote",
+        "Camote en Dulce"
+      ],
+      "correct_answer": "Calabaza en Tacha",
+      "difficulty": "hard",
+      "explanation": "Calabaza en Tacha gets its name from 'la tacha', the massive copper vats in sugar mills where whole pumpkin slices were simmered in molasses."
+    },
+    {
+      "id": "candy_51",
+      "question": "Which historic chocolate manufacturing company in Hershey, Pennsylvania supplied the famous Ration D emergency chocolate bars to allied soldiers during World War II?",
+      "options": [
+        "Hershey Chocolate Corporation",
+        "Mars Confectionery",
+        "Whitman's",
+        "Baker's Chocolate"
+      ],
+      "correct_answer": "Hershey Chocolate Corporation",
+      "difficulty": "hard",
+      "explanation": "The US Army asked Hershey to create a dense 4-ounce bar designed to withstand 120°F heat and taste 'a little better than a boiled potato' to deter snacking."
+    },
+    {
+      "id": "candy_52",
+      "question": "What ancient Mesoamerican civilization was the first to harvest cacao beans and ferment them into a ceremonial frothy bitter beverage seasoned with chili peppers?",
+      "options": [
+        "The Olmecs",
+        "The Aztecs",
+        "The Incas",
+        "The Toltecs"
+      ],
+      "correct_answer": "The Olmecs",
+      "difficulty": "hard",
+      "explanation": "Archaeological chemical residue traces show the Olmecs were preparing cacao beverages in Mexico as early as 1900 BC, preceding both the Maya and Aztecs."
     }
   ],
   "paranormal": [
@@ -1413,6 +3647,451 @@
       "correct_answer": "The Flatwoods Monster (Green Monster)",
       "difficulty": "hard",
       "explanation": "Witnesses reported a 10-foot entity emitting pungent mist, accompanied by a pulsating red fireball."
+    },
+    {
+      "id": "paranormal_19",
+      "question": "What audio phenomenon refers to unexplained voices or sounds caught on electronic audio recorders that were not audible to human ears at the time?",
+      "options": [
+        "EVP (Electronic Voice Phenomenon)",
+        "White Noise Echo",
+        "Audio Artifact",
+        "Subliminal Resonance"
+      ],
+      "correct_answer": "EVP (Electronic Voice Phenomenon)",
+      "difficulty": "easy",
+      "explanation": "Paranormal researchers categorize EVPs into Class A (clearly audible), Class B (muffled), and Class C (indistinct whisper)."
+    },
+    {
+      "id": "paranormal_20",
+      "question": "What device sweeping rapidly across AM and FM radio frequencies is commonly used by ghost hunters seeking real-time spectral vocal snippets?",
+      "options": [
+        "Spirit Box (Ghost Box)",
+        "Ham Radio",
+        "Geiger Counter",
+        "Oscilloscope"
+      ],
+      "correct_answer": "Spirit Box (Ghost Box)",
+      "difficulty": "easy",
+      "explanation": "Spirit boxes rapidly scan through radio frequency bands; theorists hypothesize entities manipulate the white noise and snippets to speak."
+    },
+    {
+      "id": "paranormal_21",
+      "question": "What German word translating literally to 'noisy ghost' describes spirits associated with loud thumps, flying objects, and slamming doors?",
+      "options": [
+        "Poltergeist",
+        "Doppelgänger",
+        "Zeitgeist",
+        "Kobold"
+      ],
+      "correct_answer": "Poltergeist",
+      "difficulty": "easy",
+      "explanation": "'Poltern' means to rumble or knock, and 'Geist' means ghost or spirit in German."
+    },
+    {
+      "id": "paranormal_22",
+      "question": "What sensation of a sudden, sharp, localized drop in ambient room temperature is frequently reported by visitors in supposedly haunted buildings?",
+      "options": [
+        "Cold Spot",
+        "Draft Vortex",
+        "Thermal Void",
+        "Frost Point"
+      ],
+      "correct_answer": "Cold Spot",
+      "difficulty": "easy",
+      "explanation": "Investigators hypothesize that entities draw thermal energy from the ambient air to manifest physical phenomena, leaving a cold spot."
+    },
+    {
+      "id": "paranormal_23",
+      "question": "What round, luminous anomalies frequently appearing in flash photography of dark or abandoned spaces are usually caused by airborne dust or moisture?",
+      "options": [
+        "Orbs",
+        "Ecto-rings",
+        "Aura spheres",
+        "Spirit globes"
+      ],
+      "correct_answer": "Orbs",
+      "difficulty": "easy",
+      "explanation": "Camera lens retroreflection off microscopic dust, insects, or moisture particles suspended near the camera flash causes the 'orb' effect."
+    },
+    {
+      "id": "paranormal_24",
+      "question": "What supposedly mystical gelatinous substance was claimed by 19th-century Victorian spiritualist mediums to emanate from their bodies during seances?",
+      "options": [
+        "Ectoplasm",
+        "Spirit Slime",
+        "Phantom Vapor",
+        "Ether Wax"
+      ],
+      "correct_answer": "Ectoplasm",
+      "difficulty": "easy",
+      "explanation": "French physiologist Charles Richet coined 'ectoplasm' from Greek words meaning 'outside substance'; many historical seance photos were revealed as cheesecloth and egg whites."
+    },
+    {
+      "id": "paranormal_25",
+      "question": "Which historic Colorado mountain resort hotel in Estes Park inspired author Stephen King to write 'The Shining' following an eerie stay in Room 217?",
+      "options": [
+        "The Stanley Hotel",
+        "The Brown Palace",
+        "The Broadmoor",
+        "The Ahwahnee"
+      ],
+      "correct_answer": "The Stanley Hotel",
+      "difficulty": "easy",
+      "explanation": "Stephen King and his wife Tabitha spent an off-season night as the sole guests at The Stanley Hotel in 1974, inspiring the Overlook Hotel."
+    },
+    {
+      "id": "paranormal_26",
+      "question": "What legendary California mansion in San Jose was built continuously for 38 years with staircases leading to ceilings and doors opening into walls?",
+      "options": [
+        "The Winchester Mystery House",
+        "Hearst Castle",
+        "Lizzie Borden Bed & Breakfast",
+        "Whaley House"
+      ],
+      "correct_answer": "The Winchester Mystery House",
+      "difficulty": "easy",
+      "explanation": "Rifle heiress Sarah Winchester believed continuous round-the-clock construction would appease spirits claimed by Winchester firearms."
+    },
+    {
+      "id": "paranormal_27",
+      "question": "Which former ocean liner permanently docked in Long Beach, California is renowned for alleged hauntings in its engine room and Stateroom B340?",
+      "options": [
+        "RMS Queen Mary",
+        "SS United States",
+        "RMS Titanic",
+        "SS Andrea Doria"
+      ],
+      "correct_answer": "RMS Queen Mary",
+      "difficulty": "easy",
+      "explanation": "The Queen Mary sailed transatlantic routes from 1936 to 1967 and served as a WWII troopship nicknamed 'The Grey Ghost' before becoming a museum hotel."
+    },
+    {
+      "id": "paranormal_28",
+      "question": "What famous historic 900-year-old London fortress and prison is reputed to be haunted by the headless ghost of Anne Boleyn and the Two Princes?",
+      "options": [
+        "The Tower of London",
+        "Windsor Castle",
+        "Edinburgh Castle",
+        "Hampton Court Palace"
+      ],
+      "correct_answer": "The Tower of London",
+      "difficulty": "easy",
+      "explanation": "Tower guards and Yeoman Warders have recounted spectral sightings near the White Tower and Chapel of St. Peter ad Vincula for centuries."
+    },
+    {
+      "id": "paranormal_29",
+      "question": "What psychological tendency causes the human brain to perceive familiar patterns—such as faces or voices—in random visual textures or audio static?",
+      "options": [
+        "Pareidolia",
+        "Apophenia",
+        "Synesthesia",
+        "Cryptomnesia"
+      ],
+      "correct_answer": "Pareidolia",
+      "difficulty": "easy",
+      "explanation": "Pareidolia is an evolutionary facial-recognition survival trait that often leads people to 'see' spectral faces in wood grain, shadows, or clouds."
+    },
+    {
+      "id": "paranormal_30",
+      "question": "Listen to the hollow acoustic mechanism. What heavy iron and stone barrier echoes when opened?",
+      "options": [
+        "Ancient Crypt Portal",
+        "Falling Guillotine",
+        "Drawbridge Chain",
+        "Tomb Sarcophagus"
+      ],
+      "correct_answer": "Ancient Crypt Portal",
+      "difficulty": "easy",
+      "explanation": "The resonant iron scrape and stone thud characterizes an ancient subterranean crypt portal swinging shut.",
+      "question_type": "audio_riddle",
+      "audio_clip_id": "crypt_door",
+      "accessible_transcript": "Accessible Audio Clue: A slow, low-frequency creaking of rusted iron hinges followed by a heavy granite thud."
+    },
+    {
+      "id": "paranormal_31",
+      "question": "What parapsychological theory suggests that emotionally intense events can be 'recorded' onto the ambient stone and mortar of a building and replayed later like film?",
+      "options": [
+        "The Stone Tape Theory",
+        "The Echo Resonance Model",
+        "The Quartz Memory Hypothesis",
+        "The Geopathic Imprint"
+      ],
+      "correct_answer": "The Stone Tape Theory",
+      "difficulty": "medium",
+      "explanation": "Popularized by parapsychologist Thomas Charles Lethbridge and a 1972 BBC play, Stone Tape Theory posits hauntings are residual non-conscious playbacks."
+    },
+    {
+      "id": "paranormal_32",
+      "question": "What historic fortress-like prison in Philadelphia, known for its revolutionary radial hub-and-spoke cellblock layout, operated from 1829 to 1971?",
+      "options": [
+        "Eastern State Penitentiary",
+        "Alcatraz Island",
+        "Sing Sing Correctional Facility",
+        "Mansfield Reformatory"
+      ],
+      "correct_answer": "Eastern State Penitentiary",
+      "difficulty": "medium",
+      "explanation": "Eastern State pioneered strict solitary confinement to induce spiritual penitence, leaving behind an imposing gothic labyrinth renowned for eerie reports."
+    },
+    {
+      "id": "paranormal_33",
+      "question": "What low sound frequency (specifically around 18.9 Hz)—just below human conscious hearing—can vibrate the human eyeball and trigger anxiety, dread, and optical illusions?",
+      "options": [
+        "Infrasound ('The Fear Frequency')",
+        "Ultrasound",
+        "Microwave Hum",
+        "Binaural Beat"
+      ],
+      "correct_answer": "Infrasound ('The Fear Frequency')",
+      "difficulty": "medium",
+      "explanation": "Research by engineer Vic Tandy revealed that an 18.9 Hz resonant wave produced by an exhaust fan caused workers to perceive gray apparitions in peripheral vision."
+    },
+    {
+      "id": "paranormal_34",
+      "question": "What historic Louisville, Kentucky tuberculosis sanatorium famous for its five-story gothic hospital and 500-foot underground 'body chute' tunnel?",
+      "options": [
+        "Waverly Hills Sanatorium",
+        "Trans-Allegheny Lunatic Asylum",
+        "Danvers State Hospital",
+        "Rolling Hills Asylum"
+      ],
+      "correct_answer": "Waverly Hills Sanatorium",
+      "difficulty": "medium",
+      "explanation": "Waverly Hills opened in 1910 during the white plague; the body chute tunnel allowed deceased patients to be respectfully transported away from view."
+    },
+    {
+      "id": "paranormal_35",
+      "question": "In parapsychology, what term describes the alleged ability of an individual to psychically move or manipulate physical objects across a room using only their mind?",
+      "options": [
+        "Psychokinesis (Telekinesis)",
+        "Clairvoyance",
+        "Telepathy",
+        "Precognition"
+      ],
+      "correct_answer": "Psychokinesis (Telekinesis)",
+      "difficulty": "medium",
+      "explanation": "From Greek 'psyche' (mind) and 'kinesis' (movement), psychokinesis was studied by J. B. Rhine at Duke University's Parapsychology Laboratory."
+    },
+    {
+      "id": "paranormal_36",
+      "question": "What is the famous 1972 Toronto parapsychological research project where a group of scientists consciously fabricated a fictional ghost biography and successfully generated table rappings?",
+      "options": [
+        "The Philip Experiment",
+        "The Rhine Trials",
+        "The Scole Experiment",
+        "The Princeton PEAR Project"
+      ],
+      "correct_answer": "The Philip Experiment",
+      "difficulty": "medium",
+      "explanation": "Dr. A. R. G. Owen's Toronto society created 'Philip the Imaginary Ghost' to test whether collective group expectations and subconscious suggestion could generate seance phenomena."
+    },
+    {
+      "id": "paranormal_37",
+      "question": "What term describes the temporary conscious inability to move or speak while waking up or falling asleep, often accompanied by chest pressure and shadowy hallucinations?",
+      "options": [
+        "Sleep Paralysis ('Old Hag Syndrome')",
+        "Somnambulism",
+        "Narcolepsy",
+        "Cataplexy"
+      ],
+      "correct_answer": "Sleep Paralysis ('Old Hag Syndrome')",
+      "difficulty": "medium",
+      "explanation": "Sleep paralysis occurs when the brain awakens from REM sleep while the body's natural protective muscle atonia (paralysis) remains temporarily engaged."
+    },
+    {
+      "id": "paranormal_38",
+      "question": "What famous Long Island house located at 112 Ocean Avenue in Amityville, New York became a cultural sensation after the Lutz family reported violent hauntings in 1975?",
+      "options": [
+        "The Amityville Horror House",
+        "The Conjuring House",
+        "The Haunting of Hill House",
+        "The Bell Witch House"
+      ],
+      "correct_answer": "The Amityville Horror House",
+      "difficulty": "medium",
+      "explanation": "Jay Anson's 1977 bestselling book and the 1979 film immortalized the gambrel-roofed Dutch Colonial home and its iconic quarter-round eye windows."
+    },
+    {
+      "id": "paranormal_39",
+      "question": "What dark, silhouette-like humanoid figures seen darting in peripheral vision and vanishing when looked at directly are known in folklore?",
+      "options": [
+        "Shadow People",
+        "Ethereal Wisps",
+        "Wraiths",
+        "Nightcrawlers"
+      ],
+      "correct_answer": "Shadow People",
+      "difficulty": "medium",
+      "explanation": "Shadow people reports are common worldwide, often categorized as fleeting peripheral movement or waking-state hypnagogic imagery."
+    },
+    {
+      "id": "paranormal_40",
+      "question": "What device consisting of two L-shaped copper rods held loosely in the hands was historically used for water witching and modern paranormal energy tracking?",
+      "options": [
+        "Dowsing Rods",
+        "Pendulum Bob",
+        "Tesla Coil",
+        "Faraday Cage"
+      ],
+      "correct_answer": "Dowsing Rods",
+      "difficulty": "medium",
+      "explanation": "The ideomotor effect causes minute, subconscious muscular twitches in the holder's hands, causing the balanced rods to swivel or cross."
+    },
+    {
+      "id": "paranormal_41",
+      "question": "What small, eerie island located in the Xochimilco canals south of Mexico City is covered in hundreds of decaying, weathered dolls hung from trees?",
+      "options": [
+        "Isla de las Muñecas (Island of the Dolls)",
+        "Isla de los Muertos",
+        "Isla Cozumel",
+        "Isla Mujeres"
+      ],
+      "correct_answer": "Isla de las Muñecas (Island of the Dolls)",
+      "difficulty": "medium",
+      "explanation": "Caretaker Don Julián Santana Barrera hung discarded dolls over five decades to appease the spirit of a drowned girl he believed haunted the chinampa."
+    },
+    {
+      "id": "paranormal_42",
+      "question": "What tiny quarantined island in the Venetian Lagoon served as a plague quarantine station and later a psychiatric hospital, gaining a dark haunted reputation?",
+      "options": [
+        "Poveglia",
+        "Murano",
+        "Burano",
+        "Torcello"
+      ],
+      "correct_answer": "Poveglia",
+      "difficulty": "medium",
+      "explanation": "Poveglia served as a maritime 'lazaretto' for plague victims during the Black Death and remains strictly closed to the general public today."
+    },
+    {
+      "id": "paranormal_43",
+      "question": "Which Victorian Essex rectory, demolished after a fire in 1939, was famously dubbed 'The Most Haunted House in England' by psychic researcher Harry Price?",
+      "options": [
+        "Borley Rectory",
+        "Pluckley Vicarage",
+        "Blickling Hall",
+        "50 Berkeley Square"
+      ],
+      "correct_answer": "Borley Rectory",
+      "difficulty": "hard",
+      "explanation": "Harry Price leased Borley Rectory for a year in 1937, recruiting 48 volunteer observers to document bell ringing, wall writings, and footsteps."
+    },
+    {
+      "id": "paranormal_44",
+      "question": "What parapsychological laboratory at Duke University, founded in 1935 by J. B. Rhine and Louisa Rhine, pioneered scientific testing with 25-card Zener decks?",
+      "options": [
+        "Duke Parapsychology Laboratory",
+        "Stanford Research Institute",
+        "Society for Psychical Research",
+        "Koestler Parapsychology Unit"
+      ],
+      "correct_answer": "Duke Parapsychology Laboratory",
+      "difficulty": "hard",
+      "explanation": "Karl Zener designed the five symbolic card motifs (circle, cross, wavy lines, square, star) to standardize statistical telepathy testing."
+    },
+    {
+      "id": "paranormal_45",
+      "question": "What alleged physical doll—an original vintage Raggedy Ann doll kept in a consecrated glass case in Ed and Lorraine Warren's Occult Museum—inspired Hollywood films?",
+      "options": [
+        "Annabelle",
+        "Robert the Doll",
+        "Mandy",
+        "Letta Me Out"
+      ],
+      "correct_answer": "Annabelle",
+      "difficulty": "hard",
+      "explanation": "The Warrens claimed the Raggedy Ann doll was inhabited by an inhuman demonic spirit after nursing students reported it moving in their apartment in 1970."
+    },
+    {
+      "id": "paranormal_46",
+      "question": "What psychological unconscious phenomenon explains how Ouija board planchettes and dowsing rods move through microscopic muscle twitches without conscious intent?",
+      "options": [
+        "Ideomotor Effect",
+        "Placebo Effect",
+        "Pygmalion Effect",
+        "Hawthorne Effect"
+      ],
+      "correct_answer": "Ideomotor Effect",
+      "difficulty": "hard",
+      "explanation": "First described by William Benjamin Carpenter in 1852, the ideomotor reflex causes muscles to execute involuntary movements prompted by subconscious suggestion."
+    },
+    {
+      "id": "paranormal_47",
+      "question": "What hypothesis first proposed by amateur archaeologist Alfred Watkins in 1921 claims that ancient monuments, mounds, and churches align along invisible geographic energy lines?",
+      "options": [
+        "Ley Lines",
+        "Telluric Currents",
+        "Hartmann Grids",
+        "Curry Lines"
+      ],
+      "correct_answer": "Ley Lines",
+      "difficulty": "hard",
+      "explanation": "In his book 'The Old Straight Track', Watkins suggested straight trackways connected pre-Roman landmarks, later reinterpreted by occultists as energy meridians."
+    },
+    {
+      "id": "paranormal_48",
+      "question": "What 18th-century Austrian physician developed the theory of 'Animal Magnetism' (Mesmerism), claiming invisible magnetic fluid flowed through living beings?",
+      "options": [
+        "Franz Anton Mesmer",
+        "Paracelsus",
+        "Emanuel Swedenborg",
+        "Johann Joseph Gassner"
+      ],
+      "correct_answer": "Franz Anton Mesmer",
+      "difficulty": "hard",
+      "explanation": "Mesmer's trance-inducing therapeutic sessions attracted fashionable Parisian crowds until a royal commission headed by Benjamin Franklin debunked it in 1784."
+    },
+    {
+      "id": "paranormal_49",
+      "question": "Which historic British learned society founded in Cambridge in 1882 was the world's first systematic scientific organization established to investigate psychic phenomena?",
+      "options": [
+        "Society for Psychical Research (SPR)",
+        "Ghost Club",
+        "The Hermetic Order",
+        "The Theosophical Society"
+      ],
+      "correct_answer": "Society for Psychical Research (SPR)",
+      "difficulty": "hard",
+      "explanation": "Eminent scholars like philosopher Henry Sidgwick, physicist William Barrett, and Frederic Myers founded the SPR to rigorously examine telepathy and mediumship."
+    },
+    {
+      "id": "paranormal_50",
+      "question": "What famous 1848 event in Hydesville, New York, involving sisters Kate and Margaret communicating with rappings, sparked the worldwide Spiritualism movement?",
+      "options": [
+        "The Fox Sisters Rappings",
+        "The Davenport Brothers Cabinet",
+        "The Eddy Brothers Seances",
+        "The Bangs Sisters Canvases"
+      ],
+      "correct_answer": "The Fox Sisters Rappings",
+      "difficulty": "hard",
+      "explanation": "The young Fox sisters claimed to communicate with the ghost of a peddler using wall thumps (later confessing to cracking toe joints), launching Victorian spiritualism."
+    },
+    {
+      "id": "paranormal_51",
+      "question": "What is the term for a localized, highly specific phantom scent—such as pipe tobacco, perfume, or sulfur—reported during a paranormal occurrence without a physical source?",
+      "options": [
+        "Phantosmia (Olfactory Hallucination / Haunting)",
+        "Ecto-aroma",
+        "Spectral Vapor",
+        "Aura Odor"
+      ],
+      "correct_answer": "Phantosmia (Olfactory Hallucination / Haunting)",
+      "difficulty": "hard",
+      "explanation": "Phantosmia is the clinical perception of odors that are not present; in paranormal investigation folklore, sudden floral scents or cigar smoke are labeled phantom smells."
+    },
+    {
+      "id": "paranormal_52",
+      "question": "What 19th-century spiritualist medium technique involved an individual holding a pen while allowing a spirit to control their arm movements without conscious intervention?",
+      "options": [
+        "Automatic Writing (Psychography)",
+        "Scrying",
+        "Bibliomancy",
+        "Rhabdomancy"
+      ],
+      "correct_answer": "Automatic Writing (Psychography)",
+      "difficulty": "hard",
+      "explanation": "Automatic writing was championed by spiritualists and later adopted by French Surrealists like André Breton as a way to access the creative unconscious."
     }
   ]
 }
