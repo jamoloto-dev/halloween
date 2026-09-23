@@ -560,6 +560,11 @@
 
                 <!-- Question Text -->
                 <div class="question-body">
+                    <!-- Multimedia Trivia Container (Silhouettes & Visual Clues) -->
+                    <div id="quiz-media-container" class="quiz-media-container hidden">
+                        <img id="quiz-media-img" class="quiz-media-img" src="" alt="Visual trivia clue illustration">
+                        <p id="quiz-media-caption" class="quiz-media-caption hidden"></p>
+                    </div>
                     <h2 id="question-text" class="question-title">Loading spooky question...</h2>
                 </div>
 
@@ -1512,6 +1517,6 @@
     </footer>
 
     <script>window.__HALLOWEEN_CATEGORY_FALLBACK__ = __CATEGORY_DATA__;</script>
-    <script src="/static/app.js?v=20260921-spooky-master-v2.3.0"></script>
+    <script type="module" src="/static/app.js?v=20260921-spooky-master-v2.3.0"></script>
 </body>
 </html>

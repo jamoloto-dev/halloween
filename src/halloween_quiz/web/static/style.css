@@ -726,6 +726,43 @@ kbd {
   transition:width .08s linear,background-color .3s ease;
 }
 .question-body { margin:0 0 25px; }
+.quiz-media-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  padding: 14px;
+  background: rgba(15, 10, 25, 0.65);
+  border: 1px solid rgba(255, 117, 24, 0.25);
+  border-radius: 12px;
+  max-width: 480px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.quiz-media-container.hidden {
+  display: none !important;
+}
+.quiz-media-img {
+  max-width: 100%;
+  max-height: 200px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(255, 117, 24, 0.35));
+  transition: transform 0.3s ease;
+}
+.quiz-media-img:hover {
+  transform: scale(1.02);
+}
+.quiz-media-caption {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--text-muted, #a099b8);
+  text-align: center;
+}
+.quiz-media-caption.hidden {
+  display: none !important;
+}
 .question-title {
   max-width:735px;
   font-size:clamp(21px,3vw,28px);
