@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <rect width="200" height="200" fill="#1e1b4b" rx="16"/>
+  <!-- Foggy Night Circle -->
+  <circle cx="90" cy="90" r="60" fill="#312e81" opacity="0.6"/>
+  <!-- Gnarled Branch -->
+  <path d="M0 160 Q60 150 110 145 Q150 140 200 155" stroke="#0f172a" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <path d="M120 145 Q150 120 180 115" stroke="#0f172a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- Raven Body -->
+  <ellipse cx="95" cy="115" rx="20" ry="30" transform="rotate(-15 95 115)" fill="#09090b"/>
+  <!-- Head & Beak -->
+  <circle cx="85" cy="80" r="14" fill="#09090b"/>
+  <polygon points="75,80 50,86 73,88" fill="#09090b"/>
+  <circle cx="82" cy="78" r="2.5" fill="#f59e0b"/>
+  <!-- Folded Wing -->
+  <path d="M92 98 Q118 115 115 145 Q95 130 92 98 Z" fill="#18181b"/>
+  <!-- Tail Feathers -->
+  <polygon points="105,135 125,170 110,172 98,142" fill="#09090b"/>
+  <!-- Claws on Branch -->
+  <path d="M88 142 L88 148 M94 142 L94 148 M100 142 L100 148" stroke="#09090b" stroke-width="2.5"/>
+</svg>

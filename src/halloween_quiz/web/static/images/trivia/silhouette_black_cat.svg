@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <rect width="200" height="200" fill="#18181b" rx="16"/>
+  <!-- Arched Back Cat Silhouette -->
+  <path d="M60 145 Q55 90 95 85 Q130 85 140 120 Q145 145 150 150 L50 150 Z" fill="#09090b"/>
+  <!-- Head -->
+  <circle cx="65" cy="95" r="18" fill="#09090b"/>
+  <!-- Ears -->
+  <polygon points="52,88 48,70 60,82" fill="#09090b"/>
+  <polygon points="68,82 78,70 76,88" fill="#09090b"/>
+  <!-- Glowing Slit Eyes -->
+  <ellipse cx="58" cy="94" rx="3" ry="5" fill="#a3e635"/>
+  <ellipse cx="70" cy="94" rx="3" ry="5" fill="#a3e635"/>
+  <line x1="58" y1="91" x2="58" y2="97" stroke="#000" stroke-width="1.5"/>
+  <line x1="70" y1="91" x2="70" y2="97" stroke="#000" stroke-width="1.5"/>
+  <!-- Curled Tail -->
+  <path d="M142 125 Q170 110 165 75 Q160 55 148 65 Q145 78 152 88 Q155 110 138 135" fill="none" stroke="#09090b" stroke-width="8" stroke-linecap="round"/>
+</svg>

@@ -58,6 +58,13 @@ class QuestionBank:
                         options=item["options"],
                         correct_answer=item["correct_answer"],
                         explanation=item.get("explanation"),
+                        question_type=item.get("question_type", "multiple_choice"),
+                        audio_clip_id=item.get("audio_clip_id"),
+                        accessible_transcript=item.get("accessible_transcript"),
+                        media_type=item.get("media_type", "none"),
+                        media_url=item.get("media_url"),
+                        media_alt=item.get("media_alt"),
+                        media_caption=item.get("media_caption"),
                     )
                     loaded.append(question_obj)
                     idx += 1
@@ -73,6 +80,13 @@ class QuestionBank:
                     options=item["options"],
                     correct_answer=item["correct_answer"],
                     explanation=item.get("explanation"),
+                    question_type=item.get("question_type", "multiple_choice"),
+                    audio_clip_id=item.get("audio_clip_id"),
+                    accessible_transcript=item.get("accessible_transcript"),
+                    media_type=item.get("media_type", "none"),
+                    media_url=item.get("media_url"),
+                    media_alt=item.get("media_alt"),
+                    media_caption=item.get("media_caption"),
                 )
                 loaded.append(question_obj)
                 idx += 1
@@ -93,6 +107,7 @@ class QuestionBank:
                     question_type="audio_riddle",
                     audio_clip_id=riddle.audio_clip_id,
                     accessible_transcript=riddle.accessible_transcript,
+                    media_type="audio",
                 )
                 loaded.append(r_obj)
         except Exception:
@@ -393,6 +408,10 @@ class QuizSession:
             audio_clip_id=getattr(q, "audio_clip_id", None),
             accessible_transcript=getattr(q, "accessible_transcript", None),
             active_trap=self.active_trap,
+            media_type=getattr(q, "media_type", "none"),
+            media_url=getattr(q, "media_url", None),
+            media_alt=getattr(q, "media_alt", None),
+            media_caption=getattr(q, "media_caption", None),
         )
 
     def activate_booster(self, booster_type: str) -> dict:

@@ -104,6 +104,18 @@ class Question(BaseModel):
     accessible_transcript: str | None = Field(
         default=None, description="Accessible audio description/transcript"
     )
+    media_type: str = Field(
+        default="none", description="Optional media format: 'none', 'image', 'audio'"
+    )
+    media_url: str | None = Field(
+        default=None, description="Optional relative asset path for image or audio"
+    )
+    media_alt: str | None = Field(
+        default=None, description="Accessible textual description of the media"
+    )
+    media_caption: str | None = Field(
+        default=None, description="Optional display caption for the media asset"
+    )
 
     @field_validator("options")
     @classmethod
@@ -161,6 +173,10 @@ class QuestionView(BaseModel):
     audio_clip_id: str | None = None
     accessible_transcript: str | None = None
     active_trap: str | None = None
+    media_type: str = "none"
+    media_url: str | None = None
+    media_alt: str | None = None
+    media_caption: str | None = None
 
 
 class AnswerSubmission(BaseModel):
