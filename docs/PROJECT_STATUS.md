@@ -1,50 +1,29 @@
 # Spooky Master — Project Status
 
 **Last Updated**: 2026-09-23  
-**Active Phase**: Phase 5 — Full System Verification & Production Readiness  
-**Baseline Commit**: `e8a2faf02fe05ed245eba22e239bdf4700514fa6`  
+**Active Phase**: Spooky Master v2.5 — Content Scale, Frontend Modularization & Replayability  
+**Baseline Commit**: `da5ef744d0ba0be485ecf81d45bc8bb1cb7d5d0f`  
 **Branch**: `main`  
-**Release Version**: `2.4.0-ai` (AI Intelligence Layer)  
+**Release Version**: `2.5.0` (Content Scale & Modular ES Architecture)  
 
 ---
 
 ## 1. Executive Summary
 
-The AI Intelligence Layer for Spooky Master has been fully implemented, verified, and integrated across all three core pillars:
-1. **Adaptive Learning / Dynamic Difficulty**: Category-specific mastery tracking across all 6 canonical categories, composite rolling performance evaluation, learning zone calibration (Easy / Medium / Hard), explainable pedagogical scaffolding, and strict competitive isolation (Daily Haunt and Haunted Duels remain 100% standardized with zero adaptive tampering).
-2. **Intelligent Conversational Hint System**: Progressive hints (Level 1: Gentle Clue, Level 2: Stronger Clue, Level 3: Guided Deduction), atmospheric Spooky Guide ghost persona, strict multi-layer leakage protection (forbidding answer substrings, option letter indices A-D, links, and length limits), sub-2.5s timeout with deterministic offline fallback, and thread-safe caching.
-3. **Generative AI Avatar Architecture**: Supernatural Hunter Studio, server-side art direction prompt builder, multi-tier safety moderation, rate limiting (15s cooldown, 5/day cap per player), provider abstraction with offline vector SVG synthesis into standalone web assets, and persistent SQLite storage.
-
-Zero pay-to-win guarantees (Policy A) remain fully preserved: generated hunter avatars are free to equip, and competitive modes strictly prohibit in-game hints and dynamic difficulty scaling.
-
----
-
-## 2. Implementation Truth Table
-
-| Component | Status | Details |
-| :--- | :--- | :--- |
-| **Existing Codebase Inspection** | 🟢 Complete | Verified 73 baseline tests pass, ruff & mypy 100% clean, baseline commit recorded. |
-| **Adaptive Learning Engine** | 🟢 Complete | Multi-dimensional `PlayerSkillProfile`, rolling evaluation, 6-category mastery, explainable scaffolding (`core/adaptive.py`). |
-| **Adaptive Storage Persistence** | 🟢 Complete | SQLite `player_skills` table, repository CRUD, reload on session start, update on answer (`core/storage.py`). |
-| **Adaptive Quiz Session Integration** | 🟢 Complete | Dynamic difficulty transitions, real-time question adaptation in `GameMode.ADAPTIVE`, competitive isolation (`core/engine.py`). |
-| **Smart Hint Architecture** | 🟢 Complete | `core/ai_hints.py`, provider abstraction, leakage validation, deterministic fallback, thread-safe caching. |
-| **AI Hint REST API** | 🟢 Complete | `POST /api/ai/hint` endpoint with competitive mode rejection (HTTP 403 on Daily/Duel) (`web/routes.py`). |
-| **Generative Avatar Architecture** | 🟢 Complete | `core/ai_avatars.py`, prompt builder, safety filter, rate limiter, standalone vector SVG synthesizer. |
-| **AI Avatar REST API** | 🟢 Complete | `GET /api/ai/avatar/options`, `POST /api/ai/avatar`, `GET /api/ai/avatars` (`web/routes.py`). |
-| **Frontend AI Learning Dashboard** | 🟢 Complete | Category mastery radar/insights in player profile modal with offline calculation fallback (`index.html`, `style.css`, `app.js`). |
-| **Frontend Hunter Creation Studio** | 🟢 Complete | Creature, style, color, accessory pills, live SVG preview, synthesis action, gallery in avatar picker modal (`index.html`, `style.css`, `app.js`). |
-| **Frontend Conversational Hints** | 🟢 Complete | Progressive Spooky Guide hint bubbles in lobby and gameplay HUD, deeper clue cycling, strict isolation handling (`index.html`, `style.css`, `app.js`). |
+Spooky Master v2.5 has successfully achieved:
+1. **Trivia Expansion to 336 Questions**: Canonical categories now scale to 52–56 questions each with balanced Easy, Medium, and Hard distributions, including culturally respectful global folklore (Celtic, Samhain, Día de los Muertos, Japanese Yōkai, Slavic, Caribbean, African, Latin American).
+2. **Automated Content Validation Suite**: Automated regression testing in `tests/test_question_bank_integrity.py` validates duplicate IDs, duplicate texts, 4-option integrity, valid answer presence, and non-empty explanations.
+3. **Multimedia Question Support**: Optional image silhouettes (SVG) and 12 procedural Web Audio riddles with accessible transcripts.
+4. **Complete Frontend Modularization**: Refactored monolithic `app.js` into clean single-responsibility ES modules under `static/js/modules/` (`audio.js`, `campaign.js`, `quiz.js`, `hints.js`, `hunter-studio.js`, `profile.js`, `leaderboard.js`, `duels.js`, `settings.js`, `pwa.js`, `utils.js`) with entrypoint `main.js`.
+5. **Architectural Foundations**: Documented and prepared foundations for Live WebSocket Duels (`/ws/duel/{room_code}`), template-driven Procedural Story vignettes, Hunter Cosmetic Gear slots, and Alembic database migrations.
 
 ---
 
-## 3. Verification & Testing
+## 2. Verification & Testing
 
-- **Backend Unit & Integration Suite**: 99 passed, 46 e2e deselected in pytest (`.venv/bin/pytest -m "not e2e"`).
-  - `tests/test_ai_adaptive.py`: 8/8 passed.
-  - `tests/test_ai_hints.py`: 10/10 passed.
-  - `tests/test_ai_avatars.py`: 8/8 passed.
-  - `tests/test_pwa_cache_regression.py`: passed.
-  - `tests/test_monetization_and_competition.py`: passed.
-- **Linters**: `ruff check .` passes 100% with all checks clean.
-- **Type Checker**: `mypy src/halloween_quiz tests` passes with 0 issues across 35 source files.
-- **Offline Reliability**: Deterministic vector SVG synthesis and deterministic hint providers function with zero external internet dependencies or API keys.
+- **Backend Unit & Integration Suite**: 107/107 passed (100% green).
+- **Playwright Browser E2E Suite**: 46/46 passed (100% green).
+- **Linter**: `ruff check .` passed with 0 issues.
+- **Type Checker**: `mypy src` passed with 0 issues.
+- **Browser Console Health**: 0 unhandled exceptions, 0 failed module imports.
+- **PWA Service Worker**: Precache updated with versioned module references.
