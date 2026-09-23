@@ -323,8 +323,10 @@ class EntitlementService:
         return tier in (EntitlementTier.SPOOKY_PASS, EntitlementTier.HAUNTED_VIP)
 
     def can_use_avatar(self, tier: EntitlementTier, avatar_id: str) -> bool:
-        """Supernatural avatars require premium pass."""
+        """Standard and generated hunter avatars are free; premium avatars require pass."""
         if avatar_id in STANDARD_AVATARS:
+            return True
+        if avatar_id.startswith("hunter_") or avatar_id.startswith("gen_"):
             return True
         if avatar_id in PREMIUM_AVATARS:
             return tier in (EntitlementTier.SPOOKY_PASS, EntitlementTier.HAUNTED_VIP)

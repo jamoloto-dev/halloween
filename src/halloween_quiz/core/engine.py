@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+from halloween_quiz.core.adaptive import AdaptivePerformanceTracker
 from halloween_quiz.core.models import (
     CATEGORY_METADATA,
     AnswerResult,
@@ -298,10 +299,16 @@ class QuizSession:
         Difficulty.HARD: 15,
     }
 
-    def __init__(self, config: QuizConfig, questions: list[Question]):
+    def __init__(
+        self,
+        config: QuizConfig,
+        questions: list[Question],
+        question_bank: QuestionBank | None = None,
+    ):
         self.session_id: str = str(uuid.uuid4())
         self.config: QuizConfig = config
         self.questions: list[Question] = questions
+        self.question_bank: QuestionBank | None = question_bank
         self.current_index: int = 0
         self.score: int = 0
         self.streak: int = 0
@@ -322,6 +329,12 @@ class QuizSession:
         self.scoring: ScoringService = ScoringService()
         self.is_boosted: bool = False
         self.score_saved: bool = False
+        self._hint_used_on_current_question: bool = False
+        self.tracker: AdaptivePerformanceTracker = AdaptivePerformanceTracker(
+            window_size=4,
+            mode=getattr(config, "mode", GameMode.CLASSIC),
+            player_id=getattr(config, "player_id", "guest_default"),
+        )
 
     @property
     def total_questions(self) -> int:
@@ -391,6 +404,7 @@ class QuizSession:
         self.is_boosted = True
 
         if booster_type == "hint":
+            self._hint_used_on_current_question = True
             display_opts = self._display_options.get(q.id, list(q.options))
             wrong = [
                 o for o in display_opts if o.strip().lower() != q.correct_answer.strip().lower()
@@ -547,6 +561,46 @@ class QuizSession:
             }
         )
 
+        # Record adaptive performance evaluation if eligible
+        adaptive_feedback = None
+        if self.tracker.is_adaptive_eligible:
+            is_timeout = (selected == "__TIMEOUT__")
+            self.tracker.record_response(
+                is_correct=is_correct,
+                time_taken=effective_time,
+                time_limit=float(time_limit),
+                difficulty=q.difficulty,
+                category=q.category,
+                hint_used=self._hint_used_on_current_question,
+                is_timeout=is_timeout,
+            )
+            decision = self.tracker.last_decision
+            adaptive_feedback = {
+                "current_difficulty": self.tracker.current_difficulty.value,
+                "level_changed": decision.level_changed,
+                "direction": decision.direction,
+                "feedback_message": decision.feedback_message,
+                "reason": decision.reason,
+                "scaffolding": decision.scaffolding.model_dump() if decision.scaffolding else None,
+            }
+
+            # In GameMode.ADAPTIVE, dynamically adjust next upcoming question to match recommended difficulty
+            if getattr(self.config, "mode", None) == GameMode.ADAPTIVE and self.question_bank:
+                next_idx = self.current_index + 1
+                if next_idx < len(self.questions):
+                    next_q_obj = self.questions[next_idx]
+                    if next_q_obj.difficulty != self.tracker.current_difficulty:
+                        used_ids = {h["question_id"] for h in self.history} | {q.id}
+                        candidate = self.question_bank.select_questions(
+                            categories=self.config.categories,
+                            difficulty=self.tracker.current_difficulty,
+                            count=1,
+                        )
+                        if candidate and candidate[0].id not in used_ids:
+                            self.questions[next_idx] = candidate[0]
+
+        self._hint_used_on_current_question = False
+
         self.current_index += 1
 
         # Check completion conditions (regular pool exhausted or 3 strikes in Endless mode)
@@ -575,6 +629,7 @@ class QuizSession:
             achievement_unlocked=unlocked_badge,
             shield_absorbed=shield_absorbed,
             points_multiplier=applied_multiplier,
+            adaptive_feedback=adaptive_feedback,
         )
 
     def timeout_current_question(self) -> AnswerResult:
@@ -605,6 +660,11 @@ class QuizSession:
             "is_completed": self.is_completed,
             "achievements": self.unlocked_achievements,
             "history": self.history,
+            "adaptive_insights": (
+                self.tracker.profile.to_dashboard_insights()
+                if self.tracker.is_adaptive_eligible
+                else None
+            ),
         }
 
 

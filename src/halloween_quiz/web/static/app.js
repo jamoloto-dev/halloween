@@ -1,6 +1,7 @@
 /**
- * 🎃 Spooky Master (Halloween Quiz) - Client Engine v2.3.0
- * Features: Pure client-side Web Audio API, Smooth zero-reload countdown timer,
+ * 🎃 Spooky Master (Halloween Quiz) - Client Engine v2.4.0
+ * Features: AI Intelligence Layer (Adaptive Scaffolding, Conversational Spooky Guide,
+ * Supernatural Hunter Studio SVG Generation), Pure client-side Web Audio API,
  * Six Game Modes (Classic, Quick, Deep, Panic, Endless, Daily Haunt),
  * First-Launch Player Onboarding, Predefined Illustrated Avatar System,
  * Local Player Profile & Seamless Migration, Centralized Settings Control Center,
@@ -798,6 +799,46 @@
                 btnCloseAvatarPicker: document.getElementById("btn-close-avatar-picker"),
                 sharedAvatarGrid: document.getElementById("shared-avatar-grid"),
 
+                // AI Learning Intelligence Dashboard
+                aiLearningCard: document.getElementById("ai-learning-card"),
+                aiDashChallengeLevel: document.getElementById("ai-dash-challenge-level"),
+                aiStrongestVal: document.getElementById("ai-strongest-val"),
+                aiWeakestVal: document.getElementById("ai-weakest-val"),
+                aiGuidanceText: document.getElementById("ai-guidance-text"),
+
+                // Supernatural Hunter Studio
+                tabAvatarPredefined: document.getElementById("tab-avatar-predefined"),
+                tabAvatarGenerator: document.getElementById("tab-avatar-generator"),
+                pickerPredefinedBody: document.getElementById("picker-predefined-body"),
+                pickerGeneratorBody: document.getElementById("picker-generator-body"),
+                studioCreaturesGrid: document.getElementById("studio-creatures-grid"),
+                studioStylesGrid: document.getElementById("studio-styles-grid"),
+                studioColorsGrid: document.getElementById("studio-colors-grid"),
+                studioAccessoriesGrid: document.getElementById("studio-accessories-grid"),
+                studioFlairInput: document.getElementById("studio-flair-input"),
+                btnGenerateHunter: document.getElementById("btn-generate-hunter"),
+                studioStatusMsg: document.getElementById("studio-status-msg"),
+                hunterPreviewImg: document.getElementById("hunter-preview-img"),
+                hunterPreviewName: document.getElementById("hunter-preview-name"),
+                hunterPreviewStyle: document.getElementById("hunter-preview-style"),
+                btnEquipGeneratedHunter: document.getElementById("btn-equip-generated-hunter"),
+                hunterGalleryGrid: document.getElementById("hunter-gallery-grid"),
+
+                // Conversational Spooky Guide & Adaptive HUD
+                btnAskSpookyGuide: document.getElementById("btn-ask-spooky-guide"),
+                adaptiveChallengeBanner: document.getElementById("adaptive-challenge-banner"),
+                adaptiveBannerIcon: document.getElementById("adaptive-banner-icon"),
+                adaptiveBannerText: document.getElementById("adaptive-banner-text"),
+                quizSpookyGuideBox: document.getElementById("quiz-spooky-guide-box"),
+                quizGuideCharacterName: document.getElementById("quiz-guide-character-name"),
+                quizGuideLevelBadge: document.getElementById("quiz-guide-level-badge"),
+                btnQuizGuideDeeper: document.getElementById("btn-quiz-guide-deeper"),
+                btnCloseGuideBubble: document.getElementById("btn-close-guide-bubble"),
+                quizGuideHintText: document.getElementById("quiz-guide-hint-text"),
+                feedbackAdaptiveBox: document.getElementById("feedback-adaptive-box"),
+                feedbackAdaptiveBadge: document.getElementById("feedback-adaptive-badge"),
+                feedbackAdaptiveText: document.getElementById("feedback-adaptive-text"),
+
                 // Quiz HUD & Options
                 qCounter: document.getElementById("q-counter"),
                 qCategoryBadge: document.getElementById("q-category-badge"),
@@ -959,6 +1000,18 @@
             this.guideHintIndex = 0;
             this.guideHintInitialized = false;
 
+            // AI Intelligence Layer State
+            this.currentHintLevel = 1;
+            this.lastSynthesizedAvatar = null;
+            this.synthesizedAvatars = [];
+            this.hunterStudioOptions = null;
+            this.studioSelection = {
+                creature: "pumpkin_spirit",
+                style: "dark_fantasy",
+                color: "purple",
+                accessory: "lantern",
+            };
+
             // Leaderboard & Entitlement State
             this.currentLbView = "all";
             this.currentLbDiff = null;
@@ -967,6 +1020,7 @@
 
             // Initialize Player Profile & Migration
             this.profile = this.initPlayerProfile();
+            this.loadSynthesizedAvatars();
 
             this.initEvents();
             this.initPwa();
@@ -1201,9 +1255,56 @@
             }
         }
 
+        loadSynthesizedAvatars() {
+            try {
+                const stored = localStorage.getItem("spooky_hunter_avatars_v1");
+                if (stored) {
+                    this.synthesizedAvatars = JSON.parse(stored);
+                }
+            } catch (_) {
+                this.synthesizedAvatars = [];
+            }
+        }
+
+        saveSynthesizedAvatars() {
+            try {
+                localStorage.setItem("spooky_hunter_avatars_v1", JSON.stringify(this.synthesizedAvatars));
+            } catch (_) {}
+        }
+
+        getAvatarById(avatarId) {
+            if (!avatarId) return PREDEFINED_AVATARS[0];
+            const pre = PREDEFINED_AVATARS.find((a) => a.id === avatarId);
+            if (pre) return pre;
+            if (this.synthesizedAvatars && this.synthesizedAvatars.length > 0) {
+                const gen = this.synthesizedAvatars.find((a) => (a.id === avatarId || a.avatar_id === avatarId));
+                if (gen) {
+                    return {
+                        id: gen.id || gen.avatar_id,
+                        name: gen.name || "Supernatural Hunter",
+                        icon: "✨",
+                        asset: gen.asset_url || gen.asset || `/static/avatars/generated/${avatarId}.svg`,
+                        desc: `${gen.style || ""} ${gen.creature || "Hunter"}`.trim(),
+                        is_premium: false,
+                    };
+                }
+            }
+            if (typeof avatarId === "string" && (avatarId.startsWith("hunter_") || avatarId.startsWith("gen_"))) {
+                return {
+                    id: avatarId,
+                    name: "Supernatural Hunter",
+                    icon: "✨",
+                    asset: `/static/avatars/generated/${avatarId}.svg`,
+                    desc: "Synthesized AI Hunter",
+                    is_premium: false,
+                };
+            }
+            return PREDEFINED_AVATARS[0];
+        }
+
         applyProfileToUi() {
             if (!this.profile) return;
-            const avatar = PREDEFINED_AVATARS.find((a) => a.id === this.profile.avatar_id) || PREDEFINED_AVATARS[0];
+            const avatar = this.getAvatarById(this.profile.avatar_id);
 
             // Setup Form
             if (this.dom.playerName) this.dom.playerName.value = this.profile.nickname;
@@ -1237,12 +1338,12 @@
         }
 
         updateAvatar(avatarId) {
-            const avatar = PREDEFINED_AVATARS.find((a) => a.id === avatarId);
+            const avatar = this.getAvatarById(avatarId);
             if (!avatar) return;
             this.profile.avatar_id = avatar.id;
             this.saveProfile();
             this.applyProfileToUi();
-            this.showToast("Avatar Changed", `Selected ${avatar.name}`, avatar.icon);
+            this.showToast("Avatar Changed", `Selected ${avatar.name}`, avatar.icon || "✨");
         }
 
         updateNickname(name) {
@@ -1337,7 +1438,7 @@
 
         renderLobbyExperience() {
             if (!this.profile) return;
-            const avatar = PREDEFINED_AVATARS.find((a) => a.id === this.profile.avatar_id) || PREDEFINED_AVATARS[0];
+            const avatar = this.getAvatarById(this.profile.avatar_id);
 
             // 1. Player Identity Bar
             if (this.dom.lobbyAvatarImg) {
@@ -1502,10 +1603,39 @@
             }
         }
 
-        cycleSpookyGuideHint() {
+        async cycleSpookyGuideHint() {
             if (!this.dom.lobbyGuideQuote) return;
-            this.guideHintIndex = (this.guideHintIndex + 1) % SPOOKY_GUIDE_HINTS.length;
             this.dom.lobbyGuideQuote.classList.add("hint-fade");
+
+            try {
+                const res = await fetch("/api/ai/hint", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Player-ID": this.profile?.player_id || "guest_default",
+                    },
+                    body: JSON.stringify({
+                        session_id: "lobby",
+                        hint_level: 1,
+                    }),
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.hint) {
+                        setTimeout(() => {
+                            if (this.dom.lobbyGuideQuote) {
+                                this.dom.lobbyGuideQuote.textContent = `"${data.hint}"`;
+                                this.dom.lobbyGuideQuote.classList.remove("hint-fade");
+                            }
+                        }, 180);
+                        return;
+                    }
+                }
+            } catch (_) {
+                // Graceful offline fallback below
+            }
+
+            this.guideHintIndex = (this.guideHintIndex + 1) % SPOOKY_GUIDE_HINTS.length;
             setTimeout(() => {
                 if (this.dom.lobbyGuideQuote) {
                     this.dom.lobbyGuideQuote.textContent = `"${SPOOKY_GUIDE_HINTS[this.guideHintIndex]}"`;
@@ -1836,11 +1966,15 @@
                 });
             });
 
-            // Shared Avatar Picker Modal
+            // Shared Avatar Picker Modal & Supernatural Hunter Studio
             this.dom.btnCloseAvatarPicker?.addEventListener("click", () => this.closeAvatarPicker());
             this.dom.modalAvatarPicker?.addEventListener("click", (e) => {
                 if (e.target === this.dom.modalAvatarPicker) this.closeAvatarPicker();
             });
+            this.dom.tabAvatarPredefined?.addEventListener("click", () => this.switchAvatarTab("predefined"));
+            this.dom.tabAvatarGenerator?.addEventListener("click", () => this.switchAvatarTab("generator"));
+            this.dom.btnGenerateHunter?.addEventListener("click", () => this.generateHunterAvatar());
+            this.dom.btnEquipGeneratedHunter?.addEventListener("click", () => this.equipGeneratedHunter());
 
             // Diamond Market / Shop
             this.dom.btnMarketOpen?.addEventListener("click", () => this.openShop());
@@ -1883,7 +2017,7 @@
             this.dom.modalCampaign?.addEventListener("click", (e) => {
                 if (e.target === this.dom.modalCampaign) this.closeCampaign();
             });
-            this.dom.btnReadChapterStory?.addEventListener("click", () => this.openStory(this.activeChapterId));
+            this.dom.btnReadChapterStory?.addEventListener("click", () => this.openChapterStory());
             this.dom.btnStartStage?.addEventListener("click", () => {
                 if (this.selectedStageId) this.startStageGame(this.selectedStageId);
             });
@@ -1902,11 +2036,16 @@
             // Community Haunt Claim
             this.dom.btnClaimCommunity?.addEventListener("click", () => this.claimCommunityReward());
 
-            // In-Game Boosters HUD
+            // In-Game Boosters HUD & Conversational Spooky Guide
             this.dom.boosterHint?.addEventListener("click", () => this.useBooster("hint"));
             this.dom.boosterTime?.addEventListener("click", () => this.useBooster("time_extension"));
             this.dom.boosterDouble?.addEventListener("click", () => this.useBooster("double_points"));
             this.dom.boosterShield?.addEventListener("click", () => this.useBooster("shield"));
+            this.dom.btnAskSpookyGuide?.addEventListener("click", () => this.requestSpookyGuideHint(this.currentHintLevel || 1));
+            this.dom.btnQuizGuideDeeper?.addEventListener("click", () => this.requestSpookyGuideHint((this.currentHintLevel || 1) + 1));
+            this.dom.btnCloseGuideBubble?.addEventListener("click", () => {
+                this.dom.quizSpookyGuideBox?.classList.add("hidden");
+            });
 
             // Audio Riddles Panel
             this.dom.btnPlayRiddleClip?.addEventListener("click", () => this.playActiveRiddleSound());
@@ -2063,9 +2202,10 @@
         }
 
         // ==========================================
-        // SHARED AVATAR PICKER
+        // SHARED AVATAR PICKER & HUNTER STUDIO
         // ==========================================
         openAvatarPicker() {
+            this.switchAvatarTab("predefined");
             if (!this.dom.sharedAvatarGrid) return;
             this.dom.sharedAvatarGrid.innerHTML = "";
 
@@ -2100,6 +2240,382 @@
 
         closeAvatarPicker() {
             this.dom.modalAvatarPicker?.classList.add("hidden");
+        }
+
+        switchAvatarTab(tabName) {
+            if (tabName === "generator") {
+                this.dom.tabAvatarGenerator?.classList.add("active");
+                this.dom.tabAvatarGenerator?.setAttribute("aria-selected", "true");
+                this.dom.tabAvatarPredefined?.classList.remove("active");
+                this.dom.tabAvatarPredefined?.setAttribute("aria-selected", "false");
+                this.dom.pickerGeneratorBody?.classList.remove("hidden");
+                this.dom.pickerPredefinedBody?.classList.add("hidden");
+                this.initHunterStudio();
+            } else {
+                this.dom.tabAvatarPredefined?.classList.add("active");
+                this.dom.tabAvatarPredefined?.setAttribute("aria-selected", "true");
+                this.dom.tabAvatarGenerator?.classList.remove("active");
+                this.dom.tabAvatarGenerator?.setAttribute("aria-selected", "false");
+                this.dom.pickerPredefinedBody?.classList.remove("hidden");
+                this.dom.pickerGeneratorBody?.classList.add("hidden");
+            }
+        }
+
+        async initHunterStudio() {
+            if (!this.hunterStudioOptions) {
+                this.hunterStudioOptions = {
+                    creatures: [
+                        { id: "ghost", name: "Spectral Ghost", icon: "👻" },
+                        { id: "vampire", name: "Crimson Vampire", icon: "🧛" },
+                        { id: "witch", name: "Midnight Witch", icon: "🧙" },
+                        { id: "skeleton", name: "Crypt Skeleton", icon: "💀" },
+                        { id: "werewolf", name: "Lunar Werewolf", icon: "🐺" },
+                        { id: "pumpkin_spirit", name: "Pumpkin Spirit", icon: "🎃" },
+                    ],
+                    styles: [
+                        { id: "dark_fantasy", name: "Dark Fantasy" },
+                        { id: "cute", name: "Cute / Chibi" },
+                        { id: "neon_horror", name: "Neon Horror" },
+                        { id: "comic", name: "Comic Book" },
+                        { id: "gothic", name: "Victorian Gothic" },
+                    ],
+                    colors: [
+                        { id: "purple", name: "Eerie Purple", hex: "#a855f7" },
+                        { id: "green", name: "Spectral Green", hex: "#10b981" },
+                        { id: "orange", name: "Pumpkin Orange", hex: "#f97316" },
+                        { id: "blue", name: "Midnight Blue", hex: "#3b82f6" },
+                        { id: "crimson", name: "Blood Crimson", hex: "#ef4444" },
+                    ],
+                    accessories: [
+                        { id: "lantern", name: "Spooky Lantern", icon: "🏮" },
+                        { id: "crown", name: "Phantom Crown", icon: "👑" },
+                        { id: "magic_staff", name: "Arcane Staff", icon: "🪄" },
+                        { id: "cape", name: "Midnight Cape", icon: "🦇" },
+                        { id: "headphones", name: "Ghostly Beats", icon: "🎧" },
+                        { id: "spell_book", name: "Ancient Grimoire", icon: "📖" },
+                    ],
+                };
+
+                try {
+                    const res = await fetch("/api/ai/avatar/options");
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.creatures) this.hunterStudioOptions = data;
+                    }
+                } catch (_) {}
+            }
+
+            this.renderStudioPills();
+            this.updateStudioPreview();
+            this.fetchPlayerGeneratedAvatars();
+        }
+
+        renderStudioPills() {
+            if (!this.hunterStudioOptions) return;
+
+            // 1. Creatures
+            if (this.dom.studioCreaturesGrid) {
+                this.dom.studioCreaturesGrid.innerHTML = "";
+                this.hunterStudioOptions.creatures.forEach((c) => {
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = `studio-pill ${this.studioSelection.creature === c.id ? "active" : ""}`;
+                    btn.innerHTML = `<span class="pill-icon">${c.icon || "🎃"}</span> <span class="pill-label">${c.name}</span>`;
+                    btn.addEventListener("click", () => {
+                        this.studioSelection.creature = c.id;
+                        this.renderStudioPills();
+                        this.updateStudioPreview();
+                    });
+                    this.dom.studioCreaturesGrid.appendChild(btn);
+                });
+            }
+
+            // 2. Styles
+            if (this.dom.studioStylesGrid) {
+                this.dom.studioStylesGrid.innerHTML = "";
+                this.hunterStudioOptions.styles.forEach((s) => {
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = `studio-pill ${this.studioSelection.style === s.id ? "active" : ""}`;
+                    btn.innerHTML = `<span class="pill-label">${s.name}</span>`;
+                    btn.addEventListener("click", () => {
+                        this.studioSelection.style = s.id;
+                        this.renderStudioPills();
+                        this.updateStudioPreview();
+                    });
+                    this.dom.studioStylesGrid.appendChild(btn);
+                });
+            }
+
+            // 3. Colors
+            if (this.dom.studioColorsGrid) {
+                this.dom.studioColorsGrid.innerHTML = "";
+                this.hunterStudioOptions.colors.forEach((col) => {
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = `studio-pill pill-color ${this.studioSelection.color === col.id ? "active" : ""}`;
+                    btn.innerHTML = `<span class="pill-color-dot" style="background:${col.hex};"></span> <span class="pill-label">${col.name}</span>`;
+                    btn.addEventListener("click", () => {
+                        this.studioSelection.color = col.id;
+                        this.renderStudioPills();
+                        this.updateStudioPreview();
+                    });
+                    this.dom.studioColorsGrid.appendChild(btn);
+                });
+            }
+
+            // 4. Accessories
+            if (this.dom.studioAccessoriesGrid) {
+                this.dom.studioAccessoriesGrid.innerHTML = "";
+                this.hunterStudioOptions.accessories.forEach((a) => {
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = `studio-pill ${this.studioSelection.accessory === a.id ? "active" : ""}`;
+                    btn.innerHTML = `<span class="pill-icon">${a.icon || "✨"}</span> <span class="pill-label">${a.name}</span>`;
+                    btn.addEventListener("click", () => {
+                        this.studioSelection.accessory = a.id;
+                        this.renderStudioPills();
+                        this.updateStudioPreview();
+                    });
+                    this.dom.studioAccessoriesGrid.appendChild(btn);
+                });
+            }
+        }
+
+        updateStudioPreview() {
+            const cObj = this.hunterStudioOptions?.creatures.find(c => c.id === this.studioSelection.creature);
+            const sObj = this.hunterStudioOptions?.styles.find(s => s.id === this.studioSelection.style);
+
+            const creatureName = cObj ? cObj.name : "Hunter";
+            const styleName = sObj ? sObj.name : "Dark Fantasy";
+
+            if (this.dom.hunterPreviewName) this.dom.hunterPreviewName.textContent = creatureName;
+            if (this.dom.hunterPreviewStyle) this.dom.hunterPreviewStyle.textContent = styleName;
+        }
+
+        async generateHunterAvatar() {
+            if (!this.dom.btnGenerateHunter) return;
+            this.dom.btnGenerateHunter.disabled = true;
+            this.dom.btnGenerateHunter.textContent = "⏳ Synthesizing Hunter...";
+
+            if (this.dom.studioStatusMsg) {
+                this.dom.studioStatusMsg.textContent = "Weaving supernatural vectors from the ether...";
+                this.dom.studioStatusMsg.className = "studio-status-text info";
+            }
+
+            const trait = this.dom.studioFlairInput ? this.dom.studioFlairInput.value.trim() : "";
+            const playerId = this.profile?.player_id || "guest_default";
+
+            try {
+                const res = await fetch("/api/ai/avatar", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Player-ID": playerId,
+                    },
+                    body: JSON.stringify({
+                        player_id: playerId,
+                        creature: this.studioSelection.creature,
+                        style: this.studioSelection.style,
+                        color: this.studioSelection.color,
+                        accessory: this.studioSelection.accessory,
+                        custom_trait: trait || null,
+                    }),
+                });
+
+                if (res.status === 429) {
+                    const errData = await res.json().catch(() => ({ detail: "Daily synthesis limit reached." }));
+                    throw new Error(errData.detail || "Cooling down. The crypt requires rest between summonings.");
+                }
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({ detail: "Summoning failed." }));
+                    throw new Error(errData.detail || "Failed to synthesize hunter avatar.");
+                }
+
+                const data = await res.json();
+                this.lastSynthesizedAvatar = data;
+
+                if (this.dom.hunterPreviewImg) {
+                    this.dom.hunterPreviewImg.src = data.asset_url;
+                    this.dom.hunterPreviewImg.alt = data.name;
+                }
+                if (this.dom.hunterPreviewName) this.dom.hunterPreviewName.textContent = data.name;
+                if (this.dom.hunterPreviewStyle) this.dom.hunterPreviewStyle.textContent = (data.style || "").toUpperCase();
+                if (this.dom.btnEquipGeneratedHunter) {
+                    this.dom.btnEquipGeneratedHunter.classList.remove("hidden");
+                }
+
+                if (this.dom.studioStatusMsg) {
+                    this.dom.studioStatusMsg.textContent = data.is_cached
+                        ? "✨ Grimoire Memory: Restored ancient manifestation from the archives!"
+                        : "✨ Supernatural Hunter materialized and bound to your spirit!";
+                    this.dom.studioStatusMsg.className = "studio-status-text success";
+                }
+
+                const exists = this.synthesizedAvatars.some(a => (a.id || a.avatar_id) === data.id);
+                if (!exists) {
+                    this.synthesizedAvatars.unshift(data);
+                    this.saveSynthesizedAvatars();
+                }
+                this.renderHunterGallery();
+                this.sound.play("achievement");
+                this.showToast("Hunter Synthesized!", data.name, "✨");
+            } catch (err) {
+                if (this.dom.studioStatusMsg) {
+                    this.dom.studioStatusMsg.textContent = err.message || "Failed to summon hunter.";
+                    this.dom.studioStatusMsg.className = "studio-status-text error";
+                }
+            } finally {
+                if (this.dom.btnGenerateHunter) {
+                    this.dom.btnGenerateHunter.disabled = false;
+                    this.dom.btnGenerateHunter.textContent = "✨ Summon Supernatural Hunter";
+                }
+            }
+        }
+
+        equipGeneratedHunter() {
+            if (!this.lastSynthesizedAvatar) return;
+            const avId = this.lastSynthesizedAvatar.id || this.lastSynthesizedAvatar.avatar_id;
+            this.updateAvatar(avId);
+            this.closeAvatarPicker();
+        }
+
+        async fetchPlayerGeneratedAvatars() {
+            const playerId = this.profile?.player_id || "guest_default";
+            try {
+                const res = await fetch("/api/ai/avatars", {
+                    headers: { "X-Player-ID": playerId },
+                });
+                if (res.ok) {
+                    const list = await res.json();
+                    if (Array.isArray(list)) {
+                        list.forEach((item) => {
+                            const id = item.id || item.avatar_id;
+                            if (!this.synthesizedAvatars.some(a => (a.id || a.avatar_id) === id)) {
+                                this.synthesizedAvatars.push(item);
+                            }
+                        });
+                        this.saveSynthesizedAvatars();
+                    }
+                }
+            } catch (_) {}
+
+            this.renderHunterGallery();
+        }
+
+        renderHunterGallery() {
+            if (!this.dom.hunterGalleryGrid) return;
+            this.dom.hunterGalleryGrid.innerHTML = "";
+
+            if (!this.synthesizedAvatars || this.synthesizedAvatars.length === 0) {
+                this.dom.hunterGalleryGrid.innerHTML = `<p class="gallery-empty-text">No synthesized hunters yet. Summon your first companion!</p>`;
+                return;
+            }
+
+            this.synthesizedAvatars.forEach((av) => {
+                const avId = av.id || av.avatar_id;
+                const isCurrent = this.profile.avatar_id === avId;
+                const card = document.createElement("div");
+                card.className = `hunter-gallery-item ${isCurrent ? "selected" : ""}`;
+                card.setAttribute("role", "button");
+                card.setAttribute("tabindex", "0");
+                card.setAttribute("title", `Equip ${av.name}`);
+                card.innerHTML = `
+                    <img src="${av.asset_url || av.asset}" alt="${this.escapeHtml(av.name)}" width="48" height="48">
+                    <span class="hunter-thumb-name">${this.escapeHtml(av.name)}</span>
+                `;
+                const selectItem = () => {
+                    this.lastSynthesizedAvatar = av;
+                    if (this.dom.hunterPreviewImg) {
+                        this.dom.hunterPreviewImg.src = av.asset_url || av.asset;
+                        this.dom.hunterPreviewImg.alt = av.name;
+                    }
+                    if (this.dom.hunterPreviewName) this.dom.hunterPreviewName.textContent = av.name;
+                    if (this.dom.hunterPreviewStyle) this.dom.hunterPreviewStyle.textContent = (av.style || "").toUpperCase();
+                    if (this.dom.btnEquipGeneratedHunter) this.dom.btnEquipGeneratedHunter.classList.remove("hidden");
+                    this.updateAvatar(avId);
+                    this.renderHunterGallery();
+                };
+                card.addEventListener("click", selectItem);
+                card.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        selectItem();
+                    }
+                });
+                this.dom.hunterGalleryGrid.appendChild(card);
+            });
+        }
+
+        // ==========================================
+        // CONVERSATIONAL SPOOKY GUIDE HINTS
+        // ==========================================
+        async requestSpookyGuideHint(level = 1) {
+            if (this.gameMode === "daily" || this.gameMode === "duel") {
+                this.showToast("Strict Isolation", "Spooky Guide hints are sealed in competitive trials!", "🔒");
+                return;
+            }
+            if (this.isAnswerPending || this.isFeedbackActive || !this.currentQuestion) return;
+
+            this.currentHintLevel = Math.max(1, Math.min(3, level));
+            if (this.dom.quizSpookyGuideBox) {
+                this.dom.quizSpookyGuideBox.classList.remove("hidden");
+            }
+            if (this.dom.quizGuideHintText) {
+                this.dom.quizGuideHintText.textContent = "Listening to the whispers beyond...";
+            }
+            if (this.dom.quizGuideLevelBadge) {
+                const badges = { 1: "Gentle Clue 🕯️", 2: "Stronger Clue 🔮", 3: "Guided Deduction 💀" };
+                this.dom.quizGuideLevelBadge.textContent = badges[this.currentHintLevel] || "Spooky Clue";
+            }
+            if (this.dom.btnQuizGuideDeeper) {
+                if (this.currentHintLevel >= 3) {
+                    this.dom.btnQuizGuideDeeper.classList.add("hidden");
+                } else {
+                    this.dom.btnQuizGuideDeeper.classList.remove("hidden");
+                    this.dom.btnQuizGuideDeeper.disabled = false;
+                }
+            }
+
+            try {
+                const res = await fetch("/api/ai/hint", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Player-ID": this.profile?.player_id || "guest_default",
+                    },
+                    body: JSON.stringify({
+                        session_id: this.sessionId,
+                        question_id: this.currentQuestion.id || null,
+                        category: this.currentQuestion.category || null,
+                        hint_level: this.currentHintLevel,
+                    }),
+                });
+
+                if (res.status === 403) {
+                    if (this.dom.quizGuideHintText) {
+                        this.dom.quizGuideHintText.textContent = "The spirits are bound by sacred oath: hints are barred in competitive trials.";
+                    }
+                    return;
+                }
+
+                if (!res.ok) throw new Error("Hint fetch failed");
+                const data = await res.json();
+                if (this.dom.quizGuideHintText) {
+                    this.dom.quizGuideHintText.textContent = `"${data.hint}"`;
+                }
+                if (this.dom.quizGuideCharacterName && data.character_persona) {
+                    this.dom.quizGuideCharacterName.textContent = data.character_persona;
+                }
+                this.sound.playUiSound();
+            } catch (err) {
+                console.warn("Spooky Guide hint fallback:", err);
+                const cat = this.currentQuestion?.category || "spooky";
+                const fallbackText = CATEGORY_FACTS[cat] || "Focus on the oldest lore of All Hallows' Eve.";
+                if (this.dom.quizGuideHintText) {
+                    this.dom.quizGuideHintText.textContent = `"${fallbackText}"`;
+                }
+            }
         }
 
         // ==========================================
@@ -2616,6 +3132,7 @@
                         panic: "⏳ Panic",
                         endless: "💀 Endless",
                         daily: "🕯️ Daily",
+                        adaptive: "🧠 Adaptive",
                     };
                     this.dom.qModeBadge.textContent = modeLabels[mode] || mode.toUpperCase();
                 }
@@ -2725,11 +3242,18 @@
                 this.dom.duelTrapBanner?.classList.add("hidden");
             }
 
-            // Boosters HUD
+            // Conversational Spooky Guide & Boosters HUD
+            this.currentHintLevel = 1;
+            this.dom.quizSpookyGuideBox?.classList.add("hidden");
+            this.dom.adaptiveChallengeBanner?.classList.add("hidden");
+            this.dom.feedbackAdaptiveBox?.classList.add("hidden");
+
             if (this.gameMode === "daily" || this.gameMode === "duel") {
                 this.dom.boosterHudBar?.classList.add("hidden");
+                this.dom.btnAskSpookyGuide?.classList.add("hidden");
             } else {
                 this.dom.boosterHudBar?.classList.remove("hidden");
+                this.dom.btnAskSpookyGuide?.classList.remove("hidden");
                 this.updateBoosterHud();
             }
 
@@ -2826,7 +3350,10 @@
             try {
                 const res = await fetch(`/api/quiz/${this.sessionId}/answer`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Player-ID": this.profile?.player_id || "guest_default",
+                    },
                     body: JSON.stringify({
                         answer: selectedAnswer,
                         time_taken: timeTaken,
@@ -2935,6 +3462,32 @@
                 this.dom.feedbackAchievement.classList.add("hidden");
             }
 
+            // Adaptive Learning Scaffolding Feedback
+            if (result.adaptive_feedback) {
+                const af = result.adaptive_feedback;
+                const diff = af.current_difficulty || af.target_difficulty || "medium";
+                if (this.dom.feedbackAdaptiveBox && this.dom.feedbackAdaptiveText) {
+                    this.dom.feedbackAdaptiveText.textContent = af.feedback_message || `Difficulty calibrated to ${diff.toUpperCase()}.`;
+                    if (this.dom.feedbackAdaptiveBadge) {
+                        const badgeIcon = diff === "hard" ? "🔥 Nightmare" : diff === "easy" ? "🌱 Novice" : "🎃 Balanced";
+                        this.dom.feedbackAdaptiveBadge.textContent = `${badgeIcon} (${diff.toUpperCase()})`;
+                    }
+                    this.dom.feedbackAdaptiveBox.classList.remove("hidden");
+                }
+
+                if (af.level_changed && this.dom.adaptiveChallengeBanner) {
+                    if (this.dom.adaptiveBannerText) {
+                        this.dom.adaptiveBannerText.textContent = `Scaffolding: Challenge shifted to ${diff.toUpperCase()}!`;
+                    }
+                    this.dom.adaptiveChallengeBanner.classList.remove("hidden");
+                    setTimeout(() => {
+                        this.dom.adaptiveChallengeBanner?.classList.add("hidden");
+                    }, 3500);
+                }
+            } else {
+                this.dom.feedbackAdaptiveBox?.classList.add("hidden");
+            }
+
             this.dom.liveScore.textContent = this.currentScore;
             this.dom.streakCount.textContent = `${this.currentStreak} Streak`;
 
@@ -3041,7 +3594,7 @@
                 this.dom.statMaxStreak.textContent = summary.max_streak || 0;
 
                 // Populate Visual Survival Share Card
-                const currentAvatar = PREDEFINED_AVATARS.find((a) => a.id === this.profile.avatar_id) || PREDEFINED_AVATARS[0];
+                const currentAvatar = this.getAvatarById(this.profile.avatar_id);
                 const masteryTier = getMasteryTier(summary.percentage || 0);
                 if (this.dom.shareCardAvatar) this.dom.shareCardAvatar.src = currentAvatar.asset;
                 if (this.dom.shareCardHunterName) this.dom.shareCardHunterName.textContent = this.profile.nickname;
@@ -3224,7 +3777,7 @@
                         const dateStr = entry.created_at ? new Date(entry.created_at).toLocaleDateString() : "-";
                         const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`;
                         const entryMode = entry.mode ? entry.mode.toUpperCase() : "CLASSIC";
-                        const av = PREDEFINED_AVATARS.find((a) => a.id === entry.avatar_id);
+                        const av = this.getAvatarById(entry.avatar_id);
                         const avIcon = av ? av.icon : "🎃";
 
                         tr.innerHTML = `
@@ -3274,7 +3827,7 @@
                     const dateStr = entry.created_at ? new Date(entry.created_at).toLocaleDateString() : "-";
                     const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`;
                     const entryMode = entry.mode ? entry.mode.toUpperCase() : "CLASSIC";
-                    const av = PREDEFINED_AVATARS.find((a) => a.id === entry.avatar_id);
+                    const av = this.getAvatarById(entry.avatar_id);
                     const avIcon = av ? av.icon : "🎃";
 
                     tr.innerHTML = `
@@ -3423,6 +3976,132 @@
                     this.dom.masteryGrid.appendChild(el);
                 });
             }
+
+            // Load and render AI Learning Dashboard insights
+            this.loadAiDashboardInsights();
+        }
+
+        async loadAiDashboardInsights() {
+            const playerId = this.profile?.player_id;
+            if (!playerId) {
+                this.renderLocalAiInsights();
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/player/${encodeURIComponent(playerId)}/insights`, {
+                    headers: {
+                        "X-Player-ID": playerId,
+                    },
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (this.dom.aiDashChallengeLevel) {
+                        const diff = (data.challenge_level || data.target_difficulty || "medium").toUpperCase();
+                        this.dom.aiDashChallengeLevel.textContent = `Challenge: ${diff}`;
+                    }
+                    if (this.dom.aiStrongestVal) {
+                        const s = data.strongest_category;
+                        const sName = typeof s === "object" && s
+                            ? `${s.icon || "🎃"} ${s.name || s.category}`
+                            : this.formatCategoryName(s);
+                        const sRating = typeof s === "object" && s?.rating !== undefined
+                            ? Math.round(s.rating)
+                            : Math.round((data.recent_accuracy_pct || data.rolling_accuracy || 0.5) * 100);
+                        this.dom.aiStrongestVal.textContent = `${sName} (${sRating}%)`;
+                    }
+                    if (this.dom.aiWeakestVal) {
+                        const w = data.needs_practice_category || data.weakest_category;
+                        const wName = typeof w === "object" && w
+                            ? `${w.icon || "🎯"} ${w.name || w.category}`
+                            : this.formatCategoryName(w);
+                        const wRating = typeof w === "object" && w?.rating !== undefined
+                            ? ` (${Math.round(w.rating)}%)`
+                            : "";
+                        this.dom.aiWeakestVal.textContent = `${wName}${wRating}`;
+                    }
+                    if (this.dom.aiGuidanceText && data.pedagogical_guidance) {
+                        this.dom.aiGuidanceText.innerHTML = `👻 <em>Spooky Guide: ${this.escapeHtml(data.pedagogical_guidance)}</em>`;
+                    }
+                    return;
+                }
+            } catch (_) {
+                // Fallback to local computation
+            }
+
+            this.renderLocalAiInsights();
+        }
+
+        renderLocalAiInsights() {
+            const progress = this.getProgress();
+            const categories = [
+                { id: "spooky", name: "Spooky Stories" },
+                { id: "costumes", name: "Costumes & Legends" },
+                { id: "movies", name: "Horror Movies" },
+                { id: "history", name: "Halloween History" },
+                { id: "candy", name: "Candy & Treats" },
+                { id: "paranormal", name: "Paranormal & Lore" },
+            ];
+
+            let highestPct = -1;
+            let lowestPct = 999;
+            let strongest = "Costumes & Legends";
+            let weakest = "Paranormal & Lore";
+            let totalAnswered = 0;
+            let totalCorrect = 0;
+
+            categories.forEach((cat) => {
+                const m = progress.mastery[cat.id] || { answered: 0, correct: 0 };
+                totalAnswered += m.answered;
+                totalCorrect += m.correct;
+                if (m.answered > 0) {
+                    const pct = Math.round((m.correct / m.answered) * 100);
+                    if (pct > highestPct) {
+                        highestPct = pct;
+                        strongest = `${cat.name} (${pct}%)`;
+                    }
+                    if (pct < lowestPct) {
+                        lowestPct = pct;
+                        weakest = `${cat.name} (${pct}%)`;
+                    }
+                }
+            });
+
+            if (highestPct === -1) strongest = "Awaiting first séance";
+            if (lowestPct === 999) weakest = "Uncharted realm";
+
+            const overallAcc = totalAnswered > 0 ? totalCorrect / totalAnswered : 0.5;
+            const diff = overallAcc >= 0.75 ? "HARD" : overallAcc <= 0.4 ? "EASY" : "MEDIUM";
+
+            if (this.dom.aiDashChallengeLevel) {
+                this.dom.aiDashChallengeLevel.textContent = `Challenge: ${diff}`;
+            }
+            if (this.dom.aiStrongestVal) {
+                this.dom.aiStrongestVal.textContent = strongest;
+            }
+            if (this.dom.aiWeakestVal) {
+                this.dom.aiWeakestVal.textContent = weakest;
+            }
+            if (this.dom.aiGuidanceText) {
+                const guidance = totalAnswered < 5
+                    ? "Answer questions across categories to calibrate your supernatural lore profile."
+                    : overallAcc >= 0.75
+                    ? "Your spectral mastery is formidable! Keep pushing your boundaries across Hard and Panic modes."
+                    : "Review missed questions in your weakest categories to strengthen your spirit ward.";
+                this.dom.aiGuidanceText.innerHTML = `👻 <em>Spooky Guide: ${guidance}</em>`;
+            }
+        }
+
+        formatCategoryName(catKey) {
+            const map = {
+                spooky: "Spooky Stories",
+                costumes: "Costumes & Legends",
+                movies: "Horror Movies",
+                history: "Halloween History",
+                candy: "Candy & Treats",
+                paranormal: "Paranormal & Lore",
+            };
+            return map[catKey] || catKey || "General Lore";
         }
 
         // ==========================================

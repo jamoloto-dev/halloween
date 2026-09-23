@@ -193,6 +193,7 @@ class AnswerResult(BaseModel):
     achievement_unlocked: str | None = None
     shield_absorbed: bool = False
     points_multiplier: int = 1
+    adaptive_feedback: dict | None = None
 
 
 class ScoreRecord(BaseModel):

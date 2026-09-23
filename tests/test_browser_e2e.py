@@ -169,7 +169,12 @@ def test_category_selection_cards_and_guards(live_page: Page):
 
     # Handle dialog alert when trying to start with 0 categories
     alert_messages = []
-    live_page.on("dialog", lambda dialog: (alert_messages.append(dialog.message), dialog.dismiss()))
+
+    def handle_dialog(dialog):
+        alert_messages.append(dialog.message)
+        dialog.dismiss()
+
+    live_page.on("dialog", handle_dialog)
 
     live_page.locator("#btn-start").click()
     assert len(alert_messages) > 0

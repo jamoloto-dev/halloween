@@ -8,6 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 
 from halloween_quiz import __version__
+from halloween_quiz.core.ai_avatars import (
+    AvatarGenerationRequest,
+    AvatarGenerationResult,
+    avatar_service,
+)
+from halloween_quiz.core.ai_hints import HintRequest, HintResponse, hint_service
 from halloween_quiz.core.campaign import (
     CAMPAIGN_CHAPTERS,
     get_stage_by_id,
@@ -61,6 +67,13 @@ class ClaimCommunityRewardRequest(BaseModel):
 
 class ActivateBoosterRequest(BaseModel):
     booster_type: str
+
+
+class AIHintRequest(BaseModel):
+    session_id: str | None = None
+    question_id: str | None = None
+    hint_level: int = Field(default=1, ge=1, le=3)
+    category: str | None = None
 
 
 class CreateDuelRequest(BaseModel):
@@ -226,6 +239,7 @@ def start_quiz(
     request: Request,
     bank: QuestionBank = Depends(get_question_bank),
     sessions: SessionManager = Depends(get_active_sessions),
+    repo: ScoreRepository = Depends(get_score_repo),
 ):
     """Start a new interactive quiz game session."""
     diff = Difficulty.from_str(payload.difficulty)
@@ -341,7 +355,13 @@ def start_quiz(
             detail="No questions available matching selected categories and difficulty.",
         )
 
-    session = QuizSession(config, questions)
+    session = QuizSession(config, questions, question_bank=bank)
+    if session.tracker.is_adaptive_eligible:
+        try:
+            saved_profile = repo.get_skill_profile(player_id)
+            session.tracker.load_skill_profile(saved_profile)
+        except Exception as e:
+            logger.warning(f"Could not load skill profile for {player_id}: {e}")
     sessions.add(session)
     logger.info(
         f"Quiz started: session={session.session_id}, mode={mode_enum.value}, player={config.player_name}"
@@ -447,6 +467,8 @@ def submit_answer(
                 is_perfect=(session.percentage >= 100.0),
                 questions_answered=session.total_questions,
             )
+            if session.tracker.is_adaptive_eligible:
+                repo.save_skill_profile(session.tracker.get_skill_profile())
         except Exception as e:
             logger.warning(f"Failed to save score or community stats for session {session_id}: {e}")
 
@@ -556,6 +578,16 @@ def get_personal_best(
     eff_player_id = player_id or request.headers.get("X-Player-ID") or "guest_default"
     data = repo.get_personal_best(player_name=player_name, player_id=eff_player_id)
     return PersonalBestResponse(**data)
+
+
+@router.get("/api/player/{player_id}/insights")
+def get_player_insights(
+    player_id: str,
+    repo: ScoreRepository = Depends(get_score_repo),
+):
+    """Retrieve AI Learning Dashboard mastery metrics and pedagogical insights."""
+    profile = repo.get_skill_profile(player_id)
+    return profile.to_dashboard_insights()
 
 
 class RestorePurchaseRequest(BaseModel):
@@ -669,6 +701,178 @@ def activate_quiz_booster(
             detail=result.get("error", "Failed to activate booster."),
         )
     return result
+
+
+# ---------------------------------------------------------------------------
+# Smart Conversational AI Hint Endpoint
+# ---------------------------------------------------------------------------
+
+
+@router.post("/api/ai/hint", response_model=HintResponse)
+def request_ai_hint(
+    payload: AIHintRequest,
+    bank: QuestionBank = Depends(get_question_bank),
+    sessions: SessionManager = Depends(get_active_sessions),
+):
+    """Deliver a progressive, conversational hint from the Spooky Guide."""
+    # Handle lobby / out-of-session hint
+    if not payload.session_id or payload.session_id == "lobby":
+        cat = payload.category or "spooky"
+        candidates = bank._by_category.get(cat) or bank.questions
+        target_q = candidates[0] if candidates else None
+        if not target_q:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No trivia questions available.",
+            )
+        hint_req = HintRequest(
+            question_id=target_q.id,
+            question_text=target_q.question,
+            options=target_q.options,
+            correct_answer=target_q.correct_answer,
+            category=target_q.category,
+            difficulty=target_q.difficulty,
+            hint_level=payload.hint_level,
+            explanation=target_q.explanation,
+        )
+        return hint_service.request_hint(hint_req, session_mode=GameMode.CLASSIC)
+
+    session = sessions.get(payload.session_id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Quiz session '{payload.session_id}' not found or expired.",
+        )
+
+    # Strictly disallow AI hints in competitive modes (fairness guarantee)
+    if session.config.mode in (GameMode.DAILY, GameMode.DUEL):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="AI hints are strictly disabled in standardized competitive modes (Daily Haunt, Haunted Duels).",
+        )
+
+    # Locate target question
+    target_q = None
+    if payload.question_id:
+        target_q = next((q for q in session.questions if q.id == payload.question_id), None)
+    if not target_q:
+        target_q = session.get_current_question()
+
+    if not target_q:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No active question found to provide a hint for.",
+        )
+
+    session._hint_used_on_current_question = True
+
+    hint_req = HintRequest(
+        question_id=target_q.id,
+        question_text=target_q.question,
+        options=target_q.options,
+        correct_answer=target_q.correct_answer,
+        category=target_q.category,
+        difficulty=target_q.difficulty,
+        hint_level=payload.hint_level,
+        explanation=target_q.explanation,
+    )
+
+    try:
+        return hint_service.request_hint(hint_req, session_mode=session.config.mode)
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(ve))
+    except Exception as e:
+        logger.warning(f"Hint service error: {e}")
+        fb = hint_service.fallback_provider.generate_hint(hint_req)
+        return HintResponse(
+            question_id=target_q.id,
+            hint=fb,
+            hint_level=payload.hint_level,
+            source="fallback",
+            fallback_used=True,
+            character="Spooky Guide",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Generative AI Avatar Endpoints ("Supernatural Hunter Studio")
+# ---------------------------------------------------------------------------
+
+
+@router.get("/api/ai/avatar/options")
+def get_avatar_creation_options():
+    """Return available choices for the Supernatural Hunter avatar creator."""
+    return {
+        "creatures": [
+            {"id": "ghost", "name": "Spectral Ghost", "icon": "👻"},
+            {"id": "vampire", "name": "Crimson Vampire", "icon": "🧛"},
+            {"id": "witch", "name": "Midnight Witch", "icon": "🧙"},
+            {"id": "skeleton", "name": "Crypt Skeleton", "icon": "💀"},
+            {"id": "werewolf", "name": "Lunar Werewolf", "icon": "🐺"},
+            {"id": "pumpkin_spirit", "name": "Pumpkin Spirit", "icon": "🎃"},
+        ],
+        "styles": [
+            {"id": "cute", "name": "Cute / Chibi"},
+            {"id": "dark_fantasy", "name": "Dark Fantasy"},
+            {"id": "neon_horror", "name": "Neon Horror"},
+            {"id": "comic", "name": "Comic Book"},
+            {"id": "gothic", "name": "Victorian Gothic"},
+        ],
+        "colors": [
+            {"id": "purple", "name": "Eerie Purple", "hex": "#a855f7"},
+            {"id": "green", "name": "Spectral Green", "hex": "#10b981"},
+            {"id": "orange", "name": "Pumpkin Orange", "hex": "#f97316"},
+            {"id": "blue", "name": "Midnight Blue", "hex": "#3b82f6"},
+            {"id": "crimson", "name": "Blood Crimson", "hex": "#ef4444"},
+        ],
+        "accessories": [
+            {"id": "crown", "name": "Phantom Crown", "icon": "👑"},
+            {"id": "lantern", "name": "Spooky Lantern", "icon": "🏮"},
+            {"id": "magic_staff", "name": "Arcane Staff", "icon": "🪄"},
+            {"id": "cape", "name": "Midnight Cape", "icon": "🦇"},
+            {"id": "headphones", "name": "Ghostly Beats", "icon": "🎧"},
+            {"id": "spell_book", "name": "Ancient Grimoire", "icon": "📖"},
+        ],
+    }
+
+
+@router.post("/api/ai/avatar", response_model=AvatarGenerationResult)
+def generate_avatar(
+    payload: AvatarGenerationRequest,
+    request: Request,
+    repo: ScoreRepository = Depends(get_score_repo),
+):
+    """Synthesize a personalized supernatural hunter avatar with moderation and rate limiting."""
+    header_id = request.headers.get("X-Player-ID")
+    if header_id and (not payload.player_id or payload.player_id == "guest_default"):
+        player_id = header_id
+    else:
+        player_id = payload.player_id or header_id or "guest_default"
+    req_copy = payload.model_copy(update={"player_id": player_id})
+
+    try:
+        return avatar_service.generate_hunter_avatar(req_copy, repo=repo)
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except PermissionError as pe:
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(pe))
+    except Exception as e:
+        logger.error(f"Avatar generation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to synthesize hunter avatar. Please try again shortly.",
+        )
+
+
+@router.get("/api/ai/avatars")
+def get_player_avatars(
+    request: Request,
+    player_id: str | None = Query(None),
+    repo: ScoreRepository = Depends(get_score_repo),
+):
+    """Retrieve all synthesized supernatural hunter avatars for a player."""
+    eff_player_id = player_id or request.headers.get("X-Player-ID") or "guest_default"
+    return repo.get_player_generated_avatars(eff_player_id)
 
 
 # ---------------------------------------------------------------------------

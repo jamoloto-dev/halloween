@@ -1,6 +1,7 @@
 """Storage repository for Halloween Quiz using SQLite and SQLAlchemy."""
 
 import csv
+import json
 import os
 from collections.abc import Sequence
 from datetime import datetime, timezone
@@ -23,6 +24,7 @@ from sqlalchemy import (
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
+from halloween_quiz.core.adaptive import PlayerSkillProfile
 from halloween_quiz.core.models import ScoreRecord
 
 
@@ -93,6 +95,94 @@ class HighScoreDB(Base):
             is_boosted=bool(getattr(self, "is_boosted", False)),
             is_guest=bool(getattr(self, "is_guest", True)),
         )
+
+
+class PlayerSkillDB(Base):
+    __tablename__ = "player_skills"
+
+    player_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    overall_rating: Mapped[float] = mapped_column(Float, default=50.0)
+    category_ratings_json: Mapped[str] = mapped_column(String(1000), default="{}")
+    recent_accuracy: Mapped[float] = mapped_column(Float, default=0.0)
+    recent_response_time: Mapped[float] = mapped_column(Float, default=0.0)
+    current_streak: Mapped[int] = mapped_column(Integer, default=0)
+    questions_answered: Mapped[int] = mapped_column(Integer, default=0)
+    hints_used: Mapped[int] = mapped_column(Integer, default=0)
+    timeouts: Mapped[int] = mapped_column(Integer, default=0)
+    difficulty_history_json: Mapped[str] = mapped_column(String(1000), default="[]")
+    last_updated: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+
+    def to_model(self) -> PlayerSkillProfile:
+        dt = self.last_updated
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        cat_ratings = {}
+        if self.category_ratings_json:
+            try:
+                cat_ratings = json.loads(self.category_ratings_json)
+            except Exception:
+                pass
+        diff_hist = []
+        if self.difficulty_history_json:
+            try:
+                diff_hist = json.loads(self.difficulty_history_json)
+            except Exception:
+                pass
+        return PlayerSkillProfile(
+            player_id=self.player_id,
+            overall_rating=self.overall_rating,
+            category_ratings=cat_ratings,
+            recent_accuracy=self.recent_accuracy,
+            recent_response_time=self.recent_response_time,
+            current_streak=self.current_streak,
+            questions_answered=self.questions_answered,
+            hints_used=self.hints_used,
+            timeouts=self.timeouts,
+            difficulty_history=diff_hist,
+            last_updated=dt,
+        )
+
+
+class GeneratedAvatarDB(Base):
+    __tablename__ = "generated_avatars"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    player_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    creature: Mapped[str] = mapped_column(String(50), nullable=False)
+    style: Mapped[str] = mapped_column(String(50), nullable=False)
+    color: Mapped[str] = mapped_column(String(50), nullable=False)
+    accessory: Mapped[str] = mapped_column(String(50), nullable=False)
+    customization: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    prompt_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    asset_url: Mapped[str] = mapped_column(String(2000), nullable=False)
+    provider: Mapped[str] = mapped_column(String(50), default="mock")
+    moderation_status: Mapped[str] = mapped_column(String(50), default="approved")
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+
+    def to_dict(self) -> dict:
+        dt = self.created_at
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return {
+            "id": self.id,
+            "player_id": self.player_id,
+            "creature": self.creature,
+            "style": self.style,
+            "color": self.color,
+            "accessory": self.accessory,
+            "customization": self.customization,
+            "prompt_hash": self.prompt_hash,
+            "asset_url": self.asset_url,
+            "provider": self.provider,
+            "moderation_status": self.moderation_status,
+            "active": self.active,
+            "created_at": dt.isoformat(),
+        }
 
 
 @event.listens_for(Engine, "connect")
@@ -573,3 +663,106 @@ class ScoreRepository:
                         migrated_count += 1
 
         return migrated_count
+
+    # -----------------------------------------------------------------------
+    # Adaptive Skill Profile Persistence
+    # -----------------------------------------------------------------------
+
+    def get_skill_profile(self, player_id: str) -> PlayerSkillProfile:
+        """Retrieve durable skill profile for a player or return default baseline."""
+        with self.SessionLocal() as session:
+            db_obj = session.get(PlayerSkillDB, player_id)
+            if db_obj:
+                return db_obj.to_model()
+            return PlayerSkillProfile(player_id=player_id)
+
+    def save_skill_profile(self, profile: PlayerSkillProfile) -> None:
+        """Persist or update durable skill profile for a player."""
+        with self.SessionLocal() as session:
+            db_obj = session.get(PlayerSkillDB, profile.player_id)
+            cat_json = json.dumps(profile.category_ratings)
+            diff_json = json.dumps(profile.difficulty_history)
+            if db_obj:
+                db_obj.overall_rating = profile.overall_rating
+                db_obj.category_ratings_json = cat_json
+                db_obj.recent_accuracy = profile.recent_accuracy
+                db_obj.recent_response_time = profile.recent_response_time
+                db_obj.current_streak = profile.current_streak
+                db_obj.questions_answered = profile.questions_answered
+                db_obj.hints_used = profile.hints_used
+                db_obj.timeouts = profile.timeouts
+                db_obj.difficulty_history_json = diff_json
+                db_obj.last_updated = profile.last_updated
+            else:
+                db_obj = PlayerSkillDB(
+                    player_id=profile.player_id,
+                    overall_rating=profile.overall_rating,
+                    category_ratings_json=cat_json,
+                    recent_accuracy=profile.recent_accuracy,
+                    recent_response_time=profile.recent_response_time,
+                    current_streak=profile.current_streak,
+                    questions_answered=profile.questions_answered,
+                    hints_used=profile.hints_used,
+                    timeouts=profile.timeouts,
+                    difficulty_history_json=diff_json,
+                    last_updated=profile.last_updated,
+                )
+                session.add(db_obj)
+            session.commit()
+
+    # -----------------------------------------------------------------------
+    # Generative AI Avatar Persistence
+    # -----------------------------------------------------------------------
+
+    def save_generated_avatar(self, avatar_data: dict) -> None:
+        """Persist a synthesized supernatural hunter avatar."""
+        with self.SessionLocal() as session:
+            avatar_id = avatar_data.get("id") or avatar_data.get("avatar_id")
+            db_obj = session.get(GeneratedAvatarDB, avatar_id) if avatar_id else None
+            if not db_obj:
+                db_obj = GeneratedAvatarDB(
+                    id=avatar_id or "hunter_unknown",
+                    player_id=avatar_data["player_id"],
+                    creature=avatar_data.get("creature", "ghost"),
+                    style=avatar_data.get("style", "dark_fantasy"),
+                    color=avatar_data.get("color", "purple"),
+                    accessory=avatar_data.get("accessory", "lantern"),
+                    customization=avatar_data.get("customization"),
+                    prompt_hash=avatar_data["prompt_hash"],
+                    asset_url=avatar_data["asset_url"],
+                    provider=avatar_data.get("provider", "mock"),
+                    moderation_status=avatar_data.get("moderation_status", "approved"),
+                    active=avatar_data.get("active", True),
+                )
+                session.add(db_obj)
+            else:
+                db_obj.active = avatar_data.get("active", True)
+                db_obj.asset_url = avatar_data.get("asset_url", db_obj.asset_url)
+            session.commit()
+
+    def get_player_generated_avatars(self, player_id: str) -> list[dict]:
+        """Return all avatars generated by a specific player."""
+        with self.SessionLocal() as session:
+            stmt = (
+                select(GeneratedAvatarDB)
+                .where(GeneratedAvatarDB.player_id == player_id)
+                .order_by(desc(GeneratedAvatarDB.created_at))
+            )
+            rows = session.execute(stmt).scalars().all()
+            return [row.to_dict() for row in rows]
+
+    def get_generated_avatar_by_hash(self, prompt_hash: str) -> dict | None:
+        """Return cached avatar matching an exact prompt hash."""
+        with self.SessionLocal() as session:
+            stmt = select(GeneratedAvatarDB).where(
+                GeneratedAvatarDB.prompt_hash == prompt_hash
+            ).limit(1)
+            row = session.execute(stmt).scalar_one_or_none()
+            return row.to_dict() if row else None
+
+    def get_generated_avatar_by_id(self, avatar_id: str) -> dict | None:
+        """Retrieve single generated avatar by ID."""
+        with self.SessionLocal() as session:
+            row = session.get(GeneratedAvatarDB, avatar_id)
+            return row.to_dict() if row else None
+

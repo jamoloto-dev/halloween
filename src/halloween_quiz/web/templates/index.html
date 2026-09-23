@@ -525,7 +525,37 @@
                             <span class="booster-name">Shield</span>
                             <span class="booster-badge" id="count-booster-shield">0</span>
                         </button>
+                        <button type="button" id="btn-ask-spooky-guide" class="btn-booster btn-booster-guide" title="Whisper Spooky Guide for an intelligent hint" aria-label="Ask Spooky Guide for Hint">
+                            <span class="booster-icon">👻</span>
+                            <span class="booster-name">Guide</span>
+                        </button>
                     </div>
+                </div>
+
+                <!-- Dynamic Adaptive Challenge Level Banner -->
+                <div id="adaptive-challenge-banner" class="adaptive-challenge-banner hidden" role="status" aria-live="polite">
+                    <span id="adaptive-banner-icon" class="adaptive-banner-icon">🎃</span>
+                    <span id="adaptive-banner-text" class="adaptive-banner-text">Challenge Level Rising</span>
+                </div>
+
+                <!-- Conversational Spooky Guide Hint Bubble -->
+                <div class="spooky-guide-hint-bubble hidden" id="quiz-spooky-guide-box" role="region" aria-label="Spooky Guide Hint">
+                    <div class="guide-bubble-header">
+                        <div class="guide-bubble-title">
+                            <span class="guide-ghost-avatar" aria-hidden="true">👻</span>
+                            <strong id="quiz-guide-character-name">Spooky Guide</strong>
+                            <span class="badge" id="quiz-guide-level-badge">Gentle Clue</span>
+                        </div>
+                        <div class="guide-bubble-actions">
+                            <button type="button" id="btn-quiz-guide-deeper" class="btn-ghost-sm" title="Ask for a stronger clue">
+                                🔮 Deeper Clue
+                            </button>
+                            <button type="button" id="btn-close-guide-bubble" class="btn-ghost-sm" aria-label="Close hint">✖</button>
+                        </div>
+                    </div>
+                    <p class="guide-bubble-text" id="quiz-guide-hint-text">
+                        "Ponder the ancient Celtic fire festival..."
+                    </p>
                 </div>
 
                 <!-- Question Text -->
@@ -543,6 +573,10 @@
                     <div id="feedback-status" class="feedback-title">Correct! 🎉</div>
                     <div id="feedback-correct-answer" class="feedback-correct hidden"></div>
                     <p id="feedback-explanation" class="feedback-text"></p>
+                    <div id="feedback-adaptive-box" class="feedback-adaptive-box hidden">
+                        <span id="feedback-adaptive-badge" class="badge">🎃 Challenge Rising</span>
+                        <p id="feedback-adaptive-text" class="feedback-adaptive-text"></p>
+                    </div>
                     <div id="feedback-funfact-box" class="feedback-funfact hidden">
                         <span class="funfact-badge">🎃 Spooky Fact:</span>
                         <span id="feedback-funfact"></span>
@@ -879,6 +913,28 @@
                         </div>
                     </div>
 
+                    <!-- AI LEARNING INTELLIGENCE INSIGHTS -->
+                    <section class="ai-learning-dashboard-card" id="ai-learning-card">
+                        <div class="ai-dash-header">
+                            <span class="ai-sparkle-icon" aria-hidden="true">🧠</span>
+                            <h3>Adaptive Learning Insights</h3>
+                            <span class="badge badge-tier" id="ai-dash-challenge-level">Challenge: Medium</span>
+                        </div>
+                        <div class="ai-dash-grid">
+                            <div class="ai-insight-box insight-strong">
+                                <span class="ai-box-label">🏆 Strongest Lore</span>
+                                <div class="ai-box-value" id="ai-strongest-val">Costumes & Traditions (50%)</div>
+                            </div>
+                            <div class="ai-insight-box insight-practice">
+                                <span class="ai-box-label">🎯 Needs Practice</span>
+                                <div class="ai-box-value" id="ai-weakest-val">Paranormal Lore (50%)</div>
+                            </div>
+                        </div>
+                        <p class="ai-guidance-text" id="ai-guidance-text">
+                            👻 <em>Spooky Guide: Answer questions across categories to calibrate your supernatural lore profile.</em>
+                        </p>
+                    </section>
+
                     <!-- ACHIEVEMENTS SECTION -->
                     <section class="achievements-section">
                         <h3>🏆 Unlocked Badges (<span id="badges-unlocked-count">0</span>/8)</h3>
@@ -948,9 +1004,90 @@
                     <h2 id="picker-title">Choose Your Halloween Avatar</h2>
                     <button id="btn-close-avatar-picker" class="btn-close" aria-label="Close avatar selector">✖</button>
                 </div>
-                <div class="picker-body">
+
+                <!-- Avatar Mode Tabs -->
+                <div class="avatar-tabs-bar" role="tablist">
+                    <button type="button" class="avatar-tab-btn active" id="tab-avatar-predefined" role="tab" aria-selected="true">
+                        🎭 Standard & Pass Guises
+                    </button>
+                    <button type="button" class="avatar-tab-btn" id="tab-avatar-generator" role="tab" aria-selected="false">
+                        ✨ Synthesize AI Hunter
+                    </button>
+                </div>
+
+                <!-- Tab 1: Predefined Avatars -->
+                <div class="picker-body" id="picker-predefined-body">
                     <div class="avatar-picker-grid" role="radiogroup" id="shared-avatar-grid">
                         <!-- Avatars populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Tab 2: AI Hunter Studio -->
+                <div class="picker-body hidden" id="picker-generator-body">
+                    <div class="hunter-studio-layout">
+                        <div class="hunter-controls">
+                            <!-- Creature -->
+                            <div class="studio-group">
+                                <label class="studio-label">1. Creature Form</label>
+                                <div class="studio-pills" id="studio-creatures-grid">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
+                            <!-- Style -->
+                            <div class="studio-group">
+                                <label class="studio-label">2. Art Direction</label>
+                                <div class="studio-pills" id="studio-styles-grid">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
+                            <!-- Color -->
+                            <div class="studio-group">
+                                <label class="studio-label">3. Supernatural Aura</label>
+                                <div class="studio-pills" id="studio-colors-grid">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
+                            <!-- Accessory -->
+                            <div class="studio-group">
+                                <label class="studio-label">4. Relic Accessory</label>
+                                <div class="studio-pills" id="studio-accessories-grid">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
+                            <!-- Custom Flair -->
+                            <div class="studio-group">
+                                <label class="studio-label" for="studio-flair-input">5. Supernatural Trait (Optional, max 120 chars)</label>
+                                <input type="text" id="studio-flair-input" class="studio-text-input" placeholder="e.g. Purple embers in eyes, cracked pumpkin helmet" maxlength="120">
+                            </div>
+
+                            <button type="button" id="btn-generate-hunter" class="btn-primary btn-generate-hunter">
+                                ✨ Summon Supernatural Hunter
+                            </button>
+                            <div id="studio-status-msg" class="studio-status-text"></div>
+                        </div>
+
+                        <!-- Live Preview Card -->
+                        <div class="hunter-preview-panel">
+                            <h3 class="preview-title">Hunter Visualization</h3>
+                            <div class="hunter-preview-frame">
+                                <img id="hunter-preview-img" src="/static/avatars/pumpkin_hunter.svg" alt="Preview Avatar" width="140" height="140">
+                            </div>
+                            <div class="hunter-preview-meta">
+                                <strong id="hunter-preview-name">Pumpkin Spirit</strong>
+                                <span id="hunter-preview-style" class="badge">Dark Fantasy</span>
+                            </div>
+                            <button type="button" id="btn-equip-generated-hunter" class="btn-primary btn-sm hidden">
+                                ⚔️ Equip This Hunter
+                            </button>
+
+                            <!-- Player's Synthesized Hunters Gallery -->
+                            <div class="hunter-gallery-section">
+                                <h4>My Synthesized Hunters</h4>
+                                <div class="hunter-gallery-grid" id="hunter-gallery-grid">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
