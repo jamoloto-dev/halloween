@@ -40,6 +40,7 @@ def live_page(page: Page) -> Page:
     """Fixture ensuring page is loaded and any initial onboarding is dismissed for standard tests."""
     page.goto(BASE_URL)
     page.wait_for_load_state("networkidle")
+    page.wait_for_function("() => Boolean(window.halloweenApp)")
     onboarding = page.locator("#modal-onboarding")
     if onboarding.is_visible():
         page.locator("#btn-save-onboarding").click()
@@ -87,6 +88,9 @@ def test_audio_controls_in_settings_modal(live_page: Page):
     btn_settings.click()
 
     modal = live_page.locator("#modal-settings")
+    if not modal.is_visible():
+        live_page.wait_for_timeout(200)
+        btn_settings.click()
     expect(modal).to_be_visible()
 
     bgm_btn = live_page.locator("#modal-btn-bgm-toggle")

@@ -3,7 +3,7 @@
 **Last Updated**: 2026-09-21  
 **Branch**: `main`  
 **Base Commit**: `028271f8747f58de267d80a700432c5ef2eebbbd`  
-**Standardized Release Version**: `2.3.0`  
+**Standardized Release Version**: `2.5.0`  
 **Canonical Runtime**: FastAPI backend (`uvicorn run:app`) + Vanilla JS SPA frontend (`src/halloween_quiz/web/static/app.js`) + Rich CLI (`src/halloween_quiz/cli/main.py`)  
 
 ---
@@ -19,7 +19,7 @@ This update reconciles the monetization implementation with reality, removing al
 4. **Billing & Storefront Honesty**: Prices ($4.99 lifetime, $2.99/mo) are explicitly designated as proposed configuration SKUs. Real-money gateways (Stripe Checkout, Apple StoreKit 2, Google Play Billing) are **DESIGNED FOR FUTURE / NOT IMPLEMENTED**.
 5. **Receipt Validation Honesty**: `POST /api/entitlements/verify` returns `verified_by_provider: false`, `provider_configured: false`, and `simulation: true`.
 6. **Ad Experience Honesty**: `FEATURE_ADS` is disabled (`false`) by default because no third-party ad network SDK is integrated.
-7. **Version Uniformity**: Standardized on `2.3.0` across `pyproject.toml`, `__init__.py`, `app.py`, `routes.py`, `app.js`, `sw.js`, `index.html`, and documentation.
+7. **Version Uniformity**: Standardized on `2.5.0` across `pyproject.toml`, `__init__.py`, `app.py`, `routes.py`, `app.js`, `sw.js`, `index.html`, and documentation.
 8. **Endpoint Lockdown**: `POST /api/leaderboard` is disabled in production (returns HTTP 403 Forbidden). All ranked leaderboard entries must originate from server-validated completed quiz sessions.
 
 ---

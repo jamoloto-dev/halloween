@@ -190,6 +190,6 @@ To deepen player expression without compromising competitive integrity:
 ## 9. Performance & PWA Verification
 
 - **Asset Compression**: SVG vector avatars and silhouettes (<5 KB each) eliminate heavy bitmap bandwidth.
-- **Cache Invalidation**: Service Worker cache key versioned (`spooky-master-v2.3.0`) with explicit precache list covering all 12 ES modules.
+- **Cache Invalidation**: Service Worker cache key versioned (`spooky-master-v2.5.0`) with explicit precache list covering all 12 ES modules.
 - **Responsive Viewports**: Verified without horizontal overflow across 360px, 390px, 768px, 1366px, and 1920px viewports.
 - **Console Integrity**: Verified 0 unhandled promise rejections, 0 syntax errors, and 0 missing module 404s.

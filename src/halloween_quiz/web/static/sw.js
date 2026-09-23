@@ -3,13 +3,13 @@
  * Versioned caching, offline fallback shell, and stale cache cleanup.
  */
 
-const CACHE_NAME = "spooky-master-v2.3.0";
+const CACHE_NAME = "spooky-master-v2.5.0";
 const PRECACHE_ASSETS = [
     "/",
     "/offline.html",
     "/privacy",
-    "/static/style.css?v=20260921-spooky-master-v2.3.0",
-    "/static/app.js?v=20260921-spooky-master-v2.3.0",
+    "/static/style.css?v=20260923-spooky-master-v2.5.0",
+    "/static/app.js?v=20260923-spooky-master-v2.5.0",
     "/static/js/main.js",
     "/static/js/modules/utils.js",
     "/static/js/modules/audio.js",

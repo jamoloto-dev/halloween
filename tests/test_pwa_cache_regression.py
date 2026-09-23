@@ -23,7 +23,7 @@ def test_service_worker_has_versioned_cache_and_cleans_stale_caches() -> None:
     """sw.js must define a versioned cache and purge obsolete caches on activate."""
     sw_content = SW_JS.read_text(encoding="utf-8")
 
-    assert 'const CACHE_NAME = "spooky-master-v2.3.0";' in sw_content
+    assert 'const CACHE_NAME = "spooky-master-v2.5.0";' in sw_content
     assert "self.skipWaiting()" in sw_content
     assert "self.clients.claim()" in sw_content
     assert "caches.delete(key)" in sw_content
@@ -44,7 +44,7 @@ def test_index_html_uses_versioned_script_and_style_matching_sw() -> None:
     index_content = INDEX_HTML.read_text(encoding="utf-8")
     sw_content = SW_JS.read_text(encoding="utf-8")
 
-    version_param = "v=20260921-spooky-master-v2.3.0"
+    version_param = "v=20260923-spooky-master-v2.5.0"
     assert f"/static/app.js?{version_param}" in index_content
     assert f"/static/style.css?{version_param}" in index_content
     assert f"/static/app.js?{version_param}" in sw_content

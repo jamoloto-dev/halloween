@@ -1,4 +1,4 @@
-# 🎃 Halloween Quiz Game (Spooky Master) 2.3.0
+# 🎃 Halloween Quiz Game (Spooky Master) 2.5.0
 
 [![CI Pipeline](https://github.com/jamoloto-dev/halloween/actions/workflows/ci.yml/badge.svg)](https://github.com/jamoloto-dev/halloween/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/downloads/)
@@ -47,7 +47,7 @@ halloween/
 └── pyproject.toml             # Modern packaging (Ruff, Mypy, Pytest)
 ```
 
-### 🌟 Key Features in Version 2.3.0
+### 🌟 Key Features in Version 2.5.0
 1. **Six Engaging Game Modes**:
    - 🎃 **Classic**: Standard 10-question balanced spooky challenge.
    - ⚡ **Quick Bite**: Fast-paced 5-question round for casual play.

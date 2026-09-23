@@ -4,7 +4,7 @@
 
 # Spooky Master — Monetization & Entitlement Architecture
 
-**Version**: 2.3.0  
+**Version**: 2.5.0  
 **Date**: September 2026  
 **Status**: Target Architecture & Hardened Implementation Specification  
 **Governing Standard**: Strict Zero Pay-To-Win Fair Play (Policy A)  
