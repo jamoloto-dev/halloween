@@ -4471,8 +4471,13 @@
             this.startGameWithParams({ stage_id: stageId, mode: "campaign" });
         }
 
+        openChapterStory() {
+            this.openStory(this.activeChapterId);
+        }
+
         openStory(chapterId) {
-            const ch = this.campaignChapters.find((c) => c.id === chapterId) || this.campaignChapters[0];
+            const targetId = chapterId || this.activeChapterId;
+            const ch = this.campaignChapters.find((c) => c.id === targetId) || this.campaignChapters[0];
             if (!ch) return;
             if (this.dom.storyEmblem) this.dom.storyEmblem.textContent = ch.icon;
             if (this.dom.storyChapterTitle) this.dom.storyChapterTitle.textContent = `${ch.title} — Lore`;
