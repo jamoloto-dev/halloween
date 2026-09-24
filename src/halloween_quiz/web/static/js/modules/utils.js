@@ -205,7 +205,7 @@ export function generateProceduralStory(context = {}) {
 export function generateDuelShareLink(challengeCode) {
     const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "";
     const cleanCode = encodeURIComponent(String(challengeCode || "").trim());
-    return `${origin}/duel/${cleanCode}`;
+    return `${origin}/duels/${cleanCode}`;
 }
 
 /**

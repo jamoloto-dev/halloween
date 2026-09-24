@@ -4384,5 +4384,416 @@ html[data-theme="midnight_graveyard"], body[data-theme="midnight_graveyard"] {
   display: block;
 }
 
+/* ==========================================================================
+   🎃 Spooky Master v2.6.0 — Multi-Page Game Architecture & Responsive Shell
+   ========================================================================== */
+
+/* Active link indicator */
+.nav-btn.active,
+.nav-btn[aria-current="page"] {
+  color: var(--accent, #ff7518);
+  border-color: rgba(255, 117, 24, 0.55);
+  background: rgba(255, 117, 24, 0.12);
+  box-shadow: 0 0 12px rgba(255, 117, 24, 0.2);
+}
+
+/* Multi-Page Views: Transform modal structures into natural static pages */
+.modal-overlay.hidden,
+body[data-page] .modal-overlay.hidden,
+.page-view.hidden,
+body[data-page] .page-view.hidden {
+  display: none !important;
+}
+
+body[data-page="journey"] #modal-campaign:not(.hidden),
+body[data-page="journey_chapter"] #modal-campaign:not(.hidden),
+body[data-page="duels"] #modal-duels:not(.hidden),
+body[data-page="progress"] #modal-mastery:not(.hidden),
+body[data-page="leaderboard"] #modal-leaderboard:not(.hidden),
+body[data-page="pass"] #modal-premium:not(.hidden),
+body[data-page="settings"] #modal-settings:not(.hidden),
+body[data-page="hunters"] #modal-avatar-picker:not(.hidden),
+body[data-page="hunter_studio"] #modal-avatar-picker:not(.hidden) {
+  position: static !important;
+  inset: auto !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 1.5rem auto 3rem !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  z-index: 10 !important;
+  animation: page-fade-in 0.22s ease-out !important;
+}
+
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body[data-page="journey"] #modal-campaign:not(.hidden) .modal-card,
+body[data-page="journey_chapter"] #modal-campaign:not(.hidden) .modal-card,
+body[data-page="duels"] #modal-duels:not(.hidden) .modal-card,
+body[data-page="progress"] #modal-mastery:not(.hidden) .modal-card,
+body[data-page="leaderboard"] #modal-leaderboard:not(.hidden) .modal-card,
+body[data-page="pass"] #modal-premium:not(.hidden) .modal-card,
+body[data-page="settings"] #modal-settings:not(.hidden) .modal-card,
+body[data-page="hunters"] #modal-avatar-picker:not(.hidden) .modal-card,
+body[data-page="hunter_studio"] #modal-avatar-picker:not(.hidden) .modal-card {
+  width: 100% !important;
+  max-width: 900px !important;
+  max-height: none !important;
+  overflow: visible !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55) !important;
+  margin-bottom: 2rem !important;
+}
+
+/* Hide start screen when on routed sub-pages */
+body[data-page="journey"] #screen-start,
+body[data-page="journey_chapter"] #screen-start,
+body[data-page="duels"] #screen-start,
+body[data-page="duel_invite"] #screen-start,
+body[data-page="progress"] #screen-start,
+body[data-page="leaderboard"] #screen-start,
+body[data-page="pass"] #screen-start,
+body[data-page="settings"] #screen-start,
+body[data-page="hunters"] #screen-start,
+body[data-page="hunter_studio"] #screen-start,
+body[data-page="daily_haunt"] #screen-start,
+body[data-page="quiz"] #screen-start,
+body[data-page="results"] #screen-start {
+  display: none !important;
+}
+
+/* When on /play, hide lobby content and show only crypt setup chamber */
+body[data-page="play"] .lobby-hero,
+body[data-page="play"] #lobby-journey-card,
+body[data-page="play"] .lobby-quick-grid,
+body[data-page="play"] .lobby-guide-box,
+body[data-page="play"] #lobby-progress-snapshot,
+body[data-page="play"] .lobby-secondary-nav {
+  display: none !important;
+}
+body[data-page="play"] #crypt-custom-chamber {
+  display: block !important;
+}
+body[data-page="play"] .crypt-custom-summary {
+  display: none !important;
+}
+
+/* Page Card Common Styling */
+.page-view {
+  width: 100%;
+  max-width: 900px;
+  margin: 1.5rem auto 3rem;
+  animation: page-fade-in 0.22s ease-out;
+}
+.page-view.hidden {
+  display: none !important;
+}
+.page-view.active {
+  display: block !important;
+}
+.page-card {
+  background: #181222;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+.page-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+.page-card-header h2 {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 8px 0 6px;
+}
+.page-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+.daily-countdown-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.countdown-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Daily Haunt Page Layout */
+.daily-conditions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.condition-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.16s ease;
+}
+.condition-box:hover {
+  border-color: rgba(255, 117, 24, 0.4);
+}
+.condition-icon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 8px;
+}
+.condition-box strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+.condition-box p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
+.daily-haunt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  justify-content: flex-start;
+}
+
+/* Duel Invite Page Layout */
+.duel-invite-challenger-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: rgba(255, 117, 24, 0.06);
+  border: 1px solid rgba(255, 117, 24, 0.3);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+.challenger-avatar-wrap img {
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: #110520;
+}
+.challenger-info h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+.challenger-info p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.invite-meta-pills {
+  display: flex;
+  gap: 8px;
+}
+.duel-traps-preview {
+  margin-bottom: 24px;
+}
+.duel-traps-preview h4 {
+  font-size: 14px;
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+.traps-chips-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.duel-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Compact Mobile Bottom Navigation */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  min-height: 60px;
+  background: rgba(12, 9, 20, 0.94);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--line);
+  z-index: 1050;
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px));
+}
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.mobile-nav-item:hover,
+.mobile-nav-item:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+.mobile-nav-item.active,
+.mobile-nav-item[aria-current="page"] {
+  color: #ff7518;
+}
+.mobile-nav-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.mobile-nav-label {
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+  }
+  body {
+    padding-bottom: 72px;
+  }
+  .top-nav .nav-actions .nav-btn:not(#btn-market-open):not(#btn-pwa-install) {
+    display: none;
+  }
+  .page-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .daily-countdown-wrap {
+    align-items: flex-start;
+  }
+}
+
+/* Mobile More Drawer Sheet */
+.mobile-more-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.mobile-more-sheet.hidden {
+  display: none !important;
+}
+.mobile-more-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+}
+.mobile-more-content {
+  position: relative;
+  background: #181222;
+  border-top: 1px solid var(--line-strong);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+  animation: slide-up 0.22s ease-out;
+}
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.mobile-more-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.mobile-more-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.btn-close-sheet {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.mobile-more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.mobile-more-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.mobile-more-card:hover,
+.mobile-more-card:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--line-strong);
+}
+.mobile-more-card.active {
+  border-color: rgba(255, 117, 24, 0.6);
+  background: rgba(255, 117, 24, 0.1);
+}
+.more-card-icon {
+  font-size: 24px;
+}
+.mobile-more-card strong {
+  display: block;
+  font-size: 13px;
+}
+.mobile-more-card span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+
 
 

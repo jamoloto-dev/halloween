@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spooky Master 🎃 Halloween Quiz Challenge</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/static/style.css?v=20260923-spooky-master-v2.5.0">
+    <link rel="stylesheet" href="/static/style.css?v=20260924-spooky-master-v2.6.0">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff7518">
     <meta name="description" content="Spooky Master - Test your Halloween, horror, and paranormal knowledge with multiple game modes, player profiles, achievements, and instant sound synthesis!">
@@ -47,22 +47,22 @@
 
     <!-- Top Navigation Bar (Simplified) -->
     <header class="top-nav" role="banner">
-        <div class="nav-branding" id="nav-branding-home" role="button" tabindex="0" title="Return to Home Screen" aria-label="Spooky Master Home">
+        <a href="/" class="nav-branding" id="nav-branding-home" role="button" tabindex="0" title="Return to Home Screen" aria-label="Spooky Master Home" data-route="/">
             <img class="brand-mark" src="/static/logo.svg" alt="Jack-o'-lantern Logo" width="36" height="36">
             <div>
                 <span class="brand-title">🎃 Spooky Master</span>
                 <span class="brand-kicker">Halloween Trivia</span>
             </div>
-        </div>
+        </a>
         <nav class="nav-actions" aria-label="Game navigation">
             <button id="btn-market-open" class="nav-btn nav-diamond-pill" title="Open The Witch's Market" aria-label="Diamonds and Market">💎 <span id="header-diamond-count">0</span></button>
-            <button id="btn-campaign-nav" class="nav-btn" title="The Haunted Journey Campaign Map" aria-label="Campaign Journey">🗺️ Journey</button>
-            <button id="btn-duels-nav" class="nav-btn" title="Haunted Duels PvP" aria-label="Haunted Duels">⚔️ Duels</button>
-            <button id="btn-pass-nav" class="nav-btn nav-pass-pill" title="Spooky Master Pass" aria-label="Spooky Master Pass">🎃 Pass</button>
+            <a href="/journey" id="btn-campaign-nav" class="nav-btn" title="The Haunted Journey Campaign Map" aria-label="Campaign Journey" data-route="/journey">🗺️ Journey</a>
+            <a href="/duels" id="btn-duels-nav" class="nav-btn" title="Haunted Duels PvP" aria-label="Haunted Duels" data-route="/duels">⚔️ Duels</a>
+            <a href="/pass" id="btn-pass-nav" class="nav-btn nav-pass-pill" title="Spooky Master Pass" aria-label="Spooky Master Pass" data-route="/pass">🎃 Pass</a>
             <button id="btn-pwa-install" class="nav-btn hidden" title="Install Spooky Master App" aria-label="Install App">📲 Install</button>
-            <button id="btn-mastery-open" class="nav-btn" title="View Player Profile & Progress" aria-label="View Progress">📜 Progress</button>
-            <button id="btn-leaderboard-open" class="nav-btn" title="View High Scores" aria-label="View Leaderboard">🏆 Leaderboard</button>
-            <button id="btn-settings-open" class="nav-btn" title="Settings & Preferences" aria-label="Settings">⚙️ Settings</button>
+            <a href="/progress" id="btn-mastery-open" class="nav-btn" title="View Player Profile & Progress" aria-label="View Progress" data-route="/progress">📜 Progress</a>
+            <a href="/leaderboard" id="btn-leaderboard-open" class="nav-btn" title="View High Scores" aria-label="View Leaderboard" data-route="/leaderboard">🏆 Leaderboard</a>
+            <a href="/settings" id="btn-settings-open" class="nav-btn" title="Settings & Preferences" aria-label="Settings" data-route="/settings">⚙️ Settings</a>
         </nav>
     </header>
 
@@ -675,6 +675,92 @@
                     <button id="btn-play-again" class="btn-cta">🎃 Play Another Round</button>
                     <button id="btn-view-board-finish" class="btn-secondary">🏆 View Leaderboard</button>
                     <button id="btn-view-mastery-finish" class="btn-secondary">📜 View Profile & Mastery</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: DAILY HAUNT -->
+        <section id="page-daily-haunt" class="page-view hidden" aria-labelledby="daily-haunt-title">
+            <div class="card page-card daily-haunt-page-card">
+                <div class="page-card-header">
+                    <div class="daily-haunt-title-group">
+                        <span class="badge badge-tier">Global 24h Challenge</span>
+                        <h2 id="daily-haunt-title">🕯️ The Daily Haunt</h2>
+                        <p class="page-subtitle">A synchronized, deterministic trivia challenge identical for all hunters across the globe. Resets at midnight UTC.</p>
+                    </div>
+                    <div class="daily-countdown-wrap">
+                        <span class="countdown-label">Time Remaining:</span>
+                        <span id="page-daily-countdown" class="badge badge-warning">Resets 23:59 UTC</span>
+                    </div>
+                </div>
+
+                <div class="daily-conditions-grid">
+                    <div class="condition-box">
+                        <span class="condition-icon">📜</span>
+                        <strong>10 Curated Questions</strong>
+                        <p>Balanced across all 6 lore categories, seeded identically worldwide.</p>
+                    </div>
+                    <div class="condition-box">
+                        <span class="condition-icon">⚖️</span>
+                        <strong>Strict Fair Play</strong>
+                        <p>Booster items and AI hints are disabled. Pure knowledge and instinct only.</p>
+                    </div>
+                    <div class="condition-box">
+                        <span class="condition-icon">⏱️</span>
+                        <strong>Speed Multiplier</strong>
+                        <p>Monotonic server timing: faster answers yield maximum crypt points.</p>
+                    </div>
+                    <div class="condition-box">
+                        <span class="condition-icon">💎</span>
+                        <strong>Daily Rewards</strong>
+                        <p>Conquer the haunt to earn 💎 30 Diamonds and the Daily Haunt Victor badge.</p>
+                    </div>
+                </div>
+
+                <div class="daily-haunt-actions">
+                    <button type="button" id="btn-start-daily-haunt-page" class="btn-cta btn-lg">
+                        <span>ENTER TODAY'S DAILY HAUNT</span> ➔
+                    </button>
+                    <a href="/leaderboard" class="btn-secondary" data-route="/leaderboard">View Daily Leaderboard 🏆</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: DUEL INVITATION / CHALLENGE ACCEPTANCE -->
+        <section id="page-duel-invite" class="page-view hidden" aria-labelledby="duel-invite-title">
+            <div class="card page-card duel-invite-page-card">
+                <div class="page-card-header">
+                    <span class="badge badge-warning">⚔️ Duel Challenge Received</span>
+                    <h2 id="duel-invite-title">Haunted Duel Invitation</h2>
+                    <p class="page-subtitle">A rival spirit has cast down the gauntlet in the ancient crypt!</p>
+                </div>
+
+                <div class="duel-invite-challenger-card" id="duel-invite-challenger-card">
+                    <div class="challenger-avatar-wrap">
+                        <img id="invite-challenger-avatar" src="/static/avatars/pumpkin_hunter.svg" alt="Challenger Avatar" width="64" height="64">
+                    </div>
+                    <div class="challenger-info">
+                        <h3 id="invite-challenger-name">Rival Hunter</h3>
+                        <p>Challenge Code: <strong id="invite-duel-code-display">SPOOK-XXXX</strong></p>
+                        <div class="invite-meta-pills">
+                            <span class="badge" id="invite-diff-badge">Medium</span>
+                            <span class="badge badge-mode" id="invite-qcount-badge">5 Questions</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="duel-traps-preview">
+                    <h4>Active Cursed Traps in this Match:</h4>
+                    <div id="invite-traps-list" class="traps-chips-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="duel-invite-actions">
+                    <button type="button" id="btn-accept-duel-invite" class="btn-cta btn-lg">
+                        <span>ACCEPT DUEL & ENTER CRYPT</span> ➔
+                    </button>
+                    <a href="/duels" class="btn-secondary" data-route="/duels">Decline / Return to Duels</a>
                 </div>
             </div>
         </section>
@@ -1505,18 +1591,111 @@
         <source src="/sounds/spooky-master-main.mp3" type="audio/mpeg">
     </audio>
 
+    <!-- Compact Mobile Bottom Navigation Bar (v2.6.0) -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="/" class="mobile-nav-item active" data-route="/" aria-current="page" aria-label="Home">
+            <span class="mobile-nav-icon">🏠</span>
+            <span class="mobile-nav-label">Home</span>
+        </a>
+        <a href="/journey" class="mobile-nav-item" data-route="/journey" aria-label="Journey">
+            <span class="mobile-nav-icon">🗺️</span>
+            <span class="mobile-nav-label">Journey</span>
+        </a>
+        <a href="/duels" class="mobile-nav-item" data-route="/duels" aria-label="Duels">
+            <span class="mobile-nav-icon">⚔️</span>
+            <span class="mobile-nav-label">Duels</span>
+        </a>
+        <a href="/progress" class="mobile-nav-item" data-route="/progress" aria-label="Progress">
+            <span class="mobile-nav-icon">📜</span>
+            <span class="mobile-nav-label">Progress</span>
+        </a>
+        <button type="button" id="btn-mobile-more" class="mobile-nav-item" aria-haspopup="dialog" aria-expanded="false" aria-label="More Navigation Options">
+            <span class="mobile-nav-icon">☰</span>
+            <span class="mobile-nav-label">More</span>
+        </button>
+    </nav>
+
+    <!-- Mobile More Drawer Sheet -->
+    <div id="mobile-more-sheet" class="mobile-more-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="mobile-more-title">
+        <div class="mobile-more-backdrop" id="mobile-more-backdrop"></div>
+        <div class="mobile-more-content">
+            <div class="mobile-more-header">
+                <h3 id="mobile-more-title">🎃 Crypt Navigation</h3>
+                <button type="button" id="btn-close-mobile-more" class="btn-close-sheet" aria-label="Close menu">✕</button>
+            </div>
+            <div class="mobile-more-grid">
+                <a href="/play" class="mobile-more-card" data-route="/play">
+                    <span class="more-card-icon">🎮</span>
+                    <div>
+                        <strong>Play Setup</strong>
+                        <span>Configure quiz match</span>
+                    </div>
+                </a>
+                <a href="/daily-haunt" class="mobile-more-card" data-route="/daily-haunt">
+                    <span class="more-card-icon">🕯️</span>
+                    <div>
+                        <strong>Daily Haunt</strong>
+                        <span>Global 24h challenge</span>
+                    </div>
+                </a>
+                <a href="/leaderboard" class="mobile-more-card" data-route="/leaderboard">
+                    <span class="more-card-icon">🏆</span>
+                    <div>
+                        <strong>Leaderboard</strong>
+                        <span>Hall of Fame rankings</span>
+                    </div>
+                </a>
+                <a href="/pass" class="mobile-more-card" data-route="/pass">
+                    <span class="more-card-icon">🎃</span>
+                    <div>
+                        <strong>Spooky Pass</strong>
+                        <span>Expansions & perks</span>
+                    </div>
+                </a>
+                <a href="/hunters" class="mobile-more-card" data-route="/hunters">
+                    <span class="more-card-icon">🎭</span>
+                    <div>
+                        <strong>Hunter Guises</strong>
+                        <span>Supernatural avatars</span>
+                    </div>
+                </a>
+                <a href="/hunter-studio" class="mobile-more-card" data-route="/hunter-studio">
+                    <span class="more-card-icon">🧪</span>
+                    <div>
+                        <strong>Hunter Studio</strong>
+                        <span>AI Avatar synthesis</span>
+                    </div>
+                </a>
+                <a href="/settings" class="mobile-more-card" data-route="/settings">
+                    <span class="more-card-icon">⚙️</span>
+                    <div>
+                        <strong>Settings</strong>
+                        <span>Audio & accessibility</span>
+                    </div>
+                </a>
+                <a href="/privacy" class="mobile-more-card" data-route="/privacy">
+                    <span class="more-card-icon">📜</span>
+                    <div>
+                        <strong>Privacy</strong>
+                        <span>Data policies</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <footer class="app-footer">
         <div class="footer-links">
             <a href="/privacy">Privacy Policy</a>
             <span>·</span>
             <a href="https://github.com/jamoloto-dev/halloween" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
             <span>·</span>
-            <span>Version 2.5.0</span>
+            <span>Version 2.6.0</span>
         </div>
         <p class="footer-copy">Procedural & Sampled Web Audio API · SQLite WAL Persistence · PWA Offline Capable</p>
     </footer>
 
     <script>window.__HALLOWEEN_CATEGORY_FALLBACK__ = __CATEGORY_DATA__;</script>
-    <script type="module" src="/static/app.js?v=20260923-spooky-master-v2.5.0"></script>
+    <script type="module" src="/static/app.js?v=20260924-spooky-master-v2.6.0"></script>
 </body>
 </html>
