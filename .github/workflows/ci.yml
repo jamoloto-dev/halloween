@@ -77,4 +77,4 @@ jobs:
             fi
             sleep 1
           done
-          pytest tests/test_browser_e2e.py tests/test_monetization_browser_e2e.py -m e2e -v
+          pytest tests/test_browser_e2e.py tests/test_monetization_browser_e2e.py tests/test_routes_e2e.py -m e2e -v

@@ -5,12 +5,39 @@ browser history (Back/Forward), active navigation indicators, mobile navigation,
 and quiz leave confirmation guard.
 """
 
+import os
 import re
+import urllib.error
+import urllib.request
 
 import pytest
+
+# Gracefully skip entire module if playwright is not installed (e.g. in CI unit test runners)
+pytest.importorskip("playwright")
+
 from playwright.sync_api import Page, expect
 
-BASE_URL = "http://localhost:5000"
+BASE_URL = os.getenv("TEST_BASE_URL", "http://localhost:5000")
+
+pytestmark = [pytest.mark.e2e]
+
+
+def _is_server_available(url: str = BASE_URL) -> bool:
+    try:
+        with urllib.request.urlopen(f"{url}/health", timeout=1.0) as res:
+            return bool(res.status == 200)
+    except Exception:
+        return False
+
+
+@pytest.fixture(autouse=True, scope="module")
+def ensure_server_running():
+    """Ensure web server is running on BASE_URL before running any E2E tests."""
+    if not _is_server_available(BASE_URL):
+        pytest.skip(
+            f"Live web server at {BASE_URL} is not reachable. "
+            "Start the server with 'python run.py' before running browser E2E tests."
+        )
 
 
 @pytest.fixture(autouse=True)
