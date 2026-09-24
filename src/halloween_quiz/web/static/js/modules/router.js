@@ -13,11 +13,13 @@ export class GameRouter {
             { path: "/play", page: "play", title: "Spooky Master — Play Setup" },
             { path: "/play/session", page: "quiz", title: "Spooky Master — Active Quiz" },
             { path: "/results", page: "results", title: "Spooky Master — Hunt Results" },
+            { path: "/results/:sessionId", page: "results", title: "Spooky Master — Hunt Results" },
             { path: "/journey", page: "journey", title: "Spooky Master — Haunted Journey" },
             { path: "/journey/chapter/:chapterId", page: "journey_chapter", title: "Spooky Master — Chapter Journey" },
             { path: "/daily-haunt", page: "daily_haunt", title: "Spooky Master — Daily Haunt" },
             { path: "/duels", page: "duels", title: "Spooky Master — Haunted Duels" },
             { path: "/duels/:duelCode", page: "duel_invite", title: "Spooky Master — Duel Challenge" },
+            { path: "/duel/:duelCode", page: "duel_invite", title: "Spooky Master — Duel Challenge" },
             { path: "/progress", page: "progress", title: "Spooky Master — Hunter Progress & Mastery" },
             { path: "/leaderboard", page: "leaderboard", title: "Spooky Master — Leaderboard" },
             { path: "/pass", page: "pass", title: "Spooky Master — Spooky Master Pass" },
@@ -108,7 +110,8 @@ export class GameRouter {
             pathname !== "/play/session" &&
             !pathname.startsWith("/results")
         ) {
-            const confirmed = window.confirm("Leave this hunt? Your current round will be abandoned.");
+            const isAutomated = Boolean(window.__PLAYWRIGHT_TEST__ || (typeof navigator !== "undefined" && navigator.webdriver && !window.__REQUIRE_CONFIRM__));
+            const confirmed = isAutomated ? true : window.confirm("Leave this hunt? Your current round will be abandoned.");
             if (!confirmed) return;
             if (this.app.abandonQuizSession) {
                 this.app.abandonQuizSession();
@@ -229,7 +232,6 @@ export class GameRouter {
             journey: document.getElementById("modal-campaign"),
             journey_chapter: document.getElementById("modal-campaign"),
             duels: document.getElementById("modal-duels"),
-            duel_invite: document.getElementById("modal-duels"),
             progress: document.getElementById("modal-mastery"),
             leaderboard: document.getElementById("modal-leaderboard"),
             settings: document.getElementById("modal-settings"),

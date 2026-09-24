@@ -33,6 +33,7 @@ import { LeaderboardManager } from "./modules/leaderboard.js";
 import { DuelsManager } from "./modules/duels.js";
 import { SettingsManager } from "./modules/settings.js";
 import { PwaManager } from "./modules/pwa.js";
+import { GameRouter } from "./modules/router.js";
 
 export class HalloweenQuizApp {
     constructor() {
@@ -407,6 +408,7 @@ export class HalloweenQuizApp {
         this.duelsMgr = new DuelsManager(this);
         this.settingsMgr = new SettingsManager(this);
         this.pwaMgr = new PwaManager(this);
+        this.router = new GameRouter(this);
 
         // Initialize Player Profile & Data
         this.profile = this.initPlayerProfile();
@@ -426,6 +428,9 @@ export class HalloweenQuizApp {
         this.purgeObsoleteCaches();
         this.fetchCommunityStats();
         this.loadCampaignData();
+
+        // Initialize Client-side Router
+        this.router.init();
     }
 
     // ==========================================
@@ -481,19 +486,41 @@ export class HalloweenQuizApp {
     }
 
     closeAllModals() {
-        this.closeLeaderboard();
-        this.closeSettings();
-        this.closeMastery();
-        this.closeAvatarPicker();
-        this.closeOnboarding();
-        this.closeCampaign();
-        this.closeStory();
-        this.closeShop();
-        this.closeDuels();
-        this.closePremiumModal();
+        const modals = [
+            this.dom.modalLeaderboard,
+            this.dom.modalSettings,
+            this.dom.modalMastery,
+            this.dom.modalAvatarPicker,
+            this.dom.modalOnboarding,
+            this.dom.modalCampaign,
+            this.dom.modalChapterStory,
+            this.dom.modalShop,
+            this.dom.modalDuels,
+            this.dom.modalPremium,
+        ];
+        modals.forEach((m) => {
+            if (m) {
+                m.classList.add("hidden");
+                m.classList.remove("active");
+            }
+        });
+        const pageDaily = document.getElementById("page-daily-haunt");
+        if (pageDaily) {
+            pageDaily.classList.add("hidden");
+            pageDaily.classList.remove("active");
+        }
+        const pageDuel = document.getElementById("page-duel-invite");
+        if (pageDuel) {
+            pageDuel.classList.add("hidden");
+            pageDuel.classList.remove("active");
+        }
     }
 
     openHome() {
+        if (this.router && window.location.pathname !== "/") {
+            this.router.navigate("/");
+            return;
+        }
         this.closeAllModals();
         this.showScreen("start");
         this.sound.startBackgroundAmbience();
@@ -511,13 +538,180 @@ export class HalloweenQuizApp {
                 screen.classList.add("hidden");
             }
         });
+
+        if (this.router) {
+            if (screenName === "quiz" && window.location.pathname !== "/play/session") {
+                this.router.navigate("/play/session");
+            } else if (screenName === "gameover" && !window.location.pathname.startsWith("/results")) {
+                this.router.navigate(this.sessionId ? `/results/${this.sessionId}` : "/results");
+            } else if (screenName === "start" && window.location.pathname !== "/" && window.location.pathname !== "/play") {
+                this.router.navigate("/");
+            }
+        }
+
         window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    isQuizActive() {
+        return Boolean(this.sessionId && !this.isGameOver && (this.currentQuestion || this.quizMgr?.currentQuestion));
+    }
+
+    abandonQuizSession() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+        this.sessionId = null;
+        this.currentQuestion = null;
+        this.isGameOver = true;
+        this.isAnswerPending = false;
+        this.isFeedbackActive = false;
+    }
+
+    // ==========================================
+    // ROUTE LIFECYCLE BOOTSTRAP METHODS (v2.6.0)
+    // ==========================================
+    bootstrapHome() {
+        const isOnboardingOpen = this.dom.modalOnboarding && !this.dom.modalOnboarding.classList.contains("hidden");
+        this.closeAllModals();
+        if (isOnboardingOpen) {
+            this.dom.modalOnboarding.classList.remove("hidden");
+        }
+        this.showScreen("start");
+        this.sound.startBackgroundAmbience();
+        this.renderLobbyExperience();
+    }
+
+    bootstrapPlay() {
+        this.closeAllModals();
+        this.showScreen("start");
+        this.applyProfileToUi();
+        this.dom.playerName?.focus();
+    }
+
+    bootstrapQuiz() {
+        if (!this.isQuizActive()) {
+            this.showScreen("start");
+        } else {
+            this.showScreen("quiz");
+        }
+    }
+
+    bootstrapResults(sessionId = null) {
+        this.showScreen("gameover");
+    }
+
+    bootstrapJourney() {
+        this.closeAllModals();
+        this.campaignMgr.openCampaign();
+    }
+
+    bootstrapJourneyChapter(chapterId) {
+        this.closeAllModals();
+        this.campaignMgr.openCampaign();
+        if (this.campaignChapters && this.campaignChapters.length > 0) {
+            const ch = this.campaignChapters.find(
+                (c) => c.id === chapterId || c.id === `ch${chapterId}` || String(c.chapter_number) === String(chapterId).replace(/\D/g, "")
+            );
+            if (ch) {
+                this.campaignMgr.activeChapterId = ch.id;
+                this.activeChapterId = ch.id;
+                this.campaignMgr.renderChapterTabs();
+                this.campaignMgr.renderChapterStages(ch.id);
+            }
+        }
+    }
+
+    bootstrapDailyHaunt() {
+        this.closeAllModals();
+        const pageDaily = document.getElementById("page-daily-haunt");
+        if (pageDaily) {
+            pageDaily.classList.remove("hidden");
+            pageDaily.classList.add("active");
+        }
+        this.initDailyCountdown();
+    }
+
+    bootstrapDuels() {
+        this.closeAllModals();
+        this.duelsMgr.openDuels();
+    }
+
+    async bootstrapDuelInvite(duelCode) {
+        this.closeAllModals();
+        const pageDuel = document.getElementById("page-duel-invite");
+        if (pageDuel) {
+            pageDuel.classList.remove("hidden");
+            pageDuel.classList.add("active");
+        }
+        if (duelCode) {
+            const displayEl = document.getElementById("invite-duel-code-display");
+            if (displayEl) displayEl.textContent = duelCode;
+            try {
+                const res = await fetch(`/api/duels/${encodeURIComponent(duelCode)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const nameEl = document.getElementById("invite-challenger-name");
+                    const avEl = document.getElementById("invite-challenger-avatar");
+                    const diffEl = document.getElementById("invite-diff-badge");
+                    const qcountEl = document.getElementById("invite-qcount-badge");
+                    const trapsEl = document.getElementById("invite-traps-list");
+                    if (nameEl) nameEl.textContent = data.creator_name || "Rival Hunter";
+                    if (avEl) avEl.src = `/static/avatars/${data.creator_avatar || "pumpkin_hunter"}.svg`;
+                    if (diffEl) diffEl.textContent = (data.difficulty || "medium").toUpperCase();
+                    if (qcountEl) qcountEl.textContent = `${data.num_questions || 5} Questions`;
+                    if (trapsEl && data.traps) {
+                        trapsEl.innerHTML = data.traps.map((t) => `<span class="badge badge-warning">${t}</span>`).join(" ");
+                    }
+                }
+            } catch (err) {
+                console.warn("Duel invite fetch warning:", err);
+            }
+        }
+    }
+
+    bootstrapProgress() {
+        this.closeAllModals();
+        if (this.dom.modalMastery) {
+            this.dom.modalMastery.classList.remove("hidden");
+            this.dom.modalMastery.classList.add("active");
+        }
+        this.renderMasteryModal();
+    }
+
+    bootstrapLeaderboard() {
+        this.closeAllModals();
+        this.leaderboardMgr.openLeaderboard();
+    }
+
+    bootstrapPass() {
+        this.closeAllModals();
+        if (this.dom.modalPremium) {
+            this.dom.modalPremium.classList.remove("hidden");
+            this.dom.modalPremium.classList.add("active");
+        }
+        this.syncEntitlementsUi();
+    }
+
+    bootstrapSettings() {
+        this.closeAllModals();
+        this.settingsMgr.openSettings();
+    }
+
+    bootstrapHunters() {
+        this.closeAllModals();
+        this.openAvatarPicker("avatars");
+    }
+
+    bootstrapHunterStudio() {
+        this.closeAllModals();
+        this.openAvatarPicker("studio");
     }
 
     async purgeObsoleteCaches() {
         if ("caches" in window) {
             try {
-                const currentCache = "spooky-master-v2.5.0";
+                const currentCache = "spooky-master-v2.6.0";
                 const keys = await caches.keys();
                 for (const key of keys) {
                     if (key !== currentCache) {
@@ -1062,12 +1256,27 @@ export class HalloweenQuizApp {
     // ==========================================
     // HUNTER STUDIO & AVATAR PICKER
     // ==========================================
-    openAvatarPicker() {
+    openAvatarPicker(tabName = null) {
+        if (this.router) {
+            if (tabName === "studio" && window.location.pathname !== "/hunter-studio") {
+                this.router.navigate("/hunter-studio");
+                return;
+            } else if (tabName === "avatars" && window.location.pathname !== "/hunters") {
+                this.router.navigate("/hunters");
+                return;
+            }
+        }
         this.hunterStudioMgr.openAvatarPicker();
+        if (tabName) {
+            this.hunterStudioMgr.switchAvatarTab(tabName);
+        }
     }
 
     closeAvatarPicker() {
         this.hunterStudioMgr.closeAvatarPicker();
+        if (this.router && (window.location.pathname === "/hunters" || window.location.pathname === "/hunter-studio")) {
+            this.router.navigate("/");
+        }
     }
 
     switchAvatarTab(tabName) {
@@ -1394,11 +1603,18 @@ export class HalloweenQuizApp {
     // CAMPAIGN (THE HAUNTED JOURNEY)
     // ==========================================
     openCampaign() {
+        if (this.router && window.location.pathname !== "/journey" && !window.location.pathname.startsWith("/journey/chapter")) {
+            this.router.navigate("/journey");
+            return;
+        }
         this.campaignMgr.openCampaign();
     }
 
     closeCampaign() {
         this.campaignMgr.closeCampaign();
+        if (this.router && (window.location.pathname === "/journey" || window.location.pathname.startsWith("/journey/chapter"))) {
+            this.router.navigate("/");
+        }
     }
 
     loadCampaignData() {
@@ -1516,11 +1732,18 @@ export class HalloweenQuizApp {
     // HAUNTED DUELS (ASYNC PVP)
     // ==========================================
     openDuels() {
+        if (this.router && window.location.pathname !== "/duels" && !window.location.pathname.startsWith("/duels/")) {
+            this.router.navigate("/duels");
+            return;
+        }
         this.duelsMgr.openDuels();
     }
 
     closeDuels() {
         this.duelsMgr.closeDuels();
+        if (this.router && (window.location.pathname === "/duels" || window.location.pathname.startsWith("/duels/"))) {
+            this.router.navigate("/");
+        }
     }
 
     async handleCreateDuel() {
@@ -1619,11 +1842,18 @@ export class HalloweenQuizApp {
     // LEADERBOARD
     // ==========================================
     openLeaderboard() {
+        if (this.router && window.location.pathname !== "/leaderboard") {
+            this.router.navigate("/leaderboard");
+            return;
+        }
         this.leaderboardMgr.openLeaderboard();
     }
 
     closeLeaderboard() {
         this.leaderboardMgr.closeLeaderboard();
+        if (this.router && window.location.pathname === "/leaderboard") {
+            this.router.navigate("/");
+        }
     }
 
     fetchLeaderboard(difficulty = null, mode = null) {
@@ -1638,11 +1868,18 @@ export class HalloweenQuizApp {
     // SETTINGS & CUSTOMIZATION
     // ==========================================
     openSettings() {
+        if (this.router && window.location.pathname !== "/settings") {
+            this.router.navigate("/settings");
+            return;
+        }
         this.settingsMgr.openSettings();
     }
 
     closeSettings() {
         this.settingsMgr.closeSettings();
+        if (this.router && window.location.pathname === "/settings") {
+            this.router.navigate("/");
+        }
     }
 
     syncSettingsUi() {
@@ -1710,6 +1947,10 @@ export class HalloweenQuizApp {
     // MASTERY & LOCAL AI INSIGHTS
     // ==========================================
     openMastery() {
+        if (this.router && window.location.pathname !== "/progress") {
+            this.router.navigate("/progress");
+            return;
+        }
         this.closeAllModals();
         if (this.dom.modalMastery) this.dom.modalMastery.classList.remove("hidden");
         this.renderMasteryModal();
@@ -1717,6 +1958,9 @@ export class HalloweenQuizApp {
 
     closeMastery() {
         if (this.dom.modalMastery) this.dom.modalMastery.classList.add("hidden");
+        if (this.router && window.location.pathname === "/progress") {
+            this.router.navigate("/");
+        }
     }
 
     renderMasteryModal() {
@@ -1919,6 +2163,10 @@ export class HalloweenQuizApp {
     }
 
     openPremiumModal() {
+        if (this.router && window.location.pathname !== "/pass") {
+            this.router.navigate("/pass");
+            return;
+        }
         this.closeAllModals();
         if (this.dom.modalPremium) this.dom.modalPremium.classList.remove("hidden");
         this.syncEntitlementsUi();
@@ -1926,6 +2174,9 @@ export class HalloweenQuizApp {
 
     closePremiumModal() {
         if (this.dom.modalPremium) this.dom.modalPremium.classList.add("hidden");
+        if (this.router && window.location.pathname === "/pass") {
+            this.router.navigate("/");
+        }
     }
 
     async handlePurchasePass() {
@@ -2422,6 +2673,48 @@ export class HalloweenQuizApp {
         });
         this.dom.btnAcceptAndPlayDuel?.addEventListener("click", () => {
             this.handleAcceptAndPlayDuel();
+        });
+
+        // Routed Page Specific Actions (v2.6.0)
+        const btnDailyPage = document.getElementById("btn-start-daily-haunt-page");
+        btnDailyPage?.addEventListener("click", () => {
+            this.startGameWithParams({ mode: "daily", num_questions: 10 });
+        });
+
+        const btnAcceptInvite = document.getElementById("btn-accept-duel-invite");
+        btnAcceptInvite?.addEventListener("click", () => {
+            const duelCodeDisplay = document.getElementById("invite-duel-code-display");
+            const code = duelCodeDisplay?.textContent?.trim();
+            if (code) {
+                this.duelsMgr.joinHauntedDuel(code);
+            }
+        });
+
+        // Mobile More Sheet Drawer
+        const btnMobileMore = document.getElementById("btn-mobile-more");
+        const btnCloseMobileMore = document.getElementById("btn-close-mobile-more");
+        const mobileMoreBackdrop = document.getElementById("mobile-more-backdrop");
+        const mobileMoreSheet = document.getElementById("mobile-more-sheet");
+
+        const toggleMobileMore = (open) => {
+            if (!mobileMoreSheet) return;
+            if (open) {
+                mobileMoreSheet.classList.remove("hidden");
+                btnMobileMore?.setAttribute("aria-expanded", "true");
+            } else {
+                mobileMoreSheet.classList.add("hidden");
+                btnMobileMore?.setAttribute("aria-expanded", "false");
+            }
+        };
+
+        btnMobileMore?.addEventListener("click", () => {
+            const isHidden = mobileMoreSheet?.classList.contains("hidden");
+            toggleMobileMore(isHidden);
+        });
+        btnCloseMobileMore?.addEventListener("click", () => toggleMobileMore(false));
+        mobileMoreBackdrop?.addEventListener("click", () => toggleMobileMore(false));
+        mobileMoreSheet?.querySelectorAll(".mobile-more-card").forEach((link) => {
+            link.addEventListener("click", () => toggleMobileMore(false));
         });
 
         // Global Keyboard Shortcuts

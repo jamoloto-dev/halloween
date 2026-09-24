@@ -119,8 +119,9 @@ export class QuizLifecycleManager {
             }
 
             this.sound.play("quiz_start");
-            this.app.showScreen("quiz");
+            this.app.isGameOver = false;
             this.renderQuestion(data.first_question);
+            this.app.showScreen("quiz");
         } catch (err) {
             console.error("Error starting game:", err);
             this.sound.stopBackgroundAmbience(true);
@@ -183,8 +184,9 @@ export class QuizLifecycleManager {
             }
 
             this.sound.play("quiz_start");
-            this.app.showScreen("quiz");
+            this.app.isGameOver = false;
             this.renderQuestion(data.first_question);
+            this.app.showScreen("quiz");
         } catch (err) {
             console.error("Start game with params error:", err);
             this.app.showNotice(err.message || "Failed to start round. Please try again.");

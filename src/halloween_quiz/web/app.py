@@ -252,6 +252,7 @@ def create_app() -> FastAPI:
         return render_game_page(request, "duels", "Spooky Master — Haunted Duels")
 
     @app.get("/duels/{code}", response_class=HTMLResponse)
+    @app.get("/duel/{code}", response_class=HTMLResponse)
     async def duel_invite_page(request: Request, code: str):
         return render_game_page(
             request, "duel_invite", "Spooky Master — Duel Challenge", {"duelCode": code}

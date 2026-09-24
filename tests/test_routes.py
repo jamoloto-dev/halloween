@@ -29,6 +29,7 @@ def client(tmp_path, monkeypatch):
         ("/daily-haunt", "Daily Haunt"),
         ("/duels", "Haunted Duels"),
         ("/duels/SPOOK-TEST99", "Duel Challenge"),
+        ("/duel/SPOOK-TEST99", "Duel Challenge"),
         ("/progress", "Progress & Mastery"),
         ("/leaderboard", "Leaderboard"),
         ("/pass", "Spooky Master Pass"),

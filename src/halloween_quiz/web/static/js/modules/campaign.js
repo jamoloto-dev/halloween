@@ -94,6 +94,9 @@ export class CampaignManager {
                 }
                 this.activeChapterId = ch.id;
                 this.app.activeChapterId = ch.id;
+                if (this.app.router) {
+                    this.app.router.navigate(`/journey/chapter/${ch.id}`);
+                }
                 this.renderChapterTabs();
                 this.renderChapterStages(ch.id);
             });
