@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -173,19 +174,112 @@ def create_app() -> FastAPI:
     # Include REST API routes
     app.include_router(router)
 
-    # Root route: Serve modern SPA
+    # Helper for rendering multi-page game experiences with shared shell and route state
+    def render_game_page(
+        request: Request,
+        page_name: str,
+        page_title: str,
+        page_params: dict | None = None,
+    ) -> HTMLResponse:
+        index_file = templates_dir / "index.html"
+        if not index_file.exists():
+            return HTMLResponse("<h1>🎃 Halloween Quiz API Running</h1>")
+
+        category_json = json.dumps(request.app.state.question_bank.get_categories()).replace(
+            "</", "<\\/"
+        )
+        params_json = json.dumps(page_params or {}).replace("</", "<\\/")
+        page = index_file.read_text(encoding="utf-8")
+
+        # Set title
+        page = re.sub(r"<title>.*?</title>", f"<title>{page_title}</title>", page)
+        # Inject category data
+        page = page.replace("__CATEGORY_DATA__", category_json)
+        # Inject server route state script
+        server_route_script = (
+            f'<script id="server-route-data">\n'
+            f'window.__INITIAL_ROUTE__ = "{request.url.path}";\n'
+            f'window.__INITIAL_PAGE__ = "{page_name}";\n'
+            f'window.__PAGE_PARAMS__ = {params_json};\n'
+            f'</script>'
+        )
+        if "<!-- SERVER_ROUTE_DATA -->" in page:
+            page = page.replace("<!-- SERVER_ROUTE_DATA -->", server_route_script)
+        else:
+            page = page.replace("</head>", f"{server_route_script}\n</head>")
+
+        return HTMLResponse(page, headers={"Cache-Control": "no-store"})
+
+    # Multi-page Game Routes (Spooky Master v2.6.0)
     @app.get("/", response_class=HTMLResponse)
     async def index(request: Request):
-        index_file = templates_dir / "index.html"
-        if index_file.exists():
-            category_json = json.dumps(request.app.state.question_bank.get_categories()).replace(
-                "</", "<\\/"
-            )
-            page = index_file.read_text(encoding="utf-8").replace(
-                "__CATEGORY_DATA__", category_json
-            )
-            return HTMLResponse(page, headers={"Cache-Control": "no-store"})
-        return HTMLResponse("<h1>🎃 Halloween Quiz API Running</h1>")
+        return render_game_page(request, "home", "Spooky Master 🎃 Halloween Quiz Challenge")
+
+    @app.get("/play", response_class=HTMLResponse)
+    async def play_setup(request: Request):
+        return render_game_page(request, "play", "Spooky Master — Play Setup")
+
+    @app.get("/play/session", response_class=HTMLResponse)
+    async def play_session(request: Request):
+        return render_game_page(request, "quiz", "Spooky Master — Active Quiz")
+
+    @app.get("/results", response_class=HTMLResponse)
+    async def results_page(request: Request):
+        return render_game_page(request, "results", "Spooky Master — Hunt Results")
+
+    @app.get("/results/{session_id}", response_class=HTMLResponse)
+    async def results_session(request: Request, session_id: str):
+        return render_game_page(
+            request, "results", "Spooky Master — Hunt Results", {"sessionId": session_id}
+        )
+
+    @app.get("/journey", response_class=HTMLResponse)
+    async def journey_page(request: Request):
+        return render_game_page(request, "journey", "Spooky Master — Haunted Journey")
+
+    @app.get("/journey/chapter/{chapter_id}", response_class=HTMLResponse)
+    async def journey_chapter_page(request: Request, chapter_id: str):
+        return render_game_page(
+            request, "journey_chapter", "Spooky Master — Chapter Journey", {"chapterId": chapter_id}
+        )
+
+    @app.get("/daily-haunt", response_class=HTMLResponse)
+    async def daily_haunt_page(request: Request):
+        return render_game_page(request, "daily_haunt", "Spooky Master — Daily Haunt")
+
+    @app.get("/duels", response_class=HTMLResponse)
+    async def duels_page(request: Request):
+        return render_game_page(request, "duels", "Spooky Master — Haunted Duels")
+
+    @app.get("/duels/{code}", response_class=HTMLResponse)
+    async def duel_invite_page(request: Request, code: str):
+        return render_game_page(
+            request, "duel_invite", "Spooky Master — Duel Challenge", {"duelCode": code}
+        )
+
+    @app.get("/progress", response_class=HTMLResponse)
+    async def progress_page(request: Request):
+        return render_game_page(request, "progress", "Spooky Master — Hunter Progress & Mastery")
+
+    @app.get("/leaderboard", response_class=HTMLResponse)
+    async def leaderboard_page(request: Request):
+        return render_game_page(request, "leaderboard", "Spooky Master — Leaderboard")
+
+    @app.get("/pass", response_class=HTMLResponse)
+    async def pass_page(request: Request):
+        return render_game_page(request, "pass", "Spooky Master — Spooky Master Pass")
+
+    @app.get("/settings", response_class=HTMLResponse)
+    async def settings_page(request: Request):
+        return render_game_page(request, "settings", "Spooky Master — Settings")
+
+    @app.get("/hunters", response_class=HTMLResponse)
+    async def hunters_page(request: Request):
+        return render_game_page(request, "hunters", "Spooky Master — Hunter Guises")
+
+    @app.get("/hunter-studio", response_class=HTMLResponse)
+    async def hunter_studio_page(request: Request):
+        return render_game_page(request, "hunter_studio", "Spooky Master — Hunter Studio")
 
     return app
 
