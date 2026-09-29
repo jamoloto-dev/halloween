@@ -34,6 +34,12 @@ import { DuelsManager } from "./modules/duels.js";
 import { SettingsManager } from "./modules/settings.js";
 import { PwaManager } from "./modules/pwa.js";
 import { GameRouter } from "./modules/router.js";
+import { ApiClient } from "./modules/api.js";
+import { LobbyManager } from "./modules/lobby.js";
+import { OnboardingManager } from "./modules/onboarding.js";
+import { ThemesManager } from "./modules/themes.js";
+import { ShopManager } from "./modules/shop.js";
+import { EntitlementsManager } from "./modules/entitlements.js";
 
 export class HalloweenQuizApp {
     constructor() {
@@ -399,6 +405,7 @@ export class HalloweenQuizApp {
         };
 
         // Subsystem Managers
+        this.api = new ApiClient(() => this.profile?.player_id || "guest_default");
         this.campaignMgr = new CampaignManager(this);
         this.hintsMgr = new HintsManager(this);
         this.hunterStudioMgr = new HunterStudioManager(this);
@@ -409,6 +416,11 @@ export class HalloweenQuizApp {
         this.settingsMgr = new SettingsManager(this);
         this.pwaMgr = new PwaManager(this);
         this.router = new GameRouter(this);
+        this.lobbyMgr = new LobbyManager(this);
+        this.onboardingMgr = new OnboardingManager(this);
+        this.themesMgr = new ThemesManager(this);
+        this.shopMgr = new ShopManager(this);
+        this.entitlementsMgr = new EntitlementsManager(this);
 
         // Initialize Player Profile & Data
         this.profile = this.initPlayerProfile();
@@ -738,91 +750,23 @@ export class HalloweenQuizApp {
     }
 
     getDiamonds() {
-        return this.profile?.diamonds || 0;
+        return this.shopMgr.getDiamonds();
     }
 
     addDiamonds(amount, reason, refId = null, soundKey = null) {
-        if (!this.profile) return false;
-        const pts = Math.max(0, parseInt(amount, 10) || 0);
-        if (pts <= 0) return false;
-        this.profile.diamonds = (this.profile.diamonds || 0) + pts;
-        if (!this.profile.diamond_ledger) this.profile.diamond_ledger = [];
-        this.profile.diamond_ledger.unshift({
-            timestamp: new Date().toISOString(),
-            amount: pts,
-            reason: reason || "Bounty Claimed",
-            refId: refId || null,
-        });
-        if (this.profile.diamond_ledger.length > 50) {
-            this.profile.diamond_ledger.pop();
-        }
-        this.saveProfile();
-        this.updateDiamondDisplays();
-        if (soundKey) this.sound.play(soundKey);
-        this.showToast(`+${pts} 💎`, reason, "💎");
-        return true;
+        return this.shopMgr.addDiamonds(amount, reason, refId, soundKey);
     }
 
     spendDiamonds(amount, reason) {
-        if (!this.profile) return false;
-        const pts = Math.max(0, parseInt(amount, 10) || 0);
-        if (this.getDiamonds() < pts) {
-            this.showToast("Not Enough Diamonds!", "Earn more in the Haunted Journey and Community Haunt.", "💎");
-            return false;
-        }
-        this.profile.diamonds -= pts;
-        if (!this.profile.diamond_ledger) this.profile.diamond_ledger = [];
-        this.profile.diamond_ledger.unshift({
-            timestamp: new Date().toISOString(),
-            amount: -pts,
-            reason: reason || "Market Purchase",
-            refId: null,
-        });
-        if (this.profile.diamond_ledger.length > 50) {
-            this.profile.diamond_ledger.pop();
-        }
-        this.saveProfile();
-        this.updateDiamondDisplays();
-        return true;
+        return this.shopMgr.spendDiamonds(amount, reason);
     }
 
     updateDiamondDisplays() {
-        const balance = this.getDiamonds();
-        if (this.dom.headerDiamondCount) this.dom.headerDiamondCount.textContent = balance;
-        if (this.dom.shopDiamondBalance) this.dom.shopDiamondBalance.textContent = balance;
-        if (this.dom.lobbyDiamondCount) this.dom.lobbyDiamondCount.textContent = balance;
+        return this.shopMgr.updateDiamondDisplays();
     }
 
     updateBoosterHud() {
-        if (!this.profile) return;
-        const boosters = this.profile.boosters || { hint: 0, time_extension: 0, double_points: 0, shield: 0 };
-        if (this.dom.countBoosterHint) this.dom.countBoosterHint.textContent = boosters.hint || 0;
-        if (this.dom.countBoosterTime) this.dom.countBoosterTime.textContent = boosters.time_extension || 0;
-        if (this.dom.countBoosterDouble) this.dom.countBoosterDouble.textContent = boosters.double_points || 0;
-        if (this.dom.countBoosterShield) this.dom.countBoosterShield.textContent = boosters.shield || 0;
-
-        const shopHint = document.getElementById("shop-owned-hint");
-        const shopTime = document.getElementById("shop-owned-time");
-        const shopDouble = document.getElementById("shop-owned-double");
-        const shopShield = document.getElementById("shop-owned-shield");
-        if (shopHint) shopHint.textContent = boosters.hint || 0;
-        if (shopTime) shopTime.textContent = boosters.time_extension || 0;
-        if (shopDouble) shopDouble.textContent = boosters.double_points || 0;
-        if (shopShield) shopShield.textContent = boosters.shield || 0;
-
-        // Sync cosmetic unlock states in market
-        const unlockedCosmetics = this.profile.cosmetics_unlocked || ["pumpkin_hunter", "ghost"];
-        ["vampire", "werewolf", "witch", "zombie"].forEach((id) => {
-            const statusEl = document.getElementById(`status-cosmetic-${id}`);
-            const btnEl = document.querySelector(`.btn-buy-cosmetic[data-id="${id}"]`);
-            if (unlockedCosmetics.includes(id)) {
-                if (statusEl) statusEl.textContent = this.profile.avatar_id === id ? "Equipped" : "Unlocked";
-                if (btnEl) btnEl.textContent = this.profile.avatar_id === id ? "Active" : "Equip";
-            } else {
-                if (statusEl) statusEl.textContent = "Locked";
-                if (btnEl) btnEl.textContent = "Unlock";
-            }
-        });
+        return this.shopMgr.updateBoosterHud();
     }
 
     updateAvatar(avatarId) {
@@ -1028,229 +972,41 @@ export class HalloweenQuizApp {
     }
 
     initDailyCountdown() {
-        const updateCountdown = () => {
-            if (!this.dom.dailyBadgeCountdown) return;
-            const now = new Date();
-            const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
-            const diff = tomorrow - now;
-            const h = Math.floor(diff / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
-            this.dom.dailyBadgeCountdown.textContent = `Resets in ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-        };
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
+        return this.lobbyMgr.initDailyCountdown();
     }
 
     // ==========================================
     // LOBBY EXPERIENCE
     // ==========================================
     renderLobbyExperience() {
-        if (!this.profile) return;
-        const avatar = this.getAvatarById(this.profile.avatar_id);
-
-        if (this.dom.lobbyAvatarImg) {
-            this.dom.lobbyAvatarImg.src = avatar.asset;
-            this.dom.lobbyAvatarImg.alt = avatar.name;
-        }
-        if (this.dom.lobbyPlayerName) {
-            this.dom.lobbyPlayerName.textContent = this.profile.nickname || "Ghost Hunter";
-        }
-        const overallAccuracy = this.profile.stats?.total_answered > 0
-            ? Math.round((this.profile.stats.total_correct / this.profile.stats.total_answered) * 100)
-            : 0;
-        const tier = getMasteryTier(overallAccuracy);
-        if (this.dom.lobbyPlayerTier) {
-            this.dom.lobbyPlayerTier.textContent = `${tier.title} ${tier.icon}`;
-        }
-        if (this.dom.lobbyDiamondCount) {
-            this.dom.lobbyDiamondCount.textContent = this.getDiamonds();
-        }
-
-        const progress = this.getCurrentCampaignProgress();
-        if (this.dom.lobbyJourneyHeading) {
-            this.dom.lobbyJourneyHeading.textContent = progress.isNew ? "BEGIN YOUR JOURNEY" : "CONTINUE YOUR JOURNEY";
-        }
-        if (this.dom.btnLobbyContinueJourney) {
-            const btnSpan = this.dom.btnLobbyContinueJourney.querySelector("span");
-            if (btnSpan) {
-                btnSpan.textContent = progress.isNew ? "🗺️ Begin Journey" : "🗺️ Continue Journey";
-            }
-        }
-        if (progress.chapter) {
-            if (this.dom.lobbyJourneyIcon) {
-                this.dom.lobbyJourneyIcon.textContent = progress.chapter.icon || "🏚️";
-            }
-            if (this.dom.lobbyJourneyChapter) {
-                this.dom.lobbyJourneyChapter.textContent = `Chapter ${progress.chapter.chapter_number}: ${progress.chapter.title}`;
-            }
-        }
-        if (progress.activeStage) {
-            if (this.dom.lobbyJourneyStage) {
-                this.dom.lobbyJourneyStage.textContent = `Stage ${progress.activeStage.stage_number} — ${progress.activeStage.title}`;
-            }
-        }
-        if (this.dom.lobbyJourneyBarFill) {
-            this.dom.lobbyJourneyBarFill.style.width = `${progress.percent}%`;
-        }
-        if (this.dom.lobbyJourneyProgressText) {
-            this.dom.lobbyJourneyProgressText.textContent = `${progress.completedInChapter} / ${progress.totalInChapter} Stages Cleared (${progress.percent}%)`;
-        }
-
-        if (this.dom.lobbyAvatarCarousel) {
-            this.dom.lobbyAvatarCarousel.innerHTML = "";
-            const baseAvatars = PREDEFINED_AVATARS.filter((av) => !av.is_premium);
-            baseAvatars.forEach((av, idx) => {
-                const isSelected = av.id === this.profile.avatar_id;
-                const btn = document.createElement("button");
-                btn.type = "button";
-                btn.className = `lobby-avatar-dock-orb ${isSelected ? "selected" : ""}`;
-                btn.setAttribute("role", "radio");
-                btn.setAttribute("aria-checked", isSelected ? "true" : "false");
-                btn.setAttribute("aria-label", `Switch guise to ${av.name}`);
-                btn.title = `${av.name} (${av.desc})`;
-                btn.style.animationDelay = `${(idx * 0.18).toFixed(2)}s`;
-                btn.innerHTML = `
-                    <img src="${av.asset}" alt="${av.name}" width="34" height="34" class="dock-avatar-img">
-                    <span class="dock-avatar-label">${av.name.split(" ")[0]}</span>
-                `;
-                btn.addEventListener("click", () => {
-                    this.updateAvatar(av.id);
-                });
-                this.dom.lobbyAvatarCarousel.appendChild(btn);
-            });
-        }
-
-        const completedStages = (this.profile && this.profile.campaign && this.profile.campaign.completed_stages) || {};
-        this.renderDynamicStageMap(progress.stages, progress.activeStage?.id, completedStages);
-
-        if (this.dom.lobbyStatGames) {
-            this.dom.lobbyStatGames.textContent = this.profile.stats?.games_played || 0;
-        }
-        if (this.dom.lobbyStatStreak) {
-            this.dom.lobbyStatStreak.textContent = this.profile.stats?.best_streak || 0;
-        }
-        const unlockedBadges = Object.keys(this.profile.achievements || {}).filter((k) => Boolean(this.profile.achievements[k])).length;
-        if (this.dom.lobbyStatBadges) {
-            this.dom.lobbyStatBadges.textContent = `${unlockedBadges}/8`;
-        }
-        if (this.dom.lobbyStatMastery) {
-            this.dom.lobbyStatMastery.textContent = `${overallAccuracy}%`;
-        }
-
-        if (this.dom.lobbyGuideQuote && !this.guideHintInitialized) {
-            this.guideHintInitialized = true;
-            this.dom.lobbyGuideQuote.textContent = `"${SPOOKY_GUIDE_HINTS[this.guideHintIndex]}"`;
-        }
+        return this.lobbyMgr.renderLobbyExperience();
     }
 
     renderDynamicStageMap(stages, activeStageId, completedStages) {
-        if (!this.dom.lobbyStageProgressionMap) return;
-        this.dom.lobbyStageProgressionMap.innerHTML = "";
-
-        if (!stages || stages.length === 0) return;
-
-        stages.forEach((st) => {
-            const isCompleted = Boolean(completedStages[st.id]);
-            const isActive = st.id === activeStageId;
-            let isUnlocked = true;
-            if (st.unlock_requirement && !completedStages[st.unlock_requirement]) {
-                isUnlocked = false;
-            }
-
-            const stars = (completedStages[st.id] && completedStages[st.id].stars) || 0;
-            const starIcons = stars === 3 ? "⭐⭐⭐" : stars === 2 ? "⭐⭐" : stars === 1 ? "⭐" : "✓";
-
-            const node = document.createElement("button");
-            node.type = "button";
-            node.className = `lobby-stage-node ${isCompleted ? "completed" : ""} ${isActive ? "active-node" : ""} ${!isUnlocked ? "locked-node" : ""}`;
-            node.setAttribute("data-stage-id", st.id);
-            node.setAttribute("aria-label", `Stage ${st.stage_number}: ${st.title}. ${isActive ? "You are here" : isCompleted ? "Completed" : isUnlocked ? "Unlocked" : "Locked"}`);
-
-            let statusBadgeHtml = "";
-            if (isActive) {
-                statusBadgeHtml = `<span class="stage-here-badge"><span class="ghost-float" aria-hidden="true">👻</span> YOU ARE HERE</span>`;
-            } else if (isCompleted) {
-                statusBadgeHtml = `<span class="stage-done-badge">${starIcons}</span>`;
-            } else if (!isUnlocked) {
-                statusBadgeHtml = `<span class="stage-lock-badge">🔒 Locked</span>`;
-            }
-
-            node.innerHTML = `
-                <div class="stage-node-orb" aria-hidden="true">
-                    <span class="stage-orb-glyph">${isCompleted ? "✓" : isUnlocked ? st.stage_number : "🔒"}</span>
-                </div>
-                <div class="stage-node-info">
-                    <div class="stage-node-title-row">
-                        <strong class="stage-node-name">${this.escapeHtml(st.title)}</strong>
-                        ${statusBadgeHtml}
-                    </div>
-                    <span class="stage-node-sub">${st.stage_type === "boss" ? "💀 Boss Trial" : `${st.question_count} Questions · ${st.difficulty}`}</span>
-                </div>
-            `;
-
-            node.addEventListener("click", () => {
-                this.openCampaign();
-                this.selectStage(st);
-            });
-
-            this.dom.lobbyStageProgressionMap.appendChild(node);
-        });
+        return this.lobbyMgr.renderDynamicStageMap(stages, activeStageId, completedStages);
     }
 
     handleLobbyContinueJourney() {
-        const progress = this.getCurrentCampaignProgress();
-        this.openCampaign();
-        if (progress.activeStage) {
-            this.selectStage(progress.activeStage);
-        }
+        return this.lobbyMgr.handleLobbyContinueJourney();
     }
 
     // ==========================================
     // ONBOARDING
     // ==========================================
     openOnboarding() {
-        this.closeAllModals();
-        this.dom.modalOnboarding?.classList.remove("hidden");
+        return this.onboardingMgr.openOnboarding();
     }
 
     closeOnboarding() {
-        this.dom.modalOnboarding?.classList.add("hidden");
+        return this.onboardingMgr.closeOnboarding();
     }
 
     renderOnboardingAvatarGrid() {
-        if (!this.dom.onboardingAvatarGrid) return;
-        this.dom.onboardingAvatarGrid.innerHTML = "";
-        const baseAvatars = PREDEFINED_AVATARS.filter((av) => !av.is_premium);
-        baseAvatars.forEach((avatar) => {
-            const isSelected = avatar.id === this.selectedOnboardingAvatar;
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = `avatar-option-card ${isSelected ? "selected" : ""}`;
-            btn.setAttribute("role", "radio");
-            btn.setAttribute("aria-checked", isSelected ? "true" : "false");
-            btn.innerHTML = `
-                <img src="${avatar.asset}" alt="${avatar.name}" class="avatar-card-img" width="56" height="56">
-                <span class="avatar-card-name">${avatar.name}</span>
-                <small class="avatar-card-desc">${avatar.desc}</small>
-            `;
-            btn.addEventListener("click", () => {
-                this.selectedOnboardingAvatar = avatar.id;
-                this.renderOnboardingAvatarGrid();
-            });
-            this.dom.onboardingAvatarGrid.appendChild(btn);
-        });
+        return this.onboardingMgr.renderOnboardingAvatarGrid();
     }
 
     completeOnboarding() {
-        const name = (this.dom.onboardingHunterName?.value || "Ghost Hunter").trim();
-        this.updateNickname(name || "Ghost Hunter");
-        this.updateAvatar(this.selectedOnboardingAvatar || "pumpkin_hunter");
-        this.profile.onboarding_completed = true;
-        this.saveProfile();
-        this.closeOnboarding();
-        this.sound.play("achievement");
-        this.showToast("Welcome Hunter!", "Your profile is forged. The crypt awaits.", "🎃");
+        return this.onboardingMgr.completeOnboarding();
     }
 
     // ==========================================
@@ -1314,41 +1070,8 @@ export class HalloweenQuizApp {
         return this.hintsMgr.requestSpookyGuideHint(level);
     }
 
-    async cycleSpookyGuideHint() {
-        if (!this.dom.lobbyGuideQuote) return;
-        this.dom.lobbyGuideQuote.classList.add("hint-fade");
-        this.guideHintIndex = (this.guideHintIndex + 1) % SPOOKY_GUIDE_HINTS.length;
-        const localHint = SPOOKY_GUIDE_HINTS[this.guideHintIndex];
-
-        // Immediate responsive update within 50ms
-        setTimeout(() => {
-            if (this.dom.lobbyGuideQuote) {
-                this.dom.lobbyGuideQuote.textContent = `"${localHint}"`;
-                this.dom.lobbyGuideQuote.classList.remove("hint-fade");
-            }
-        }, 50);
-
-        try {
-            const res = await fetch("/api/ai/hint", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Player-ID": this.profile?.player_id || "guest_default",
-                },
-                body: JSON.stringify({
-                    session_id: "lobby",
-                    hint_level: 1,
-                }),
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (data && data.hint && this.dom.lobbyGuideQuote) {
-                    this.dom.lobbyGuideQuote.textContent = `"${data.hint}"`;
-                }
-            }
-        } catch (_) {
-            // Graceful offline fallback already displayed
-        }
+    cycleSpookyGuideHint() {
+        return this.lobbyMgr.cycleSpookyGuideHint();
     }
 
     // ==========================================
@@ -1509,94 +1232,23 @@ export class HalloweenQuizApp {
     // BOOSTERS & SHOP
     // ==========================================
     openShop() {
-        this.closeAllModals();
-        if (this.dom.modalShop) this.dom.modalShop.classList.remove("hidden");
-        this.updateDiamondDisplays();
+        return this.shopMgr.openShop();
     }
 
     closeShop() {
-        if (this.dom.modalShop) this.dom.modalShop.classList.add("hidden");
+        return this.shopMgr.closeShop();
     }
 
     buyBooster(type, price) {
-        if (this.spendDiamonds(price, `Purchased ${type} booster`)) {
-            if (!this.profile.boosters) this.profile.boosters = {};
-            this.profile.boosters[type] = (this.profile.boosters[type] || 0) + 1;
-            this.saveProfile();
-            this.updateBoosterHud();
-            this.sound.play("achievement");
-            this.showToast("Booster Acquired!", `Added 1x ${type}`, "🔮");
-        }
+        return this.shopMgr.buyBooster(type, price);
     }
 
     buyCosmetic(avatarId, price) {
-        if (!this.profile.cosmetics_unlocked) this.profile.cosmetics_unlocked = ["pumpkin_hunter", "ghost"];
-        if (this.profile.cosmetics_unlocked.includes(avatarId)) {
-            this.updateAvatar(avatarId);
-            this.updateBoosterHud();
-            return;
-        }
-        if (this.spendDiamonds(price, `Unlocked ${avatarId} avatar`)) {
-            this.profile.cosmetics_unlocked.push(avatarId);
-            this.updateAvatar(avatarId);
-            this.updateBoosterHud();
-            this.sound.play("achievement");
-            this.showToast("Cosmetic Unlocked!", `Equipped ${avatarId}`, "🎭");
-        }
+        return this.shopMgr.buyCosmetic(avatarId, price);
     }
 
-    async useBooster(type) {
-        if (this.gameMode === "daily" || this.gameMode === "duel") {
-            this.showToast("Boosters Disabled", "Power-ups cannot be used in ranked or duel modes.", "⚠️");
-            return;
-        }
-        const count = (this.profile?.boosters && this.profile.boosters[type]) || 0;
-        if (count <= 0) {
-            this.showToast("No Boosters Left", "Visit The Witch's Market to replenish.", "🔮");
-            return;
-        }
-        if (this.isAnswerPending || this.isFeedbackActive || !this.currentQuestion) return;
-
-        try {
-            const res = await fetch(`/api/quiz/${this.sessionId}/booster`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ booster_type: type }),
-            });
-            if (!res.ok) throw new Error("Booster rejected");
-            const data = await res.json();
-
-            this.profile.boosters[type] -= 1;
-            this.saveProfile();
-            this.updateBoosterHud();
-
-            if (type === "hint" && data.eliminated_options) {
-                const btns = this.dom.optionsGrid.querySelectorAll(".option-btn");
-                btns.forEach((btn) => {
-                    const opt = btn.getAttribute("data-answer");
-                    if (data.eliminated_options.includes(opt)) {
-                        btn.classList.add("option-eliminated");
-                        btn.disabled = true;
-                    }
-                });
-                this.showToast("Ghost Whisper", "Eliminated 2 incorrect options", "💡");
-            } else if (type === "time_extension") {
-                this.timeRemaining += 10;
-                this.timeLimit += 10;
-                this.updateTimerUi();
-                this.showToast("Hourglass Inverted", "+10s countdown extension", "⏳");
-            } else if (type === "double_points") {
-                this.boosterDoublePointsActive = true;
-                this.showToast("Jack-o'-Lantern Surge", "2x points active for this question", "⚡");
-            } else if (type === "shield") {
-                this.boosterShieldActive = true;
-                this.showToast("Spectral Ward", "Streak protected against one wrong answer", "🛡️");
-            }
-
-            this.sound.play("booster");
-        } catch (err) {
-            console.warn("Booster activation error:", err);
-        }
+    useBooster(type) {
+        return this.shopMgr.useBooster(type);
     }
 
     // ==========================================
@@ -1887,56 +1539,15 @@ export class HalloweenQuizApp {
     }
 
     renderThemesGrid() {
-        const grid = this.dom.settingsThemesGrid;
-        if (!grid) return;
-        grid.innerHTML = "";
-        const activeTheme = this.profile?.preferences?.theme || "default";
-
-        AVAILABLE_THEMES.forEach((theme) => {
-            const isCurrent = theme.id === activeTheme;
-            const isLocked = theme.is_premium && !this.isPremium();
-            const card = document.createElement("button");
-            card.type = "button";
-            card.className = `theme-select-card ${isCurrent ? "active" : ""} ${isLocked ? "theme-locked" : ""}`;
-            card.setAttribute("role", "radio");
-            card.setAttribute("aria-checked", isCurrent ? "true" : "false");
-            card.innerHTML = `
-                <div class="theme-card-icon">${theme.icon}</div>
-                <div class="theme-card-body">
-                    <strong class="theme-card-name">${this.escapeHtml(theme.name)}</strong>
-                    <small class="theme-card-desc">${this.escapeHtml(theme.desc)}</small>
-                </div>
-                ${isLocked ? `<span class="theme-lock-badge">🔒 PASS</span>` : ""}
-            `;
-            card.addEventListener("click", () => {
-                if (isLocked) {
-                    this.openPremiumModal();
-                    return;
-                }
-                this.setTheme(theme.id);
-            });
-            grid.appendChild(card);
-        });
+        return this.themesMgr.renderThemesGrid();
     }
 
     setTheme(themeId) {
-        if (!this.profile.preferences) this.profile.preferences = {};
-        this.profile.preferences.theme = themeId;
-        this.saveProfile();
-        this.applyTheme(themeId);
-        this.renderThemesGrid();
-        this.showToast("Atmosphere Set", `Theme changed to ${themeId.replace("_", " ")}`, "🎨");
+        return this.themesMgr.setTheme(themeId);
     }
 
     applyTheme(themeId = null) {
-        const theme = themeId || (this.profile?.preferences?.theme) || "default";
-        if (theme === "default") {
-            document.documentElement.removeAttribute("data-theme");
-            document.body.removeAttribute("data-theme");
-        } else {
-            document.documentElement.setAttribute("data-theme", theme);
-            document.body.setAttribute("data-theme", theme);
-        }
+        return this.themesMgr.applyTheme(themeId);
     }
 
     resetProgressData() {
@@ -2092,138 +1703,39 @@ export class HalloweenQuizApp {
     // MONETIZATION & ENTITLEMENTS
     // ==========================================
     isPremium() {
-        return Boolean(this.entitlements && this.entitlements.is_premium);
+        return this.entitlementsMgr.isPremium();
     }
 
     syncEntitlementsUi() {
-        if (!this.entitlements) return;
-
-        // Dev mode button in premium modal
-        if (this.dom.btnDevTogglePass) {
-            if (this.entitlements.dev_mode_active) {
-                this.dom.btnDevTogglePass.classList.remove("hidden");
-                const isVip = this.entitlements.tier === "haunted_vip";
-                const isPass = this.entitlements.tier === "spooky_pass";
-                this.dom.btnDevTogglePass.textContent = isVip
-                    ? "⚡ Dev Pass: VIP (Click to Reset Free)"
-                    : isPass
-                    ? "⚡ Dev Pass: Pass (Click for VIP)"
-                    : "⚡ Toggle Dev Pass (Test Mode)";
-            } else {
-                this.dom.btnDevTogglePass.classList.add("hidden");
-            }
-        }
-
-        // Top Nav Pass Button
-        if (this.dom.btnPassNav) {
-            if (this.entitlements.tier === "haunted_vip") {
-                this.dom.btnPassNav.textContent = "👑 VIP";
-                this.dom.btnPassNav.classList.add("nav-pass-active");
-            } else if (this.entitlements.is_premium) {
-                this.dom.btnPassNav.textContent = "🎃 Pass Active";
-                this.dom.btnPassNav.classList.add("nav-pass-active");
-            } else {
-                this.dom.btnPassNav.textContent = "🎃 Pass";
-                this.dom.btnPassNav.classList.remove("nav-pass-active");
-            }
-        }
-
-        // Status indicator in modal footer
-        if (this.dom.premiumCurrentTierText) {
-            if (this.entitlements.tier === "haunted_vip") {
-                this.dom.premiumCurrentTierText.textContent = "Haunted VIP Pass 👑";
-            } else if (this.entitlements.is_premium) {
-                this.dom.premiumCurrentTierText.textContent = "Spooky Master Pass 🎃";
-            } else {
-                this.dom.premiumCurrentTierText.textContent = "Free Adventurer";
-            }
-        }
-
-        this.renderThemesGrid();
-        if (this.campaignChapters && this.campaignChapters.length > 0) {
-            this.renderChapterTabs();
-        }
+        return this.entitlementsMgr.syncEntitlementsUi();
     }
 
-    async fetchEntitlements(devTier = null) {
-        try {
-            const playerId = this.profile?.player_id || "player_default";
-            let url = `/api/entitlements?player_id=${encodeURIComponent(playerId)}`;
-            if (devTier) {
-                url += `&tier=${encodeURIComponent(devTier)}`;
-            }
-            const res = await fetch(url);
-            if (res.ok) {
-                this.entitlements = await res.json();
-                this.syncEntitlementsUi();
-            }
-        } catch (err) {
-            console.warn("Failed to fetch entitlements:", err);
-        }
+    fetchEntitlements(devTier = null) {
+        return this.entitlementsMgr.fetchEntitlements(devTier);
     }
 
     openPremiumModal() {
-        if (this.router && window.location.pathname !== "/pass") {
-            this.router.navigate("/pass");
-            return;
-        }
-        this.closeAllModals();
-        if (this.dom.modalPremium) this.dom.modalPremium.classList.remove("hidden");
-        this.syncEntitlementsUi();
+        return this.entitlementsMgr.openPremiumModal();
     }
 
     closePremiumModal() {
-        if (this.dom.modalPremium) this.dom.modalPremium.classList.add("hidden");
-        if (this.router && window.location.pathname === "/pass") {
-            this.router.navigate("/");
-        }
+        return this.entitlementsMgr.closePremiumModal();
     }
 
-    async handlePurchasePass() {
-        if (this.entitlements?.dev_override_active) {
-            await this.fetchEntitlements("spooky_pass");
-            this.showToast("Spooky Pass Activated!", "Test purchase completed in local dev mode.", "🎃");
-        } else {
-            this.showNotice("Payment Gateway Status: Live billing provider is not configured. The $4.99 price is a proposed configuration SKU. In local development, enable DEV_PREMIUM_MODE in .env for instant testing.");
-            this.showToast("Proposed Pricing", "Live checkout is not enabled in this environment.", "💳");
-        }
+    handlePurchasePass() {
+        return this.entitlementsMgr.handlePurchasePass();
     }
 
-    async handleSubscribeVip() {
-        if (this.entitlements?.dev_override_active) {
-            await this.fetchEntitlements("haunted_vip");
-            this.showToast("Haunted VIP Active!", "Test VIP subscription enabled in local dev mode.", "👑");
-        } else {
-            this.showNotice("Subscription Gateway Status: Recurring billing provider is not configured. The $2.99/mo rate is a proposed configuration SKU. In local development, enable DEV_PREMIUM_MODE in .env for instant testing.");
-            this.showToast("Proposed Pricing", "Live recurring billing is not enabled in this environment.", "👑");
-        }
+    handleSubscribeVip() {
+        return this.entitlementsMgr.handleSubscribeVip();
     }
 
-    async handleRestorePurchases() {
-        try {
-            const res = await fetch("/api/entitlements/verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ player_id: this.profile?.player_id || "player_default" }),
-            });
-            if (res.ok) {
-                const data = await res.json();
-                await this.fetchEntitlements();
-                this.showToast("Restore Purchases", data.message, data.restored ? "✨" : "ℹ️");
-            }
-        } catch (e) {
-            this.showToast("Restore Failed", "Could not verify purchase status with the server.", "⚠️");
-        }
+    handleRestorePurchases() {
+        return this.entitlementsMgr.handleRestorePurchases();
     }
 
-    async handleDevTogglePass() {
-        if (!this.entitlements?.dev_mode_active) return;
-        const currentTier = this.entitlements.tier;
-        let nextTier = "spooky_pass";
-        if (currentTier === "spooky_pass") nextTier = "haunted_vip";
-        else if (currentTier === "haunted_vip") nextTier = "free";
-        await this.fetchEntitlements(nextTier);
-        this.showToast("Dev Mode Changed", `Entitlement set to: ${nextTier}`, "⚡");
+    handleDevTogglePass() {
+        return this.entitlementsMgr.handleDevTogglePass();
     }
 
     // ==========================================
@@ -2318,12 +1830,6 @@ export class HalloweenQuizApp {
             }
         });
 
-        // Global Escape closes active modals
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                this.closeAllModals();
-            }
-        });
 
         // UI Sound on buttons
         document.addEventListener("click", (event) => {
@@ -2720,16 +2226,10 @@ export class HalloweenQuizApp {
         // Global Keyboard Shortcuts
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
-                this.closeLeaderboard();
-                this.closeSettings();
-                this.closeMastery();
-                this.closeAvatarPicker();
-                this.closeOnboarding();
-                this.closeCampaign();
-                this.closeStory();
-                this.closeShop();
-                this.closeDuels();
-                this.closePremiumModal();
+                this.closeAllModals();
+                if (this.router && ["/progress", "/pass", "/leaderboard", "/settings", "/journey", "/hunters", "/hunter-studio"].includes(window.location.pathname)) {
+                    this.router.navigate("/");
+                }
                 return;
             }
 

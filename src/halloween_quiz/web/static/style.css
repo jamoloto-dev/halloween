@@ -973,7 +973,7 @@ kbd {
   align-items:center;
   justify-content:center;
   padding:20px;
-  z-index:1250;
+  z-index:1000;
   background:rgba(5,3,10,.76);
   backdrop-filter:blur(14px);
   animation:overlay-in .2s ease;
@@ -4684,6 +4684,9 @@ body[data-page="play"] .crypt-custom-summary {
   }
   body {
     padding-bottom: 72px;
+  }
+  .modal-overlay {
+    padding-bottom: 84px;
   }
   .top-nav .nav-actions .nav-btn:not(#btn-market-open):not(#btn-pwa-install) {
     display: none;
