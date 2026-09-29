@@ -793,8 +793,8 @@ kbd {
   background:rgba(255,138,40,.09);
   box-shadow:0 12px 21px rgba(0,0,0,.18);
 }
-.option-btn:disabled { cursor:default; }
-.opt-badge {
+.opt-badge,
+.option-key {
   width:29px;
   height:29px;
   flex:0 0 29px;
@@ -805,26 +805,24 @@ kbd {
   color:var(--orange-light);
   background:rgba(255,255,255,.05);
   font-family:var(--mono);
-  font-size:11px;
-  font-weight:500;
+  font-size:12px;
+  font-weight:600;
 }
-.opt-text { font-size:13px; font-weight:700; line-height:1.45; }
-.option-btn.correct {
-  border-color:rgba(123,234,134,.7)!important;
-  background:rgba(123,234,134,.13)!important;
-  box-shadow:0 0 0 1px rgba(123,234,134,.1) inset!important;
+.opt-text,
+.option-label {
+  font-size:13.5px;
+  font-weight:600;
+  line-height:1.45;
+  word-break:break-word;
 }
-.option-btn.correct .opt-badge {
+.option-btn.correct .opt-badge,
+.option-btn.correct .option-key {
   border-color:var(--lime)!important;
   background:var(--lime)!important;
   color:#102513!important;
 }
-.option-btn.incorrect {
-  border-color:rgba(255,113,134,.7)!important;
-  background:rgba(255,113,134,.11)!important;
-  color:#ffd6dc!important;
-}
-.option-btn.incorrect .opt-badge {
+.option-btn.incorrect .opt-badge,
+.option-btn.incorrect .option-key {
   border-color:var(--red)!important;
   background:var(--red)!important;
   color:white!important;
@@ -975,7 +973,7 @@ kbd {
   align-items:center;
   justify-content:center;
   padding:20px;
-  z-index:1000;
+  z-index:1250;
   background:rgba(5,3,10,.76);
   backdrop-filter:blur(14px);
   animation:overlay-in .2s ease;
@@ -3976,14 +3974,15 @@ html[data-theme="midnight_graveyard"], body[data-theme="midnight_graveyard"] {
 }
 .avatar-lock-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: 2px;
+  right: 2px;
   background: rgba(255, 138, 40, 0.9);
   color: #000;
   font-size: 0.62rem;
   font-weight: 800;
   padding: 1px 5px;
   border-radius: 6px;
+  z-index: 2;
 }
 .nav-pass-pill {
   background: rgba(255, 138, 40, 0.14) !important;
