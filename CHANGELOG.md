@@ -6,6 +6,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0] - 2026-09-29
+
+### Added
+
+- **Multi-Page Route Architecture**:
+  - FastAPI server endpoints with shared HTML shell and server-injected bootstrap data (`window.__INITIAL_ROUTE__`, `window.__INITIAL_PAGE__`, `window.__PAGE_PARAMS__`).
+  - Client-side router module (`router.js`) managing HTML5 History API (`pushState`, `replaceState`, `popstate`), active link status (`aria-current="page"`), deep links, and direct page refresh.
+  - Dedicated page routes: `/`, `/play`, `/play/session`, `/results`, `/results/{session_id}`, `/journey`, `/journey/chapter/{chapter_id}`, `/daily-haunt`, `/duels`, `/duels/{code}`, `/duel/{code}`, `/progress`, `/leaderboard`, `/pass`, `/settings`, `/hunters`, `/hunter-studio`, `/privacy`.
+  - Active quiz leave guard intercepting internal route navigation and browser window close (`beforeunload`) to prevent loss of in-progress games.
+  - Dual-tier navigation shell: responsive desktop header navigation and compact mobile bottom navigation bar (`.mobile-bottom-nav`) with slide-out drawer sheet (`#mobile-more-sheet`).
+- **Persistent Generated Hunter Avatars**:
+  - Persistent storage mounted on Render disk at `/app/data/generated_avatars` (development: `data/generated_avatars`) managed by `GENERATED_AVATAR_DIR`.
+  - Public static mount at `/generated-avatars/<file>.svg` via `SelfHealingStaticFiles`.
+  - Deterministic self-healing recovery: reconstructs missing avatar SVG assets on demand from SQLite metadata (`ensure_avatar_asset`).
+  - Path traversal security defenses and SVG sanitization.
+
+### Changed
+
+- Updated PWA Service Worker cache name to `spooky-master-v2.6.0` with multi-page route precaching and stale cache eviction.
+- Hardened Render deployment blueprint (`deploy/render.yaml`) with 1 GB persistent disk, WAL mode SQLite paths, and production environment variables.
+- Reconciled question bank documentation: 312 canonical questions, 12 premium expansion questions, and 12 procedural audio riddles (336 total runtime question experiences).
+
+### Fixed
+
+- Generated avatar SVG loss across Docker container redeployments and restarts by decoupling asset storage from ephemeral container filesystem.
+- Stale generated-avatar asset references and missing file 404s via on-demand deterministic reconstruction.
+
+### Verified
+
+- 131 Python tests passed (0 failed, 3 skipped).
+- 53 Playwright browser E2E tests passed (0 failed).
+- Python 3.10, 3.11, and 3.12 CI matrix green.
+- Docker multi-stage build and GHCR container push verified.
+
+---
+
 ## [2.3.0] - 2026-09-14
 
 ### Added

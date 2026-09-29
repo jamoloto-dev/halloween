@@ -8,11 +8,11 @@ This guide explains how to deploy **Spooky Master** (Halloween Quiz) and configu
 
 Spooky Master is a containerized, unified FastAPI application that serves:
 1. **REST API**: Quiz engine, leaderboards, daily haunt, and multiplayer duels under `/api/`.
-2. **SPA Frontend**: Responsive HTML5, CSS3, Web Audio engine, and Witch's Market.
-3. **PWA Runtime**: Progressive Web App manifest (`/manifest.json`), offline service worker (`/sw.js`), and cached game assets.
+2. **Multi-Page Web Frontend**: Responsive HTML5, CSS3, Web Audio engine, and Witch's Market across dedicated routes.
+3. **PWA Runtime**: Progressive Web App manifest (`/manifest.json`), offline service worker (`/sw.js`), and cached game assets (`spooky-master-v2.6.0`).
 
-Because frontend and backend are served from the same origin, API calls are relative (`/api/...`). When configuring a custom domain:
-* **Production Custom Domain**: `https://halloween.jamoloto.dev`
+Because frontend and backend are served from the same origin, API calls are relative (`/api/...`). When configuring hosting and domains:
+* **Configured Target Domain**: `https://halloween.jamoloto.dev` (target production domain; live DNS and SSL verification pending actual deployment)
 * **Default Hosting Domain**: `https://halloween-quiz.onrender.com`
 * **CORS & Domain Environment Variables**: Set `CUSTOM_DOMAIN` and `CORS_ORIGINS` to allow cross-origin requests and PWA sync.
 
@@ -29,9 +29,16 @@ Render is the primary supported platform for Spooky Master, offering native Dock
 4. Render will read [deploy/render.yaml](deploy/render.yaml), which automatically configures:
    - Docker build from `Dockerfile`
    - Healthcheck path: `/health`
-   - Persistent disk (`/app/data`) for score retention
-   - Environment variables (`ENVIRONMENT=production`, `CUSTOM_DOMAIN=halloween.jamoloto.dev`)
-   - Pre-configured custom domain: `halloween.jamoloto.dev`
+   - Persistent disk (`/app/data`) for high scores and persistent generated avatars
+   - Environment variables:
+     - `ENVIRONMENT=production`
+     - `PORT=5000`
+     - `DATABASE_PATH=/app/data/halloween.db`
+     - `DATABASE_URL=sqlite:////app/data/halloween.db`
+     - `GENERATED_AVATAR_DIR=/app/data/generated_avatars`
+     - `CUSTOM_DOMAIN=halloween.jamoloto.dev`
+     - `CORS_ORIGINS=https://halloween.jamoloto.dev,https://halloween-quiz.onrender.com`
+   - Pre-configured target custom domain: `halloween.jamoloto.dev`
 5. Click **Apply**.
 
 *(Alternatively, create a **Web Service** manually: select Docker environment, healthcheck path `/health`, and add a persistent disk mounted at `/app/data`)*.
@@ -141,10 +148,11 @@ Configure these environment variables in your hosting provider's dashboard:
 | Variable | Value for Production | Description |
 | :--- | :--- | :--- |
 | `ENVIRONMENT` | `production` | Enables production security, rate limits, and restricted CORS. |
-| `CUSTOM_DOMAIN` | `halloween.jamoloto.dev` | Primary domain. Automatically adds `https://` and `http://` variants to CORS. |
+| `CUSTOM_DOMAIN` | `halloween.jamoloto.dev` | Target custom domain. Automatically adds `https://` and `http://` variants to CORS. |
 | `CORS_ORIGINS` | `https://halloween.jamoloto.dev,https://halloween-quiz.onrender.com` | Allowed browser origins for API and cross-origin resource sharing. |
 | `PORT` | `5000` | Port for the Uvicorn ASGI server. |
 | `DATABASE_PATH` | `/app/data/halloween.db` | Path to persistent SQLite database file on mounted disk. |
+| `DATABASE_URL` | `sqlite:////app/data/halloween.db` | SQLAlchemy database URL connection string for persistent SQLite. |
 | `GENERATED_AVATAR_DIR` | `/app/data/generated_avatars` | Directory for persistent synthesized hunter avatar SVG assets. |
 
 ---

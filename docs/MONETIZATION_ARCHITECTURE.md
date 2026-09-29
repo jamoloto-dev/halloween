@@ -4,10 +4,10 @@
 
 # Spooky Master — Monetization & Entitlement Architecture
 
-**Version**: 2.5.0  
-**Date**: September 2026  
-**Status**: Target Architecture & Hardened Implementation Specification  
-**Governing Standard**: Strict Zero Pay-To-Win Fair Play (Policy A)  
+**Version**: 2.6.0
+**Date**: September 2026
+**Status**: Target Architecture & Hardened Implementation Specification
+**Governing Standard**: Strict Zero Pay-To-Win Fair Play (Policy A)
 
 ---
 
@@ -15,16 +15,24 @@
 
 Spooky Master adopts a sustainable, fair-play freemium model. All competitive modes (Daily Haunt, Haunted Duels, and High Score Crypts) remain server-authoritative and 100% skill-based. Under **Policy A**, no real-world currency or subscription can grant timer advantages, score multipliers, duel boosts, artificial leaderboard inflation, or free diamond currency grants.
 
+### Active Feature Flags & Provider Status:
+- **Zero Pay-to-Win (Policy A)**: Strictly enforced across all modes.
+- **Diamond Currency Grants**: Exactly **0 premium diamonds** granted by any pass.
+- **Competitive Restrictions**: Consumable boosters prohibited in ranked modes (`daily`, `duel`).
+- **Feature Flags**: `FEATURE_ADS=false`, `FEATURE_SUBSCRIPTIONS=false`.
+- **Payment Providers**: Stripe, Apple StoreKit, and Google Play Billing are **NOT IMPLEMENTED** (real money payments do not exist; architecture is simulated).
+- **Receipt Verification**: `POST /api/entitlements/verify` returns simulated response with `verified_by_provider: false`.
+
 ### Tier Entitlement Matrix (Policy A: Pure Zero Pay-To-Win)
 
 | Feature / Domain | Free Player | Spooky Master Pass ($4.99 Proposed Config) | Haunted VIP ($2.99 / Mo Proposed Config) |
 | :--- | :--- | :--- | :--- |
-| **Core Halloween Trivia** | Full Access (100+ questions) | Full Access | Full Access |
+| **Core Halloween Trivia** | Full Access (312 canonical questions) | Full Access | Full Access |
 | **Introductory Campaign** | Chapters 1–3 (18 stages) | All Chapters 1–6 (36 stages) | All Chapters 1–6 (36 stages) |
 | **Atmospheric Themes** | Haunted Mansion | +4 Themes (Blood Moon, Phantom Forest, Neon Crypt, Midnight Graveyard) | All 5 Themes + Future Seasonal Themes |
 | **Cosmetic Avatars** | 8 Base Illustrated Guises | +4 Exclusive Guises (Phantom King, Shadow Witch, Vampire Lord, Banshee) | All 12 Guises + VIP Crown Badge |
 | **Advanced Trivia Packs** | Standard 6 Categories | +3 Expansion Packs (Cryptids, Cinema Masters, Global Folklore) | All Expansion Packs |
-| **Ad Experience** | Interstitial Ad Placeholders (Disabled by default) | Ad-Free Guarantee | Ad-Free Guarantee |
+| **Ad Experience** | Interstitial Ad Placeholders (Disabled: `FEATURE_ADS=false`) | Ad-Free Guarantee | Ad-Free Guarantee |
 | **Daily Haunt Economy** | 100% Skill-Earned Diamonds | 100% Equal Skill-Earned Diamonds (Zero Free Diamonds) | 100% Equal Skill-Earned Diamonds (Zero Free Diamonds) |
 | **Ranked Leaderboards** | Server-Authoritative Fair Play | Server-Authoritative Fair Play | Golden VIP Hunter Flair (Cosmetic Only) |
 | **Timer / Speed Multipliers** | Strict Fair Timing | Zero Timer Advantages | Zero Timer Advantages |
