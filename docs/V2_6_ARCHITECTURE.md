@@ -135,7 +135,36 @@ sequenceDiagram
 
 ---
 
-## 6. Route-Aware Lifecycle Initialization
+## 6. Modular Frontend Subsystem Architecture
+
+To maintain high maintainability, eliminate oversized monolithic entrypoints, and safeguard gameplay against regressions, the frontend is organized into cohesive single-responsibility ES modules under `src/halloween_quiz/web/static/js/modules/`:
+
+| Module | Core Class / Object | Responsibility |
+| :--- | :--- | :--- |
+| `api.js` | `ApiClient`, `ApiError` | Centralized REST client with `X-Player-ID` propagation, JSON parsing, error normalization, and network resilience. |
+| `audio.js` | `SoundEngine` | Web Audio API sound effects, procedural music, audio asset caching, volume sliders, and mute toggles. |
+| `campaign.js` | `CampaignManager` | The Haunted Journey map, chapter loading, stage select, boss trials, and chapter story dialogs. |
+| `hints.js` | `HintsManager` | Spooky Guide conversational intelligence, hint tiers (1–3), and adaptive challenge recommendations. |
+| `hunter-studio.js` | `HunterStudioManager` | Supernatural Hunter Studio, generative AI avatar parameters, SVG gallery rendering, and equip workflows. |
+| `quiz.js` | `QuizLifecycleManager` | Trivia question presentation, timer countdown, streak multiplier HUD, answer evaluation, and end-of-hunt feedback. |
+| `profile.js` | `ProfileManager` | Player profile persistence, legacy progress migration (v1/v2 -> v2.6), and achievement unlocked checks. |
+| `leaderboard.js` | `LeaderboardManager` | Global all-time and daily high-score fetching, personal best cards, and difficulty/mode filter tabs. |
+| `duels.js` | `DuelsManager` | Asynchronous 1v1 PvP duel challenge creation, duel code generation/sharing, and curse/trap selection. |
+| `settings.js` | `SettingsManager` | Sound, music track, reduced-motion, vibration, and data reset preference management. |
+| `pwa.js` | `PwaManager` | Service worker lifecycle registration, update detection, and offline status toasts. |
+| `router.js` | `GameRouter` | HTML5 History routing, deep linking, direct refresh support, Back/Forward popstate handling, and leave guards. |
+| `lobby.js` | `LobbyManager` | Returning player identity card, live diamond balance pill, dynamic stage preview, and daily UTC countdown timer. |
+| `onboarding.js` | `OnboardingManager` | First-launch guise selection grid, nickname initialization, and onboarding completion state. |
+| `themes.js` | `ThemesManager` | Atmospheric themes grid rendering, entitlement checking, and live document `data-theme` toggles. |
+| `shop.js` | `ShopManager` | The Witch's Market modal, booster purchases, cosmetic avatar unlocks, diamond ledger, and in-game power-up activations. |
+| `entitlements.js` | `EntitlementsManager` | Spooky Master Pass tier synchronization (Free, Pass, VIP), developer test overrides, and Policy A verification. |
+| `utils.js` | Constants & Helpers | `COSMETIC_GEAR_SLOTS`, `AVAILABLE_THEMES`, `ALL_BADGES`, `Confetti`, `escapeHtml`, `getMasteryTier`. |
+
+`HalloweenQuizApp` in `src/halloween_quiz/web/static/js/main.js` acts strictly as the **top-level coordinator** that instantiates these subsystem managers and exposes a clean, backward-compatible public interface on `window.halloweenApp`.
+
+---
+
+## 7. Route-Aware Lifecycle Initialization
 
 When a route is loaded directly or navigated to client-side, `GameRouter` executes specific bootstrap hooks:
 
@@ -154,7 +183,7 @@ When a route is loaded directly or navigated to client-side, `GameRouter` execut
 
 ---
 
-## 7. Shared Navigation Shell & Responsive Controls
+## 8. Shared Navigation Shell & Responsive Controls
 
 The application UI employs a unified shell split into two responsive tiers:
 
@@ -181,7 +210,7 @@ The application UI employs a unified shell split into two responsive tiers:
 
 ---
 
-## 8. Deep Links & Direct URL Refresh Support
+## 9. Deep Links & Direct URL Refresh Support
 
 Spooky Master v2.6 supports direct URL entry, bookmarking, and link sharing:
 - When a user refreshes or pastes `https://halloween.jamoloto.dev/duels/SPOOK-99`, the server catches the route, injects `window.__PAGE_PARAMS__ = { duelCode: "SPOOK-99" }`, and returns the HTML shell.
@@ -190,7 +219,7 @@ Spooky Master v2.6 supports direct URL entry, bookmarking, and link sharing:
 
 ---
 
-## 9. Active Quiz Leave Guard
+## 10. Active Quiz Leave Guard
 
 To prevent accidental loss of active gameplay progress:
 1. **In-App Navigation Guard**: When `app.isQuizActive()` returns `true`, any attempt to navigate to another route triggers a confirmation prompt (`"Leave this hunt? Your current round will be abandoned."`). If declined, navigation is aborted.
@@ -207,7 +236,7 @@ To prevent accidental loss of active gameplay progress:
 
 ---
 
-## 10. PWA Route Caching & Offline Support
+## 11. PWA Route Caching & Offline Support
 
 Spooky Master's Progressive Web App runtime is managed by `/sw.js`:
 - **Cache Key**: `spooky-master-v2.6.0`
@@ -217,7 +246,7 @@ Spooky Master's Progressive Web App runtime is managed by `/sw.js`:
 
 ---
 
-## 11. Generated Avatar Architecture & Persistence
+## 12. Generated Avatar Architecture & Persistence
 
 ### Historical Issue & Resolution:
 - **Pre-v2.6 Architecture**: Synthesized avatars were saved to `src/halloween_quiz/web/static/avatars/generated/`. In Docker/Render container deployments, this directory was ephemeral; every redeployment or restart wiped generated avatars, causing broken 404 images for players.
@@ -249,7 +278,7 @@ flowchart LR
 
 ---
 
-## 12. Database & Production Storage Architecture
+## 13. Database & Production Storage Architecture
 
 ### Production Storage Layout:
 ```
@@ -271,7 +300,7 @@ flowchart LR
 
 ---
 
-## 13. Production Docker Architecture
+## 14. Production Docker Architecture
 
 Spooky Master uses a hardened multi-stage Docker build:
 
@@ -304,22 +333,23 @@ CMD ["uvicorn", "halloween_quiz.web.app:app", "--host", "0.0.0.0", "--port", "50
 
 ---
 
-## 14. Verification & Testing State
+## 15. Verification & Testing State
 
 The v2.6.0 architecture is validated by automated regression suites:
 
 | Suite | Scope | Status | Notes |
 | :--- | :--- | :--- | :--- |
 | **Python Unit & Integration** | 131 tests | 🟢 131 passed, 0 failed, 3 skipped | Covers engine, models, campaign, duels, hints, avatars, storage, routes, and anti-cheat |
-| **Playwright Browser E2E** | 53 tests | 🟢 53 passed, 0 failed | Validates core gameplay, desktop/mobile navigation, modals, theme switcher, and multi-page routing |
+| **Playwright Browser E2E** | 56 tests | 🟢 56 passed, 0 failed | Validates core gameplay, desktop/mobile navigation, modals, theme switcher, responsive viewports (320px–430px), and multi-page routing |
+| **PWA Cache Regression** | 7 tests | 🟢 7 passed, 0 failed | Versioned SW cache, stale cache cleanup, portable manifest, and origin isolation |
 | **Ruff Linter** | Entire codebase | 🟢 PASS | 0 errors |
-| **Mypy Static Type Checker** | 20 source files | 🟢 PASS | 0 errors (strict typing) |
+| **Mypy Static Type Checker** | 23 source files | 🟢 PASS | 0 errors (strict typing) |
 | **GitHub Actions CI** | Python 3.10, 3.11, 3.12 | 🟢 GREEN | Multi-version Python compatibility and browser testing |
 | **Docker / GHCR** | Container build & push | 🟢 GREEN | Multi-stage image build and package publishing |
 
 ---
 
-## 15. Production Deployment Readiness
+## 16. Production Deployment Readiness
 
 Documentation maintains strict operational honesty:
 - **Code & Container Readiness**: **READY FOR PRODUCTION**
