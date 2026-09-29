@@ -24,6 +24,7 @@ const PRECACHE_ASSETS = [
     "/static/app.js?v=20260924-spooky-master-v2.6.0",
     "/static/js/main.js",
     "/static/js/modules/router.js",
+    "/static/js/modules/api.js",
     "/static/js/modules/utils.js",
     "/static/js/modules/audio.js",
     "/static/js/modules/campaign.js",
