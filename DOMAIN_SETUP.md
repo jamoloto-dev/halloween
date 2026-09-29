@@ -145,6 +145,7 @@ Configure these environment variables in your hosting provider's dashboard:
 | `CORS_ORIGINS` | `https://halloween.jamoloto.dev,https://halloween-quiz.onrender.com` | Allowed browser origins for API and cross-origin resource sharing. |
 | `PORT` | `5000` | Port for the Uvicorn ASGI server. |
 | `DATABASE_PATH` | `/app/data/halloween.db` | Path to persistent SQLite database file on mounted disk. |
+| `GENERATED_AVATAR_DIR` | `/app/data/generated_avatars` | Directory for persistent synthesized hunter avatar SVG assets. |
 
 ---
 
@@ -154,7 +155,7 @@ Browsers isolate PWA storage, Cache Storage, and Service Workers strictly by ori
 
 When moving from local development (`127.0.0.1:5000`) to your custom domain (`https://halloween.jamoloto.dev`):
 1. **HTTPS Is Mandatory**: Service workers require a secure context (`https://`).
-2. **Fresh Cache**: The custom domain will start with a fresh cache of the latest `spooky-master-v2.3.0` assets.
+2. **Fresh Cache**: The custom domain will start with a fresh cache of the latest `spooky-master-v2.6.0` assets.
 3. **PWA Install Banner**: Chrome, Edge, and mobile Safari will show the "Install Spooky Master" prompt once served over HTTPS with a valid manifest.
 
 ---
