@@ -18,7 +18,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=5000 \
     PATH=/home/appuser/.local/bin:$PATH \
-    PYTHONPATH=/app/src
+    PYTHONPATH=/app/src \
+    GENERATED_AVATAR_DIR=/app/data/generated_avatars
 
 # Create non-root system user for secure container execution
 RUN groupadd -g 1001 appgroup && \
@@ -30,8 +31,8 @@ COPY --from=builder --chown=appuser:appgroup /root/.local /home/appuser/.local
 # Copy application source code and assets
 COPY --chown=appuser:appgroup . .
 
-# Ensure data directory exists and is writable by appuser
-RUN mkdir -p /app/data && chown -R appuser:appgroup /app/data
+# Ensure data and generated avatar directories exist and are writable by appuser
+RUN mkdir -p /app/data/generated_avatars && chown -R appuser:appgroup /app/data
 
 USER appuser
 

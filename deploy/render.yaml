@@ -23,6 +23,8 @@ services:
         value: /app/data/halloween.db
       - key: DATABASE_URL
         value: sqlite:////app/data/halloween.db
+      - key: GENERATED_AVATAR_DIR
+        value: /app/data/generated_avatars
       - key: CUSTOM_DOMAIN
         value: halloween.jamoloto.dev
       - key: CORS_ORIGINS
