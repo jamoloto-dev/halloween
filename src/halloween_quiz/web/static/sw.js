@@ -107,6 +107,26 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
+    // Generated avatars: Network-first to ensure fresh/recovered assets without stale cache lock
+    if (url.pathname.startsWith("/generated-avatars/")) {
+        event.respondWith(
+            fetch(request)
+                .then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const copy = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                    }
+                    return networkResponse;
+                })
+                .catch(async () => {
+                    const cached = await caches.match(request);
+                    if (cached) return cached;
+                    return new Response("Avatar unavailable offline", { status: 404 });
+                })
+        );
+        return;
+    }
+
     // Static assets and audio: Stale-While-Revalidate with background cache update
     if (url.pathname.startsWith("/static/") || url.pathname.startsWith("/sounds/")) {
         event.respondWith(

@@ -6,13 +6,15 @@ import os
 import re
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from halloween_quiz import __version__
+from halloween_quiz.core.ai_avatars import avatar_service, get_generated_avatar_dir
 from halloween_quiz.core.engine import QuestionBank, SessionManager
 from halloween_quiz.core.entitlements import entitlement_service
 from halloween_quiz.core.storage import ScoreRepository
@@ -24,6 +26,29 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger("halloween_quiz.app")
+
+
+class SelfHealingStaticFiles(StaticFiles):
+    """StaticFiles mount for persistent generated avatars with automatic on-demand self-healing."""
+
+    def __init__(self, *args: Any, app_ref: FastAPI | None = None, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.app_ref = app_ref
+
+    async def get_response(self, path: str, scope: Any):
+        response = await super().get_response(path, scope)
+        if response.status_code == 404 and path.endswith(".svg"):
+            filename = Path(path).name
+            m = re.match(r"^gen_([a-zA-Z0-9]+)\.svg$", filename)
+            if m:
+                p_hash = m.group(1)
+                repo = getattr(getattr(self.app_ref, "state", None), "score_repo", None)
+                if repo:
+                    cached = repo.get_generated_avatar_by_hash(p_hash)
+                    if cached:
+                        avatar_service.ensure_avatar_asset(cached)
+                        return await super().get_response(path, scope)
+        return response
 
 
 def init_app_state(app: FastAPI) -> None:
@@ -41,6 +66,10 @@ def init_app_state(app: FastAPI) -> None:
     score_repo = ScoreRepository(db_path)
     entitlement_service.set_repository(score_repo)
 
+    # Initialize and verify persistent avatar storage directory
+    generated_avatar_dir = get_generated_avatar_dir()
+    app.state.generated_avatar_dir = generated_avatar_dir
+
     if Path(csv_path).exists():
         migrated = score_repo.migrate_legacy_csv(csv_path)
         if migrated > 0:
@@ -55,7 +84,8 @@ def init_app_state(app: FastAPI) -> None:
     app.state._is_initialized = True
     logger.info(
         f"Application state initialized: {bank.total_count} questions loaded, "
-        f"DB ready, SessionManager(ttl={session_ttl}s, max={max_sessions})"
+        f"DB ready, generated_avatar_dir={generated_avatar_dir}, "
+        f"SessionManager(ttl={session_ttl}s, max={max_sessions})"
     )
 
 
@@ -124,6 +154,37 @@ def create_app() -> FastAPI:
     templates_dir = web_dir / "templates"
     sounds_dir = root_dir / "assets" / "sounds"
     pwa_dir = root_dir / "pwa"
+    generated_avatar_dir = get_generated_avatar_dir()
+
+    # Legacy compatibility route for /static/avatars/generated/{filename}
+    @app.get("/static/avatars/generated/{filename}")
+    async def legacy_generated_avatar(filename: str):
+        if not re.match(r"^[a-zA-Z0-9_-]+\.svg$", filename):
+            raise HTTPException(status_code=400, detail="Invalid avatar filename")
+        file_path = (generated_avatar_dir / filename).resolve()
+        try:
+            file_path.relative_to(generated_avatar_dir.resolve())
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Path traversal detected")
+        if not file_path.exists():
+            m = re.match(r"^gen_([a-zA-Z0-9]+)\.svg$", filename)
+            if m:
+                p_hash = m.group(1)
+                repo = getattr(app.state, "score_repo", None)
+                if repo:
+                    cached = repo.get_generated_avatar_by_hash(p_hash)
+                    if cached:
+                        avatar_service.ensure_avatar_asset(cached)
+        if file_path.exists():
+            return FileResponse(file_path, media_type="image/svg+xml")
+        raise HTTPException(status_code=404, detail="Avatar not found")
+
+    # Mount persistent generated avatar assets
+    app.mount(
+        "/generated-avatars",
+        SelfHealingStaticFiles(directory=str(generated_avatar_dir), app_ref=app),
+        name="generated-avatars",
+    )
 
     # Mount static assets
     if static_dir.exists():

@@ -217,4 +217,5 @@ data/
 .env
 src/halloween_quiz/web/static/avatars/generated/*.svg
 !src/halloween_quiz/web/static/avatars/generated/.gitkeep
+.tmp-production-data/
 

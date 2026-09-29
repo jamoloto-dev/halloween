@@ -901,7 +901,7 @@ export class HalloweenQuizApp {
                     id: gen.id || gen.avatar_id,
                     name: gen.name || "Supernatural Hunter",
                     icon: "✨",
-                    asset: gen.asset_url || gen.asset || `/static/avatars/generated/${avatarId}.svg`,
+                    asset: gen.asset_url || gen.asset || `/generated-avatars/${avatarId}.svg`,
                     desc: `${gen.style || ""} ${gen.creature || "Hunter"}`.trim(),
                     is_premium: false,
                 };
@@ -912,7 +912,7 @@ export class HalloweenQuizApp {
                 id: avatarId,
                 name: "Supernatural Hunter",
                 icon: "✨",
-                asset: `/static/avatars/generated/${avatarId}.svg`,
+                asset: `/generated-avatars/${avatarId}.svg`,
                 desc: "Synthesized AI Hunter",
                 is_premium: false,
             };

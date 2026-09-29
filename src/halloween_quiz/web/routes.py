@@ -872,7 +872,10 @@ def get_player_avatars(
 ):
     """Retrieve all synthesized supernatural hunter avatars for a player."""
     eff_player_id = player_id or request.headers.get("X-Player-ID") or "guest_default"
-    return repo.get_player_generated_avatars(eff_player_id)
+    avatars = repo.get_player_generated_avatars(eff_player_id)
+    for av in avatars:
+        av["asset_url"] = avatar_service.ensure_avatar_asset(av)
+    return avatars
 
 
 # ---------------------------------------------------------------------------

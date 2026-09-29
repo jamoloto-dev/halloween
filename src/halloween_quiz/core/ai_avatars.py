@@ -11,7 +11,9 @@ Features:
 """
 
 import hashlib
+import html
 import logging
+import os
 import re
 import threading
 import time
@@ -25,6 +27,30 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 logger = logging.getLogger("halloween_quiz.ai_avatars")
+
+
+def get_generated_avatar_dir() -> Path:
+    """Resolve the persistent storage directory for generated hunter avatars.
+
+    Defaults to `data/generated_avatars` locally or `/app/data/generated_avatars`
+    in containerized/production environments via GENERATED_AVATAR_DIR.
+    Ensures directory is safely created.
+    """
+    env_dir = os.getenv("GENERATED_AVATAR_DIR")
+    if env_dir:
+        path = Path(env_dir)
+        if not path.is_absolute():
+            repo_root = Path(__file__).resolve().parent.parent.parent.parent
+            path = (repo_root / path).resolve()
+    else:
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        path = (repo_root / "data" / "generated_avatars").resolve()
+
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        logger.warning(f"Could not create generated avatar directory at {path}: {e}")
+    return path
 
 
 class AvatarCreature(str, Enum):
@@ -334,31 +360,85 @@ class MockSvgAvatarProvider(BaseAvatarProvider):
         "spell_book": "📖",
     }
 
-    def __init__(self, output_dir: str | Path = "src/halloween_quiz/web/static/avatars/generated"):
-        self.output_dir = Path(output_dir)
+    def __init__(
+        self,
+        output_dir: str | Path | None = None,
+        url_prefix: str = "/generated-avatars",
+    ):
+        if output_dir is not None:
+            self.output_dir = Path(output_dir).resolve()
+        else:
+            self.output_dir = get_generated_avatar_dir()
+        self.url_prefix = url_prefix.rstrip("/")
         try:
             self.output_dir.mkdir(parents=True, exist_ok=True)
         except Exception:
             pass
 
-    def generate_avatar(
-        self, request: AvatarGenerationRequest, prompt: str, prompt_hash: str
-    ) -> str:
-        avatar_id = f"gen_{prompt_hash}"
-        file_path = self.output_dir / f"{avatar_id}.svg"
-        relative_url = f"/static/avatars/generated/{avatar_id}.svg"
+    def _validate_filename(self, avatar_id: str) -> str:
+        """Enforce strict filename safety to prevent path traversal or malicious injection."""
+        if not avatar_id or not re.match(r"^[a-zA-Z0-9_-]+$", avatar_id):
+            raise ValueError(f"Invalid avatar ID format for filename: {avatar_id}")
+        return avatar_id
 
-        if file_path.exists():
-            return relative_url
+    def get_asset_path(self, avatar_id: str) -> Path:
+        """Resolve full filesystem path for an avatar ID, strictly enforcing directory containment."""
+        clean_id = self._validate_filename(avatar_id)
+        resolved_base = self.output_dir.resolve()
+        file_path = (self.output_dir / f"{clean_id}.svg").resolve()
+        try:
+            file_path.relative_to(resolved_base)
+        except ValueError:
+            raise ValueError(f"Path traversal detected for avatar ID: {avatar_id}")
+        return file_path
+
+    def avatar_asset_exists(self, avatar_id: str) -> bool:
+        """Check if avatar SVG file exists and has non-zero size."""
+        try:
+            path = self.get_asset_path(avatar_id)
+            return path.is_file() and path.stat().st_size > 0
+        except Exception:
+            return False
+
+    def write_svg_asset(self, avatar_id: str, svg_content: str) -> Path:
+        """Write SVG content safely to disk using atomic replacement."""
+        file_path = self.get_asset_path(avatar_id)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = file_path.with_suffix(f".tmp_{uuid.uuid4().hex[:6]}")
+        try:
+            with open(temp_path, "w", encoding="utf-8") as f:
+                f.write(svg_content)
+            temp_path.replace(file_path)
+            return file_path
+        except Exception as e:
+            if temp_path.exists():
+                try:
+                    temp_path.unlink()
+                except Exception:
+                    pass
+            raise e
+
+    def render_svg_content(
+        self,
+        creature: str,
+        style: str,
+        color: str,
+        accessory: str,
+    ) -> str:
+        """Synthesize atmospheric SVG markup using strictly application-controlled values."""
+        clean_creature = AvatarCreature.from_str(creature).value
+        clean_style = AvatarStyle.from_str(style).value
+        clean_color = AvatarColor.from_str(color).value
+        clean_accessory = AvatarAccessory.from_str(accessory).value
 
         dark_hex, mid_hex, light_hex = self.COLOR_HEX.get(
-            request.color, self.COLOR_HEX["purple"]
+            clean_color, self.COLOR_HEX["purple"]
         )
-        c_emoji = self.CREATURE_EMOJIS.get(request.creature, "🎃")
-        a_emoji = self.ACCESSORY_EMOJIS.get(request.accessory, "🏮")
+        c_emoji = self.CREATURE_EMOJIS.get(clean_creature, "🎃")
+        a_emoji = self.ACCESSORY_EMOJIS.get(clean_accessory, "🏮")
+        style_display = html.escape(clean_style.upper().replace("_", " "))
 
-        # Synthesize atmospheric SVG vector
-        svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+        return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
   <defs>
     <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="{mid_hex}" stop-opacity="0.6"/>
@@ -401,12 +481,27 @@ class MockSvgAvatarProvider(BaseAvatarProvider):
 
   <!-- Supernatural Style Tag -->
   <rect x="50" y="172" width="100" height="18" rx="9" fill="#0d041a" fill-opacity="0.9" stroke="{mid_hex}" stroke-width="1"/>
-  <text x="100" y="184" font-size="9" fill="{light_hex}" font-weight="bold" letter-spacing="1" text-anchor="middle" font-family="system-ui, sans-serif">{request.style.upper().replace('_', ' ')}</text>
+  <text x="100" y="184" font-size="9" fill="{light_hex}" font-weight="bold" letter-spacing="1" text-anchor="middle" font-family="system-ui, sans-serif">{style_display}</text>
 </svg>"""
 
+    def generate_avatar(
+        self, request: AvatarGenerationRequest, prompt: str, prompt_hash: str
+    ) -> str:
+        avatar_id = f"gen_{prompt_hash}"
+        relative_url = f"{self.url_prefix}/{avatar_id}.svg"
+
+        if self.avatar_asset_exists(avatar_id):
+            return relative_url
+
+        svg_content = self.render_svg_content(
+            creature=request.creature,
+            style=request.style,
+            color=request.color,
+            accessory=request.accessory,
+        )
+
         try:
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(svg_content)
+            self.write_svg_asset(avatar_id, svg_content)
             return relative_url
         except Exception as e:
             logger.warning(f"Failed to write SVG avatar file: {e}; falling back to data URI")
@@ -414,6 +509,25 @@ class MockSvgAvatarProvider(BaseAvatarProvider):
 
             b64 = base64.b64encode(svg_content.encode("utf-8")).decode("utf-8")
             return f"data:image/svg+xml;base64,{b64}"
+
+    def regenerate_avatar_asset(
+        self,
+        prompt_hash: str,
+        creature: str = "pumpkin_spirit",
+        style: str = "dark_fantasy",
+        color: str = "purple",
+        accessory: str = "lantern",
+    ) -> str:
+        """Deterministic missing-asset reconstruction to self-heal missing SVG files."""
+        avatar_id = f"gen_{prompt_hash}"
+        svg_content = self.render_svg_content(
+            creature=creature,
+            style=style,
+            color=color,
+            accessory=accessory,
+        )
+        self.write_svg_asset(avatar_id, svg_content)
+        return f"{self.url_prefix}/{avatar_id}.svg"
 
 
 class AvatarService:
@@ -423,6 +537,72 @@ class AvatarService:
         self.mock_provider = MockSvgAvatarProvider()
         self.active_provider: BaseAvatarProvider = provider or self.mock_provider
         self.rate_limiter = AvatarRateLimiter(cooldown_seconds=15, daily_cap=5)
+
+    def avatar_asset_exists(self, avatar_id_or_hash: str) -> bool:
+        """Verify if the physical SVG file exists in storage."""
+        target_id = avatar_id_or_hash
+        if not target_id.startswith("gen_") and not target_id.startswith("hunter_"):
+            target_id = f"gen_{target_id}"
+        if hasattr(self.active_provider, "avatar_asset_exists"):
+            return bool(self.active_provider.avatar_asset_exists(target_id))
+        return True
+
+    def get_public_asset_url(self, avatar_id_or_hash: str) -> str:
+        """Construct the canonical public URL for an avatar asset."""
+        target_id = avatar_id_or_hash
+        if not target_id.startswith("gen_") and not target_id.startswith("hunter_"):
+            target_id = f"gen_{target_id}"
+        prefix = getattr(self.active_provider, "url_prefix", "/generated-avatars")
+        return f"{prefix}/{target_id}.svg"
+
+    def regenerate_avatar_asset(
+        self,
+        prompt_hash: str,
+        creature: str = "pumpkin_spirit",
+        style: str = "dark_fantasy",
+        color: str = "purple",
+        accessory: str = "lantern",
+    ) -> str:
+        """Deterministically recreate the SVG asset on disk and return its public URL."""
+        if hasattr(self.active_provider, "regenerate_avatar_asset"):
+            return self.active_provider.regenerate_avatar_asset(
+                prompt_hash=prompt_hash,
+                creature=creature,
+                style=style,
+                color=color,
+                accessory=accessory,
+            )
+        return self.mock_provider.regenerate_avatar_asset(
+            prompt_hash=prompt_hash,
+            creature=creature,
+            style=style,
+            color=color,
+            accessory=accessory,
+        )
+
+    def ensure_avatar_asset(self, avatar_data: dict[str, Any]) -> str:
+        """Self-healing asset resolution: ensures SVG exists on disk, reconstructing if missing."""
+        prompt_hash = avatar_data.get("prompt_hash")
+        raw_id = avatar_data.get("id") or avatar_data.get("avatar_id") or ""
+        target_id = f"gen_{prompt_hash}" if prompt_hash else raw_id
+
+        if not target_id:
+            return self.get_public_asset_url("gen_default")
+
+        # 1. Detect if physical file exists on disk
+        if self.avatar_asset_exists(target_id):
+            return self.get_public_asset_url(target_id)
+
+        # 2. File is missing! Reconstruct deterministically from stored metadata
+        eff_hash = prompt_hash or raw_id.replace("gen_", "").replace("hunter_", "")
+        logger.info(f"Self-healing: Reconstructing missing SVG asset for avatar {target_id}...")
+        return self.regenerate_avatar_asset(
+            prompt_hash=eff_hash,
+            creature=avatar_data.get("creature", "pumpkin_spirit"),
+            style=avatar_data.get("style", "dark_fantasy"),
+            color=avatar_data.get("color", "purple"),
+            accessory=avatar_data.get("accessory", "lantern"),
+        )
 
     def generate_hunter_avatar(
         self, request: AvatarGenerationRequest, repo: Any = None
@@ -445,6 +625,8 @@ class AvatarService:
         if repo:
             cached_avatar = repo.get_generated_avatar_by_hash(prompt_hash)
             if cached_avatar:
+                # Ensure the asset actually exists on disk (self-heal if missing)
+                asset_url = self.ensure_avatar_asset(cached_avatar)
                 if cached_avatar.get("player_id") != request.player_id:
                     new_id = f"hunter_{uuid.uuid4().hex[:10]}"
                     new_avatar = {
@@ -456,7 +638,7 @@ class AvatarService:
                         "accessory": cached_avatar["accessory"],
                         "customization": cached_avatar["customization"],
                         "prompt_hash": prompt_hash,
-                        "asset_url": cached_avatar["asset_url"],
+                        "asset_url": asset_url,
                         "provider": cached_avatar["provider"],
                         "moderation_status": "approved",
                         "active": True,
@@ -465,7 +647,7 @@ class AvatarService:
                     return AvatarGenerationResult(
                         avatar_id=new_id,
                         player_id=request.player_id,
-                        asset_url=cached_avatar["asset_url"],
+                        asset_url=asset_url,
                         creature=cached_avatar["creature"],
                         style=cached_avatar["style"],
                         color=cached_avatar["color"],
@@ -480,7 +662,7 @@ class AvatarService:
                 return AvatarGenerationResult(
                     avatar_id=cached_avatar["id"],
                     player_id=request.player_id,
-                    asset_url=cached_avatar["asset_url"],
+                    asset_url=asset_url,
                     creature=cached_avatar["creature"],
                     style=cached_avatar["style"],
                     color=cached_avatar["color"],
