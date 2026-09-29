@@ -1,5 +1,7 @@
 """Comprehensive tests for Spooky Master Generative AI Avatar Architecture."""
 
+import re
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -230,3 +232,190 @@ def test_api_ai_avatar_endpoints_lifecycle():
     assert isinstance(avatars_list, list)
     assert len(avatars_list) >= 1
     assert avatars_list[0]["creature"] == "pumpkin_spirit"
+    assert avatars_list[0]["asset_url"].startswith("/generated-avatars/")
+
+    # 4. Verify asset URL serves valid SVG
+    svg_resp = client.get(avatars_list[0]["asset_url"])
+    assert svg_resp.status_code == 200
+    assert "image/svg" in svg_resp.headers.get("content-type", "")
+    assert "<svg" in svg_resp.text
+
+
+def test_avatar_persistence_across_simulated_redeploy(tmp_path):
+    """Simulate container restart: verify avatar metadata and SVG asset persist and resolve."""
+    avatar_dir = tmp_path / "data" / "generated_avatars"
+    db_file = tmp_path / "data" / "halloween.db"
+    avatar_dir.mkdir(parents=True, exist_ok=True)
+
+    # --- PROCESS 1: Generate and persist avatar ---
+    repo1 = ScoreRepository(str(db_file))
+    provider1 = MockSvgAvatarProvider(output_dir=avatar_dir)
+    service1 = AvatarService(provider=provider1)
+
+    req = AvatarGenerationRequest(
+        player_id="persisted_hunter",
+        creature="vampire",
+        style="gothic",
+        color="crimson",
+        accessory="cape",
+        customization="Midnight dark ruby pendant",
+    )
+    result1 = service1.generate_hunter_avatar(req, repo=repo1)
+
+    svg_file = avatar_dir / f"gen_{result1.prompt_hash}.svg"
+    assert svg_file.exists()
+    assert svg_file.stat().st_size > 0
+    assert result1.asset_url == f"/generated-avatars/gen_{result1.prompt_hash}.svg"
+
+    # --- SIMULATE REDEPLOY / PROCESS 2: New instances pointing to same storage ---
+    repo2 = ScoreRepository(str(db_file))
+    provider2 = MockSvgAvatarProvider(output_dir=avatar_dir)
+    service2 = AvatarService(provider=provider2)
+
+    # Fetch cached avatar metadata from DB
+    cached = repo2.get_generated_avatar_by_hash(result1.prompt_hash)
+    assert cached is not None
+    assert cached["id"] == result1.avatar_id
+    assert cached["creature"] == "vampire"
+
+    # Verify asset resolves and SVG file still exists
+    resolved_url = service2.ensure_avatar_asset(cached)
+    assert resolved_url == result1.asset_url
+    assert svg_file.exists()
+    assert svg_file.stat().st_size > 0
+
+
+def test_missing_avatar_file_self_healing_recovery(tmp_path):
+    """Verify self-healing: if SVG is deleted from disk, service deterministically reconstructs it."""
+    avatar_dir = tmp_path / "data" / "generated_avatars"
+    db_file = tmp_path / "data" / "halloween.db"
+    avatar_dir.mkdir(parents=True, exist_ok=True)
+
+    repo = ScoreRepository(str(db_file))
+    provider = MockSvgAvatarProvider(output_dir=avatar_dir)
+    service = AvatarService(provider=provider)
+
+    req = AvatarGenerationRequest(
+        player_id="healed_hunter",
+        creature="werewolf",
+        style="neon_horror",
+        color="green",
+        accessory="lantern",
+    )
+    gen_result = service.generate_hunter_avatar(req, repo=repo)
+    svg_file = avatar_dir / f"gen_{gen_result.prompt_hash}.svg"
+    assert svg_file.exists()
+    original_content = svg_file.read_text(encoding="utf-8")
+
+    # Manually delete SVG file (simulating disk wipe or container redeploy without volume)
+    svg_file.unlink()
+    assert not svg_file.exists()
+    assert service.avatar_asset_exists(gen_result.prompt_hash) is False
+
+    # Retrieve avatar: service must detect missing file, reconstruct it, and return valid URL
+    cached = repo.get_generated_avatar_by_hash(gen_result.prompt_hash)
+    assert cached is not None
+    healed_url = service.ensure_avatar_asset(cached)
+
+    assert healed_url == gen_result.asset_url
+    assert svg_file.exists()
+    assert svg_file.stat().st_size > 0
+    # Reconstructed SVG must match deterministic content
+    assert svg_file.read_text(encoding="utf-8") == original_content
+
+
+def test_path_traversal_and_malicious_avatar_id_security(tmp_path):
+    """Verify that malicious inputs cannot write files outside GENERATED_AVATAR_DIR."""
+    avatar_dir = tmp_path / "data" / "generated_avatars"
+    avatar_dir.mkdir(parents=True, exist_ok=True)
+    provider = MockSvgAvatarProvider(output_dir=avatar_dir)
+
+    malicious_ids = [
+        "../../evil",
+        "../sneaky",
+        "/tmp/absolute_evil",
+        "sub/dir/traversal",
+        "<script>alert(1)</script>",
+        "name with spaces",
+        "evil\x00nullbyte",
+        "file;rm -rf /",
+    ]
+
+    for bad_id in malicious_ids:
+        with pytest.raises(ValueError):
+            provider.get_asset_path(bad_id)
+
+        with pytest.raises(ValueError):
+            provider.write_svg_asset(bad_id, "<svg></svg>")
+
+    # Verify no rogue files were created outside avatar_dir
+    assert list(tmp_path.glob("*.svg")) == []
+
+
+def test_svg_sanitization_and_injection_safety(tmp_path):
+    """Verify generated SVG never contains executable script, event handlers, or external links."""
+    avatar_dir = tmp_path / "data" / "generated_avatars"
+    provider = MockSvgAvatarProvider(output_dir=avatar_dir)
+
+    # Render with various combinations
+    svg_text = provider.render_svg_content(
+        creature="pumpkin_spirit",
+        style="dark_fantasy",
+        color="purple",
+        accessory="lantern",
+    )
+
+    forbidden_patterns = [
+        "<script",
+        "</script",
+        "javascript:",
+        "onload=",
+        "onerror=",
+        "onclick=",
+        "<image",
+        "xlink:href",
+    ]
+
+    for forbidden in forbidden_patterns:
+        assert forbidden not in svg_text.lower(), f"Found forbidden injection in SVG: {forbidden}"
+
+    # Verify no external remote links (other than w3.org namespace)
+    non_ns_urls = [url for url in re.findall(r"https?://[^\s\"'>]+", svg_text) if "w3.org" not in url]
+    assert non_ns_urls == [], f"Found unauthorized remote URLs in SVG: {non_ns_urls}"
+
+
+def test_deduplication_reuses_existing_asset_and_row(tmp_path):
+    """Verify identical specifications reuse existing asset without duplicate files or rows."""
+    avatar_dir = tmp_path / "data" / "generated_avatars"
+    db_file = tmp_path / "data" / "halloween.db"
+    avatar_dir.mkdir(parents=True, exist_ok=True)
+
+    repo = ScoreRepository(str(db_file))
+    provider = MockSvgAvatarProvider(output_dir=avatar_dir)
+    service = AvatarService(provider=provider)
+    service.rate_limiter = AvatarRateLimiter(cooldown_seconds=0, daily_cap=10)
+
+    req = AvatarGenerationRequest(
+        player_id="dedup_hunter",
+        creature="ghost",
+        style="cute",
+        color="blue",
+        accessory="crown",
+    )
+
+    # First generation
+    res1 = service.generate_hunter_avatar(req, repo=repo)
+    assert res1.cached is False
+
+    # Second identical generation
+    res2 = service.generate_hunter_avatar(req, repo=repo)
+    assert res2.cached is True
+    assert res2.avatar_id == res1.avatar_id
+    assert res2.asset_url == res1.asset_url
+
+    # Check database rows and files count
+    player_avatars = repo.get_player_generated_avatars("dedup_hunter")
+    assert len(player_avatars) == 1
+    svg_files = list(avatar_dir.glob("*.svg"))
+    assert len(svg_files) == 1
+
