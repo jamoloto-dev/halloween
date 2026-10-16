@@ -194,3 +194,68 @@ def test_in_memory_rate_limiter():
     # After window passes, should allow again
     time.sleep(1.05)
     assert limiter.check(key, max_requests=3, window_seconds=1.0)[0] is True
+
+
+def test_head_requests_on_game_and_health_routes(client):
+    """Verify HEAD requests return 200 OK without body across game and probe endpoints."""
+    routes_to_probe = ["/", "/health", "/live", "/ready", "/journey", "/leaderboard"]
+    for path in routes_to_probe:
+        res = client.head(path)
+        assert res.status_code == 200, f"HEAD {path} failed with {res.status_code}"
+        assert len(res.text) == 0, f"HEAD {path} returned non-empty body"
+
+
+def test_security_headers_present(client):
+    """Verify essential defense-in-depth security headers are present on responses."""
+    res = client.get("/")
+    assert res.status_code == 200
+    headers = {k.lower(): v for k, v in res.headers.items()}
+    assert headers.get("x-content-type-options") == "nosniff"
+    assert headers.get("x-frame-options") == "SAMEORIGIN"
+    assert headers.get("referrer-policy") == "strict-origin-when-cross-origin"
+    assert headers.get("x-xss-protection") == "1; mode=block"
+
+
+def test_robots_txt_and_sitemap_xml(client):
+    """Verify /robots.txt and /sitemap.xml endpoints return valid contents."""
+    # 1. robots.txt
+    robots_res = client.get("/robots.txt")
+    assert robots_res.status_code == 200
+    assert "text/plain" in robots_res.headers["content-type"]
+    assert "User-agent: *" in robots_res.text
+    assert "Disallow: /api/" in robots_res.text
+    assert "Sitemap:" in robots_res.text
+
+    # 2. sitemap.xml
+    sitemap_res = client.get("/sitemap.xml")
+    assert sitemap_res.status_code == 200
+    assert "application/xml" in sitemap_res.headers["content-type"]
+    assert "<urlset xmlns=" in sitemap_res.text
+    assert "<loc>" in sitemap_res.text
+    assert "/journey</loc>" in sitemap_res.text
+    assert "/daily-haunt</loc>" in sitemap_res.text
+
+
+def test_favicon_ico_route(client):
+    """Verify /favicon.ico returns 200 OK without 404ing."""
+    res = client.get("/favicon.ico")
+    assert res.status_code == 200
+
+
+def test_gzip_compression_enabled(client):
+    """Verify GZip compression applies to responses exceeding size threshold."""
+    res = client.get("/", headers={"Accept-Encoding": "gzip"})
+    assert res.status_code == 200
+    assert res.headers.get("content-encoding") == "gzip"
+
+
+def test_social_open_graph_and_twitter_meta_tags(client):
+    """Verify Open Graph and Twitter Card tags are in HTML shell."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+    assert '<meta property="og:title"' in html
+    assert '<meta property="og:description"' in html
+    assert '<meta property="og:image"' in html
+    assert '<meta name="twitter:card"' in html
+
