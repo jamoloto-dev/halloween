@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 
 from halloween_quiz import __version__
 from halloween_quiz.core.ai_avatars import avatar_service, get_generated_avatar_dir
+from halloween_quiz.core.auth import auth_service
 from halloween_quiz.core.engine import QuestionBank, SessionManager
 from halloween_quiz.core.entitlements import entitlement_service
 from halloween_quiz.core.storage import ScoreRepository
@@ -67,6 +68,7 @@ def init_app_state(app: FastAPI) -> None:
     bank = QuestionBank(questions_path)
     score_repo = ScoreRepository(db_path)
     entitlement_service.set_repository(score_repo)
+    auth_service.set_repository(score_repo)
 
     # Initialize and verify persistent avatar storage directory
     generated_avatar_dir = get_generated_avatar_dir()
@@ -82,6 +84,7 @@ def init_app_state(app: FastAPI) -> None:
 
     app.state.question_bank = bank
     app.state.score_repo = score_repo
+    app.state.auth_service = auth_service
     app.state.active_sessions = SessionManager(ttl_seconds=session_ttl, max_sessions=max_sessions)
     app.state._is_initialized = True
     logger.info(
@@ -269,6 +272,8 @@ def create_app() -> FastAPI:
             base_url = f"https://{clean_dom}"
         pages = [
             ("", "daily", "1.0"),
+            ("/hunt", "daily", "0.9"),
+            ("/genie", "weekly", "0.8"),
             ("/journey", "weekly", "0.9"),
             ("/daily-haunt", "daily", "0.9"),
             ("/duels", "weekly", "0.8"),
@@ -333,6 +338,14 @@ def create_app() -> FastAPI:
     @app.get("/", response_class=HTMLResponse)
     async def index(request: Request):
         return render_game_page(request, "home", "Spooky Master 🎃 Halloween Quiz Challenge")
+
+    @app.get("/hunt", response_class=HTMLResponse)
+    async def hunt_page(request: Request):
+        return render_game_page(request, "hunt", "Spooky Master — Hunt Mode Selection")
+
+    @app.get("/genie", response_class=HTMLResponse)
+    async def genie_page(request: Request):
+        return render_game_page(request, "genie", "Spooky Master — Spooky Genie & Oracle")
 
     @app.get("/play", response_class=HTMLResponse)
     async def play_setup(request: Request):

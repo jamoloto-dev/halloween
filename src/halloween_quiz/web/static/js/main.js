@@ -270,6 +270,8 @@ export class HalloweenQuizApp {
             liveScore: document.getElementById("live-score"),
             timerDisplay: document.getElementById("timer-display"),
             timerBar: document.getElementById("timer-bar"),
+            timerText: document.getElementById("timer-display"),
+            timerProgress: document.getElementById("timer-bar"),
             questionText: document.getElementById("question-text"),
             optionsGrid: document.getElementById("options-grid"),
 
@@ -402,6 +404,40 @@ export class HalloweenQuizApp {
             btnRestorePurchases: document.getElementById("btn-restore-purchases"),
             btnDevTogglePass: document.getElementById("btn-dev-toggle-pass"),
             premiumCurrentTierText: document.getElementById("premium-current-tier-text"),
+
+            // Navigation & Page Extensions
+            btnNavHunt: document.getElementById("btn-nav-hunt"),
+            btnNavGenie: document.getElementById("btn-nav-genie"),
+            btnNavMusicToggle: document.getElementById("btn-nav-music-toggle"),
+            navMusicStatus: document.getElementById("nav-music-status"),
+            btnNavAuth: document.getElementById("btn-nav-auth"),
+            navAuthLabel: document.getElementById("nav-auth-label"),
+            pageHunt: document.getElementById("page-hunt"),
+            pageGenie: document.getElementById("page-genie"),
+            btnGenieConsultOracle: document.getElementById("btn-genie-consult-oracle"),
+            genieOracleResult: document.getElementById("genie-oracle-result"),
+
+            // Auth Modal
+            modalAuth: document.getElementById("modal-auth"),
+            btnCloseAuth: document.getElementById("btn-close-auth"),
+            tabAuthLogin: document.getElementById("tab-auth-login"),
+            tabAuthRegister: document.getElementById("tab-auth-register"),
+            tabAuthGuest: document.getElementById("tab-auth-guest"),
+            authPanelLogin: document.getElementById("auth-panel-login"),
+            authPanelRegister: document.getElementById("auth-panel-register"),
+            authPanelGuest: document.getElementById("auth-panel-guest"),
+            formAuthLogin: document.getElementById("form-auth-login"),
+            formAuthRegister: document.getElementById("form-auth-register"),
+            formAuthGuest: document.getElementById("form-auth-guest"),
+            authLoginUsername: document.getElementById("auth-login-username"),
+            authLoginPassword: document.getElementById("auth-login-password"),
+            authRegUsername: document.getElementById("auth-reg-username"),
+            authRegPassword: document.getElementById("auth-reg-password"),
+            authRegNickname: document.getElementById("auth-reg-nickname"),
+            authGuestNickname: document.getElementById("auth-guest-nickname"),
+            authLoginStatus: document.getElementById("auth-login-status"),
+            authRegStatus: document.getElementById("auth-reg-status"),
+            authGuestStatus: document.getElementById("auth-guest-status"),
         };
 
         // Subsystem Managers
@@ -429,7 +465,11 @@ export class HalloweenQuizApp {
         this.initEvents();
         this.initPwa();
         this.initDailyCountdown();
-        this.sound.onBgmStateChange = () => this.syncSettingsUi();
+        this.sound.onBgmStateChange = (isPlaying) => {
+            this.syncSettingsUi();
+            this.updateMusicNavButton(isPlaying);
+        };
+        this.initAuth();
         this.loadCategories();
         this.applyProfileToUi();
         this.applyTheme();
@@ -509,6 +549,7 @@ export class HalloweenQuizApp {
             this.dom.modalShop,
             this.dom.modalDuels,
             this.dom.modalPremium,
+            this.dom.modalAuth,
         ];
         modals.forEach((m) => {
             if (m) {
@@ -516,16 +557,18 @@ export class HalloweenQuizApp {
                 m.classList.remove("active");
             }
         });
-        const pageDaily = document.getElementById("page-daily-haunt");
-        if (pageDaily) {
-            pageDaily.classList.add("hidden");
-            pageDaily.classList.remove("active");
-        }
-        const pageDuel = document.getElementById("page-duel-invite");
-        if (pageDuel) {
-            pageDuel.classList.add("hidden");
-            pageDuel.classList.remove("active");
-        }
+        const subpages = [
+            document.getElementById("page-daily-haunt"),
+            document.getElementById("page-duel-invite"),
+            document.getElementById("page-hunt"),
+            document.getElementById("page-genie"),
+        ];
+        subpages.forEach((p) => {
+            if (p) {
+                p.classList.add("hidden");
+                p.classList.remove("active");
+            }
+        });
     }
 
     openHome() {
@@ -573,6 +616,7 @@ export class HalloweenQuizApp {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
+        this.quizMgr?.stopQuestionTimer();
         this.sessionId = null;
         this.currentQuestion = null;
         this.isGameOver = true;
@@ -592,6 +636,32 @@ export class HalloweenQuizApp {
         this.showScreen("start");
         this.sound.startBackgroundAmbience();
         this.renderLobbyExperience();
+    }
+
+    bootstrapHunt() {
+        this.closeAllModals();
+        Object.values(this.screens).forEach((s) => {
+            s?.classList.remove("active");
+            s?.classList.add("hidden");
+        });
+        if (this.dom.pageHunt) {
+            this.dom.pageHunt.classList.remove("hidden");
+            this.dom.pageHunt.classList.add("active");
+        }
+        this.sound.startBackgroundAmbience();
+    }
+
+    bootstrapGenie() {
+        this.closeAllModals();
+        Object.values(this.screens).forEach((s) => {
+            s?.classList.remove("active");
+            s?.classList.add("hidden");
+        });
+        if (this.dom.pageGenie) {
+            this.dom.pageGenie.classList.remove("hidden");
+            this.dom.pageGenie.classList.add("active");
+        }
+        this.sound.startBackgroundAmbience();
     }
 
     bootstrapPlay() {
@@ -1252,6 +1322,325 @@ export class HalloweenQuizApp {
     }
 
     // ==========================================
+    // HUNT & GAMEPLAY LAUNCHER (v2.7.0)
+    // ==========================================
+    startModeHunt(mode) {
+        if (!mode) return;
+        this.abandonQuizSession();
+        let numQuestions = 10;
+        let timeLimit = 20;
+        let difficulty = this.profile?.preferred_difficulty || "medium";
+
+        if (mode === "quick") {
+            numQuestions = 5;
+            timeLimit = 20;
+        } else if (mode === "deep") {
+            numQuestions = 15;
+            timeLimit = 20;
+        } else if (mode === "panic") {
+            numQuestions = 10;
+            timeLimit = 10;
+        } else if (mode === "endless") {
+            numQuestions = 50;
+            timeLimit = 20;
+        } else if (mode === "adaptive") {
+            numQuestions = 10;
+            timeLimit = 20;
+        } else if (mode === "classic") {
+            numQuestions = 10;
+            timeLimit = 20;
+        }
+
+        const cats = Array.isArray(this.categories) && this.categories.length > 0
+            ? this.categories
+            : ["monsters_creatures", "witchcraft_spells", "urban_legends_folklore", "horror_cinema", "halloween_traditions", "gothic_literature"];
+
+        this.startGameWithParams({
+            mode: mode,
+            difficulty: difficulty,
+            num_questions: numQuestions,
+            time_limit_per_question: timeLimit,
+            categories: cats,
+            player_name: this.profile?.nickname || "Ghost Hunter",
+            avatar_id: this.profile?.avatar_id || "pumpkin_hunter",
+        });
+    }
+
+    async consultOracleWhisper() {
+        const box = this.dom.genieOracleResult;
+        if (!box) return;
+        box.classList.remove("hidden");
+        box.innerHTML = `<em>Consulting the ancient crypt whispers...</em>`;
+        this.sound?.play?.("ui_click");
+
+        try {
+            const res = await fetch("/api/ai/hint", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ hint_level: 1 }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                box.innerHTML = `🔮 <strong>Oracle Whisper:</strong> "${escapeHtml(data.hint || data.message || "Beware the midnight shadows where trivia lurks.")}"`;
+                this.sound?.play?.("achievement");
+                return;
+            }
+        } catch (_) {}
+
+        const whispers = [
+            "The pumpkin glow illuminates truth only for those who answer swiftly.",
+            "In the deepest crypt, speed without accuracy is merely a faster demise.",
+            "Witches never reveal their true ingredients, but ancient lore whispers otherwise.",
+            "Survive the three strikes of Endless Night to claim the Obsidian Crown.",
+            "Every correct answer echoes across the spectral plane.",
+        ];
+        const chosen = whispers[Math.floor(Math.random() * whispers.length)];
+        box.innerHTML = `🔮 <strong>Oracle Whisper:</strong> "${chosen}"`;
+        this.sound?.play?.("achievement");
+    }
+
+    updateMusicNavButton(isPlaying) {
+        if (!this.dom.btnNavMusicToggle || !this.dom.navMusicStatus) return;
+        if (isPlaying) {
+            this.dom.btnNavMusicToggle.classList.add("is-playing");
+            this.dom.btnNavMusicToggle.classList.add("active");
+            this.dom.navMusicStatus.textContent = "ON";
+        } else {
+            this.dom.btnNavMusicToggle.classList.remove("is-playing");
+            this.dom.btnNavMusicToggle.classList.remove("active");
+            this.dom.navMusicStatus.textContent = "OFF";
+        }
+    }
+
+    // ==========================================
+    // AUTHENTICATION & PLAYER IDENTITY METHODS (v2.7.0)
+    // ==========================================
+    async initAuth() {
+        const token = localStorage.getItem("spooky_session_token");
+        if (token) {
+            try {
+                const res = await fetch("/api/auth/me", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.setAuthenticatedUser(data, token);
+                    return;
+                }
+            } catch (err) {
+                console.warn("Auth check failed:", err);
+            }
+        }
+
+        // If no token exists or token expired: initialize guest session
+        await this.initDefaultGuestSession();
+    }
+
+    setAuthenticatedUser(user, token) {
+        this.currentUser = user;
+        if (token) {
+            localStorage.setItem("spooky_session_token", token);
+        }
+        if (this.profile) {
+            if (user.nickname) this.profile.nickname = user.nickname;
+            if (user.avatar_id) this.profile.avatar_id = user.avatar_id;
+            if (user.user_id) this.profile.player_id = user.user_id;
+            this.profile.is_guest = Boolean(user.is_guest);
+            this.profile.role = user.role || "player";
+            this.profileMgr?.saveProfile();
+        }
+        this.updateAuthUi();
+    }
+
+    async initDefaultGuestSession() {
+        const currentNick = this.profile?.nickname || "Ghost Hunter";
+        const currentAvatar = this.profile?.avatar_id || "pumpkin_hunter";
+
+        try {
+            const res = await fetch("/api/auth/guest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nickname: currentNick,
+                    avatar_id: currentAvatar,
+                }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                this.setAuthenticatedUser(data, data.token);
+            }
+        } catch (err) {
+            console.warn("Guest session init error:", err);
+        }
+    }
+
+    updateAuthUi() {
+        if (!this.dom.navAuthLabel) return;
+        const isRegistered = Boolean(this.currentUser && !this.currentUser.is_guest);
+        if (isRegistered) {
+            this.dom.navAuthLabel.textContent = this.currentUser.nickname || this.currentUser.username;
+            this.dom.btnNavAuth?.classList.add("signed-in");
+            this.dom.btnNavAuth?.setAttribute("title", `Signed in as ${this.currentUser.username} (${this.currentUser.role || "player"}). Click to sign out.`);
+        } else {
+            this.dom.navAuthLabel.textContent = "Sign In";
+            this.dom.btnNavAuth?.classList.remove("signed-in");
+            this.dom.btnNavAuth?.setAttribute("title", "Sign in or create a player account");
+        }
+
+        if (this.dom.lobbyPlayerName) {
+            this.dom.lobbyPlayerName.textContent = this.profile?.nickname || "Ghost Hunter";
+        }
+        if (this.dom.lobbyPlayerTier) {
+            const role = this.currentUser?.role || "player";
+            this.dom.lobbyPlayerTier.textContent = isRegistered ? `Hunter (${role}) 🕯️` : "Guest Hunter 🌑";
+        }
+    }
+
+    openAuth(tab = "login") {
+        this.switchAuthTab(tab);
+        this.dom.modalAuth?.classList.remove("hidden");
+        this.dom.modalAuth?.classList.add("active");
+    }
+
+    closeAuth() {
+        this.dom.modalAuth?.classList.add("hidden");
+        this.dom.modalAuth?.classList.remove("active");
+    }
+
+    switchAuthTab(tabName) {
+        const tabs = [this.dom.tabAuthLogin, this.dom.tabAuthRegister, this.dom.tabAuthGuest];
+        const panels = [this.dom.authPanelLogin, this.dom.authPanelRegister, this.dom.authPanelGuest];
+
+        tabs.forEach((t) => t?.classList.remove("active"));
+        panels.forEach((p) => p?.classList.add("hidden"));
+
+        if (tabName === "register") {
+            this.dom.tabAuthRegister?.classList.add("active");
+            this.dom.authPanelRegister?.classList.remove("hidden");
+            this.dom.authRegUsername?.focus();
+        } else if (tabName === "guest") {
+            this.dom.tabAuthGuest?.classList.add("active");
+            this.dom.authPanelGuest?.classList.remove("hidden");
+            this.dom.authGuestNickname?.focus();
+        } else {
+            this.dom.tabAuthLogin?.classList.add("active");
+            this.dom.authPanelLogin?.classList.remove("hidden");
+            this.dom.authLoginUsername?.focus();
+        }
+    }
+
+    async handleLogin(username, password) {
+        const statusEl = this.dom.authLoginStatus;
+        if (statusEl) {
+            statusEl.className = "auth-status-msg hidden";
+            statusEl.textContent = "";
+        }
+
+        try {
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.detail || "Invalid credentials.");
+            }
+
+            this.setAuthenticatedUser(data, data.token);
+            this.closeAuth();
+            this.showToast("Signed In", `Welcome back, ${data.nickname || data.username}!`, "🔑");
+        } catch (err) {
+            if (statusEl) {
+                statusEl.className = "auth-status-msg error";
+                statusEl.textContent = err.message;
+            }
+        }
+    }
+
+    async handleRegister(username, password, nickname) {
+        const statusEl = this.dom.authRegStatus;
+        if (statusEl) {
+            statusEl.className = "auth-status-msg hidden";
+            statusEl.textContent = "";
+        }
+
+        try {
+            const res = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username,
+                    password,
+                    nickname: nickname || username,
+                    avatar_id: this.profile?.avatar_id || "pumpkin_hunter",
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.detail || "Registration failed.");
+            }
+
+            this.setAuthenticatedUser(data, data.token);
+            this.closeAuth();
+            this.showToast("Account Created", `Welcome to the crypt, ${data.nickname}!`, "✨");
+        } catch (err) {
+            if (statusEl) {
+                statusEl.className = "auth-status-msg error";
+                statusEl.textContent = err.message;
+            }
+        }
+    }
+
+    async handleGuest(nickname) {
+        const statusEl = this.dom.authGuestStatus;
+        if (statusEl) {
+            statusEl.className = "auth-status-msg hidden";
+            statusEl.textContent = "";
+        }
+
+        try {
+            const res = await fetch("/api/auth/guest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nickname: nickname || "Ghost Hunter",
+                    avatar_id: this.profile?.avatar_id || "pumpkin_hunter",
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || "Guest entry failed.");
+
+            this.setAuthenticatedUser(data, data.token);
+            this.closeAuth();
+            this.showToast("Guest Session", `Entering as ${data.nickname}.`, "👻");
+        } catch (err) {
+            if (statusEl) {
+                statusEl.className = "auth-status-msg error";
+                statusEl.textContent = err.message;
+            }
+        }
+    }
+
+    async handleLogout() {
+        const token = localStorage.getItem("spooky_session_token");
+        if (token) {
+            try {
+                await fetch("/api/auth/logout", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+            } catch (err) {
+                console.warn("Logout error:", err);
+            }
+        }
+        localStorage.removeItem("spooky_session_token");
+        this.currentUser = null;
+        await this.initDefaultGuestSession();
+        this.showToast("Signed Out", "You have returned to guest status.", "👋");
+    }
+
+    // ==========================================
     // CAMPAIGN (THE HAUNTED JOURNEY)
     // ==========================================
     openCampaign() {
@@ -1886,7 +2275,13 @@ export class HalloweenQuizApp {
         });
 
         // Lobby Actions
-        this.dom.btnEnterTheHaunt?.addEventListener("click", () => this.startGame());
+        this.dom.btnEnterTheHaunt?.addEventListener("click", () => {
+            if (this.router) {
+                this.router.navigate("/hunt");
+            } else {
+                this.bootstrapHunt();
+            }
+        });
         this.dom.btnLobbyContinueJourney?.addEventListener("click", () => this.handleLobbyContinueJourney());
         this.dom.btnLobbyQuickPlay?.addEventListener("click", () => {
             this.startGameWithParams({ mode: "quick", num_questions: 5 });
@@ -2194,6 +2589,73 @@ export class HalloweenQuizApp {
             if (code) {
                 this.duelsMgr.joinHauntedDuel(code);
             }
+        });
+
+        // Hunt Mode Selection Buttons (v2.7.0)
+        document.querySelectorAll(".btn-start-mode").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const mode = btn.getAttribute("data-mode");
+                if (mode) this.startModeHunt(mode);
+            });
+        });
+
+        // Spooky Genie & Oracle Consultation (v2.7.0)
+        this.dom.btnGenieConsultOracle?.addEventListener("click", () => this.consultOracleWhisper());
+
+        // Top Navigation Music Toggle Button (v2.7.0)
+        this.dom.btnNavMusicToggle?.addEventListener("click", () => {
+            this.sound.toggleBgm();
+            this.profile.preferences.music_enabled = this.sound.musicEnabled;
+            this.saveProfile();
+            this.syncSettingsUi();
+            this.updateMusicNavButton(this.sound.bgmPlaying);
+        });
+
+        // Top Navigation Auth Pill & Sanctum Modal (v2.7.0)
+        this.dom.btnNavAuth?.addEventListener("click", () => {
+            const isRegistered = Boolean(this.currentUser && !this.currentUser.is_guest);
+            if (isRegistered) {
+                const conf = window.confirm(`Signed in as ${this.currentUser.nickname || this.currentUser.username}. Would you like to sign out?`);
+                if (conf) {
+                    this.handleLogout();
+                }
+            } else {
+                this.openAuth("login");
+            }
+        });
+
+        this.dom.btnCloseAuth?.addEventListener("click", () => this.closeAuth());
+        this.dom.modalAuth?.addEventListener("click", (e) => {
+            if (e.target === this.dom.modalAuth) this.closeAuth();
+        });
+
+        this.dom.tabAuthLogin?.addEventListener("click", () => this.switchAuthTab("login"));
+        this.dom.tabAuthRegister?.addEventListener("click", () => this.switchAuthTab("register"));
+        this.dom.tabAuthGuest?.addEventListener("click", () => this.switchAuthTab("guest"));
+
+        this.dom.formAuthLogin?.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const u = this.dom.authLoginUsername?.value?.trim();
+            const p = this.dom.authLoginPassword?.value;
+            if (u && p) {
+                this.handleLogin(u, p);
+            }
+        });
+
+        this.dom.formAuthRegister?.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const u = this.dom.authRegUsername?.value?.trim();
+            const p = this.dom.authRegPassword?.value;
+            const n = this.dom.authRegNickname?.value?.trim();
+            if (u && p) {
+                this.handleRegister(u, p, n);
+            }
+        });
+
+        this.dom.formAuthGuest?.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const n = this.dom.authGuestNickname?.value?.trim();
+            this.handleGuest(n);
         });
 
         // Mobile More Sheet Drawer

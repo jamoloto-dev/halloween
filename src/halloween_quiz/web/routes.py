@@ -28,6 +28,7 @@ from halloween_quiz.core.entitlements import (
     EntitlementStatus,
     entitlement_service,
 )
+from halloween_quiz.core.auth import AuthService, auth_service
 from halloween_quiz.core.models import (
     AnswerResult,
     AnswerSubmission,
@@ -39,6 +40,10 @@ from halloween_quiz.core.models import (
     QuestionView,
     QuizConfig,
     ScoreRecord,
+    UserAuthResponse,
+    UserGuestRequest,
+    UserLoginRequest,
+    UserRegisterRequest,
 )
 from halloween_quiz.core.storage import ScoreRepository
 from halloween_quiz.web.security import rate_limit_quiz_action, rate_limit_start_quiz
@@ -137,6 +142,23 @@ def get_active_sessions(request: Request) -> SessionManager:
     return request.app.state.active_sessions
 
 
+def get_auth_service(request: Request) -> AuthService:
+    return getattr(request.app.state, "auth_service", auth_service)
+
+
+def extract_auth_token(request: Request) -> str | None:
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        return auth_header[7:].strip()
+    header_token = request.headers.get("X-Session-Token")
+    if header_token:
+        return header_token.strip()
+    cookie_token = request.cookies.get("spooky_session")
+    if cookie_token:
+        return cookie_token.strip()
+    return None
+
+
 @router.get("/health")
 def health_check(
     bank: QuestionBank = Depends(get_question_bank),
@@ -187,6 +209,97 @@ def readiness_check(
             detail=f"Database unavailable: {e}",
         )
     return {"status": "ready"}
+
+
+# ---------------------------------------------------------------------------
+# Authentication & Identity Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/api/auth/register", response_model=UserAuthResponse)
+def register_account(
+    payload: UserRegisterRequest,
+    auth: AuthService = Depends(get_auth_service),
+):
+    """Register a new player account (role strictly 'player', never admin)."""
+    try:
+        res = auth.register_user(
+            username=payload.username,
+            password=payload.password,
+            nickname=payload.nickname,
+            avatar_id=payload.avatar_id,
+        )
+        return UserAuthResponse(**res)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.post("/api/auth/login", response_model=UserAuthResponse)
+def login_account(
+    payload: UserLoginRequest,
+    auth: AuthService = Depends(get_auth_service),
+):
+    """Authenticate player credentials and issue an active session token."""
+    try:
+        res = auth.login_user(
+            username=payload.username,
+            password=payload.password,
+        )
+        return UserAuthResponse(**res)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+        )
+
+
+@router.post("/api/auth/guest", response_model=UserAuthResponse)
+def create_guest(
+    payload: UserGuestRequest,
+    auth: AuthService = Depends(get_auth_service),
+):
+    """Create a guest session (role strictly 'player', never admin)."""
+    res = auth.create_guest_session(
+        nickname=payload.nickname,
+        avatar_id=payload.avatar_id,
+    )
+    return UserAuthResponse(**res)
+
+
+@router.get("/api/auth/me")
+def get_current_user_profile(
+    request: Request,
+    auth: AuthService = Depends(get_auth_service),
+):
+    """Retrieve profile and role for current authenticated session."""
+    token = extract_auth_token(request)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication token required.",
+        )
+    user = auth.authenticate_token(token)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expired or invalid.",
+        )
+    return user
+
+
+@router.post("/api/auth/logout")
+def logout_current_session(
+    request: Request,
+    auth: AuthService = Depends(get_auth_service),
+):
+    """Invalidate current session token."""
+    token = extract_auth_token(request)
+    if token:
+        auth.logout_token(token)
+    return {"success": True, "message": "Signed out successfully."}
 
 
 @router.get("/api/categories")
@@ -626,12 +739,14 @@ def verify_or_restore_purchase(
 
 
 @router.post("/api/leaderboard", response_model=ScoreRecord)
+@router.post("/api/scores", response_model=ScoreRecord)
 def record_score_manually(
     payload: ScoreRecord,
     request: Request,
     repo: ScoreRepository = Depends(get_score_repo),
+    auth: AuthService = Depends(get_auth_service),
 ):
-    """Score recording endpoint (strictly disabled in production to protect leaderboard integrity)."""
+    """Score recording endpoint (strictly disabled in production or restricted to admins)."""
     env = os.getenv("ENVIRONMENT", "development").lower()
     if env == "production":
         raise HTTPException(
@@ -640,13 +755,26 @@ def record_score_manually(
         )
 
     admin_key = os.getenv("ADMIN_API_KEY")
-    if admin_key:
-        provided_key = request.headers.get("X-Admin-Key")
-        if not provided_key or provided_key != admin_key:
+    provided_key = request.headers.get("X-Admin-Key")
+
+    token = extract_auth_token(request)
+    authenticated_user = auth.authenticate_token(token) if token else None
+
+    # If caller has an authenticated session as a player or guest, they cannot manually submit scores
+    if authenticated_user and authenticated_user.get("role") != "admin":
+        if not (admin_key and provided_key == admin_key):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid or missing X-Admin-Key header for manual score recording.",
+                detail="Manual score recording requires administrator privileges or a valid X-Admin-Key.",
             )
+
+    if admin_key:
+        if not provided_key or provided_key != admin_key:
+            if not (authenticated_user and authenticated_user.get("role") == "admin"):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Invalid or missing X-Admin-Key header for manual score recording.",
+                )
 
     pid = getattr(payload, "player_id", "guest_default") or "guest_default"
     is_guest = getattr(payload, "is_guest", True)

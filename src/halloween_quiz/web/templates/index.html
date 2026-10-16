@@ -67,14 +67,18 @@
             </div>
         </a>
         <nav class="nav-actions" aria-label="Game navigation">
-            <button id="btn-market-open" class="nav-btn nav-diamond-pill" title="Open The Witch's Market" aria-label="Diamonds and Market">💎 <span id="header-diamond-count">0</span></button>
+            <a href="/hunt" id="btn-nav-hunt" class="nav-btn" title="Hunt Game Modes" aria-label="Hunt Modes" data-route="/hunt">🏹 Hunt</a>
+            <a href="/genie" id="btn-nav-genie" class="nav-btn" title="Spooky Genie & Oracle" aria-label="Spooky Genie" data-route="/genie">🧞 Genie</a>
             <a href="/journey" id="btn-campaign-nav" class="nav-btn" title="The Haunted Journey Campaign Map" aria-label="Campaign Journey" data-route="/journey">🗺️ Journey</a>
             <a href="/duels" id="btn-duels-nav" class="nav-btn" title="Haunted Duels PvP" aria-label="Haunted Duels" data-route="/duels">⚔️ Duels</a>
             <a href="/pass" id="btn-pass-nav" class="nav-btn nav-pass-pill" title="Spooky Master Pass" aria-label="Spooky Master Pass" data-route="/pass">🎃 Pass</a>
+            <button id="btn-market-open" class="nav-btn nav-diamond-pill" title="Open The Witch's Market" aria-label="Diamonds and Market">💎 <span id="header-diamond-count">0</span></button>
             <button id="btn-pwa-install" class="nav-btn hidden" title="Install Spooky Master App" aria-label="Install App">📲 Install</button>
             <a href="/progress" id="btn-mastery-open" class="nav-btn" title="View Player Profile & Progress" aria-label="View Progress" data-route="/progress">📜 Progress</a>
             <a href="/leaderboard" id="btn-leaderboard-open" class="nav-btn" title="View High Scores" aria-label="View Leaderboard" data-route="/leaderboard">🏆 Leaderboard</a>
             <a href="/settings" id="btn-settings-open" class="nav-btn" title="Settings & Preferences" aria-label="Settings" data-route="/settings">⚙️ Settings</a>
+            <button type="button" id="btn-nav-music-toggle" class="nav-btn nav-music-btn" title="Toggle Background Music" aria-label="Toggle Background Music">🎵 <span id="nav-music-status">ON</span></button>
+            <button type="button" id="btn-nav-auth" class="nav-btn nav-auth-pill" title="Player Sign In / Account" aria-label="Account Login / Profile">🔑 <span id="nav-auth-label">Sign In</span></button>
         </nav>
     </header>
 
@@ -691,6 +695,281 @@
             </div>
         </section>
 
+        <!-- PAGE: DEDICATED HUNT MODE SELECTION -->
+        <section id="page-hunt" class="page-view hidden" aria-labelledby="hunt-page-title">
+            <div class="card page-card hunt-page-card">
+                <div class="page-card-header">
+                    <div class="page-title-group">
+                        <span class="badge badge-tier">⚔️ Supernatural Game Modes</span>
+                        <h2 id="hunt-page-title">🏹 Select Your Hunt</h2>
+                        <p class="page-subtitle">Choose your challenge across the 9 supernatural crypt game modes. Survive the haunt and prove your trivia mastery.</p>
+                    </div>
+                    <a href="/" class="btn-ghost-sm" data-route="/">← Return Home</a>
+                </div>
+
+                <div class="hunt-modes-grid" role="list" aria-label="Game Modes">
+                    <!-- 1. Classic Crypt -->
+                    <div class="hunt-mode-card featured-mode" role="listitem">
+                        <div class="hunt-mode-top">
+                            <span class="hunt-mode-icon" aria-hidden="true">⚰️</span>
+                            <div class="hunt-mode-info">
+                                <h3>Classic Crypt</h3>
+                                <p class="hunt-mode-desc">The canonical horror trivia experience. Balanced across all 6 supernatural lore domains with standard timers.</p>
+                            </div>
+                        </div>
+                        <div class="hunt-mode-meta">
+                            <span class="hunt-mode-pill">10 Questions</span>
+                            <span class="hunt-mode-pill">20s Timer</span>
+                            <span class="hunt-mode-pill">Standard Scoring</span>
+                        </div>
+                        <div class="hunt-mode-actions">
+                            <button type="button" class="btn-hunt-start btn-start-mode" data-mode="classic">
+                                <span>Start Classic Hunt</span> ➔
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Quick Bite -->
+                    <div class="hunt-mode-card" role="listitem">
+                        <div class="hunt-mode-top">
+                            <span class="hunt-mode-icon" aria-hidden="true">⚡</span>
+                            <div class="hunt-mode-info">
+                                <h3>Quick Bite</h3>
+                                <p class="hunt-mode-desc">Rapid lightning round. 5 fast questions to test your instant supernatural recall without prolonged delay.</p>
+                            </div>
+                        </div>
+                        <div class="hunt-mode-meta">
+                            <span class="hunt-mode-pill">5 Questions</span>
+                            <span class="hunt-mode-pill">Casual Pace</span>
+                            <span class="hunt-mode-pill">Rapid Fire</span>
+                        </div>
+                        <div class="hunt-mode-actions">
+                            <button type="button" class="btn-hunt-start btn-start-mode" data-mode="quick">
+                                <span>Start Quick Bite</span> ➔
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Midnight Panic -->
+                    <div class="hunt-mode-card" role="listitem">
+                        <div class="hunt-mode-top">
+                            <span class="hunt-mode-icon" aria-hidden="true">⏳</span>
+                            <div class="hunt-mode-info">
+                                <h3>Midnight Panic</h3>
+                                <p class="hunt-mode-desc">Intense 10-second blitz countdown. High pressure, maximum speed bonus multipliers for daring crypt hunters.</p>
+                            </div>
+                        </div>
+                        <div class="hunt-mode-meta">
+                            <span class="hunt-mode-pill pill-warning">10s Blitz Timer</span>
+                            <span class="hunt-mode-pill">10 Questions</span>
+                            <span class="hunt-mode-pill">High Multiplier</span>
+                        </div>
+                        <div class="hunt-mode-actions">
+                            <button type="button" class="btn-hunt-start btn-start-mode" data-mode="panic">
+                                <span>Enter Midnight Panic</span> ➔
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4. Deep Dive -->
+                    <div class="hunt-mode-card" role="listitem">
+                        <div class="hunt-mode-top">
+                            <span class="hunt-mode-icon" aria-hidden="true">📖</span>
+                            <div class="hunt-mode-info">
+                                <h3>Deep Dive</h3>
+                                <p class="hunt-mode-desc">A grueling 15-question marathon exploring occult folklore, horror cinema, and terrifying literary classics.</p>
+                            </div>
+                        </div>
+                        <div class="hunt-mode-meta">
+                            <span class="hunt-mode-pill">15 Questions</span>
+                            <span class="hunt-mode-pill">Lore Marathon</span>
+                            <span class="hunt-mode-pill">Maximum Lore</span>
+                        </div>
+                        <div class="hunt-mode-actions">
+                            <button type="button" class="btn-hunt-start btn-start-mode" data-mode="deep">
+                                <span>Begin Deep Dive</span> ➔
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 5. Endless Night -->
+                    <div class="hunt-mode-card" role="listitem">
+                        <div class="hunt-mode-top">
+                            <span class="hunt-mode-icon" aria-hidden="true">💀</span>
+                            <div class="hunt-mode-info">
+                                <h3>Endless Night</h3>
+                                <p class="hunt-mode-desc">Endurance survival trial. Answer correctly to stay alive — accumulate 3 strikes and the crypt seals forever.</p>
+                            </div>
+                        </div>
+                        <div class="hunt-mode-meta">
+                            <span class="hunt-mode-pill pill-warning">3 Strikes Rule</span>
+                            <span class="hunt-mode-pill">Up to 50 Questions</span>
+                            <span class="hunt-mode-pill">Survival</span>
+                        </div>
+                        <div class="hunt-mode-actions">
+                            <button type="button" class="btn-hunt-start btn-start-mode" data-mode="endless">
+                                <span>Enter Endless Night</span> ➔
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 6. Daily Haunt -->
+                    <div class="hunt-mode-card" role="listitem">
+                        <div class="hunt-mode-top">
+                            <span class="hunt-mode-icon" aria-hidden="true">🕯️</span>
+                            <div class="hunt-mode-info">
+                                <h3>Daily Haunt</h3>
+                                <p class="hunt-mode-desc">Synchronized 24h global challenge seeded identically worldwide. Compete fairly for daily ranking glory.</p>
+                            </div>
+                        </div>
+                        <div class="hunt-mode-meta">
+                            <span class="hunt-mode-pill">Global Seed</span>
+                            <span class="hunt-mode-pill">Zero Boosters</span>
+                            <span class="hunt-mode-pill">💎 30 Diamonds</span>
+                        </div>
+                        <div class="hunt-mode-actions">
+                            <a href="/daily-haunt" class="btn-hunt-start" data-route="/daily-haunt">
+                                <span>View Daily Challenge</span> ➔
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 7. Dynamic Realm -->
+                    <div class="hunt-mode-card" role="listitem">
+                        <div class="hunt-mode-top">
+                            <span class="hunt-mode-icon" aria-hidden="true">🌀</span>
+                            <div class="hunt-mode-info">
+                                <h3>Dynamic Realm</h3>
+                                <p class="hunt-mode-desc">AI adaptive difficulty scaling. Telemetry monitors your accuracy and response speeds to tailor every question.</p>
+                            </div>
+                        </div>
+                        <div class="hunt-mode-meta">
+                            <span class="hunt-mode-pill">Adaptive AI</span>
+                            <span class="hunt-mode-pill">Real-Time Scaling</span>
+                            <span class="hunt-mode-pill">Skill Rating</span>
+                        </div>
+                        <div class="hunt-mode-actions">
+                            <button type="button" class="btn-hunt-start btn-start-mode" data-mode="adaptive">
+                                <span>Enter Dynamic Realm</span> ➔
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 8. The Haunted Journey -->
+                    <div class="hunt-mode-card" role="listitem">
+                        <div class="hunt-mode-top">
+                            <span class="hunt-mode-icon" aria-hidden="true">🗺️</span>
+                            <div class="hunt-mode-info">
+                                <h3>The Haunted Journey</h3>
+                                <p class="hunt-mode-desc">Progressive episodic story campaign. Clear stages, overcome cursed traps, and defeat supernatural crypt bosses.</p>
+                            </div>
+                        </div>
+                        <div class="hunt-mode-meta">
+                            <span class="hunt-mode-pill">Campaign Map</span>
+                            <span class="hunt-mode-pill">Boss Stages</span>
+                            <span class="hunt-mode-pill">Story Artifacts</span>
+                        </div>
+                        <div class="hunt-mode-actions">
+                            <a href="/journey" class="btn-hunt-start" data-route="/journey">
+                                <span>Continue Journey</span> ➔
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 9. Haunted Duels -->
+                    <div class="hunt-mode-card" role="listitem">
+                        <div class="hunt-mode-top">
+                            <span class="hunt-mode-icon" aria-hidden="true">⚔️</span>
+                            <div class="hunt-mode-info">
+                                <h3>Haunted Duels</h3>
+                                <p class="hunt-mode-desc">Asynchronous multiplayer PvP combat. Challenge friends with custom codes, set deadly traps, and claim victory.</p>
+                            </div>
+                        </div>
+                        <div class="hunt-mode-meta">
+                            <span class="hunt-mode-pill">1v1 PvP Arena</span>
+                            <span class="hunt-mode-pill">Trap Cards</span>
+                            <span class="hunt-mode-pill">Duel Codes</span>
+                        </div>
+                        <div class="hunt-mode-actions">
+                            <a href="/duels" class="btn-hunt-start" data-route="/duels">
+                                <span>Open Duels Arena</span> ➔
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: SPOOKY GENIE & ORACLE -->
+        <section id="page-genie" class="page-view hidden" aria-labelledby="genie-page-title">
+            <div class="card page-card genie-page-card">
+                <div class="page-card-header">
+                    <div class="page-title-group">
+                        <span class="badge badge-tier">🔮 Supernatural AI Oracle</span>
+                        <h2 id="genie-page-title">🧞 The Spooky Genie & Oracle</h2>
+                        <p class="page-subtitle">Harness supernatural intelligence: consult the ancient Oracle for cryptic lore hints, synthesize bespoke hunter avatars, or inspect adaptive grimoire analytics.</p>
+                    </div>
+                    <a href="/" class="btn-ghost-sm" data-route="/">← Return Home</a>
+                </div>
+
+                <div class="genie-chambers-grid">
+                    <!-- Chamber 1: The Cryptic Oracle -->
+                    <div class="genie-chamber-card">
+                        <div class="genie-chamber-header">
+                            <span class="genie-chamber-icon" aria-hidden="true">🔮</span>
+                            <div>
+                                <h3>The Cryptic Oracle</h3>
+                                <span class="hunt-mode-pill">Occult Trivia Guidance</span>
+                            </div>
+                        </div>
+                        <div class="genie-chamber-body">
+                            <p>Consult the spectral oracle for esoteric trivia hints, cryptic whispers, or play procedural audio riddles from ancient crypt chambers.</p>
+                            <button type="button" id="btn-genie-consult-oracle" class="btn-secondary btn-full">
+                                <span>🔮 Consult the Oracle Whisper</span>
+                            </button>
+                            <div id="genie-oracle-result" class="oracle-response-box hidden" aria-live="polite">
+                                <em>"The midnight bell tolls for those who dare seek the secrets of the hallowed pumpkin..."</em>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chamber 2: Supernatural AI Hunter Studio -->
+                    <div class="genie-chamber-card">
+                        <div class="genie-chamber-header">
+                            <span class="genie-chamber-icon" aria-hidden="true">🧪</span>
+                            <div>
+                                <h3>AI Hunter Studio</h3>
+                                <span class="hunt-mode-pill">Avatar Synthesis</span>
+                            </div>
+                        </div>
+                        <div class="genie-chamber-body">
+                            <p>Synthesize unique, one-of-a-kind supernatural hunter guises. Choose your creature, dark art style, occult colors, and equip it directly to your profile.</p>
+                            <a href="/hunter-studio" class="btn-cta btn-full" data-route="/hunter-studio">
+                                <span>🧪 Open Hunter Studio</span> ➔
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Chamber 3: Adaptive Grimoire Insights -->
+                    <div class="genie-chamber-card">
+                        <div class="genie-chamber-header">
+                            <span class="genie-chamber-icon" aria-hidden="true">📜</span>
+                            <div>
+                                <h3>The Oracle's Grimoire</h3>
+                                <span class="hunt-mode-pill">Adaptive Skill Telemetry</span>
+                            </div>
+                        </div>
+                        <div class="genie-chamber-body">
+                            <p>Examine your supernatural player telemetry. The genie tracks your category mastery, response speed calibration, and current streak endurance.</p>
+                            <a href="/progress" class="btn-secondary btn-full" data-route="/progress">
+                                <span>📜 View Hunter Progress & Mastery</span> ➔
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- PAGE: DAILY HAUNT -->
         <section id="page-daily-haunt" class="page-view hidden" aria-labelledby="daily-haunt-title">
             <div class="card page-card daily-haunt-page-card">
@@ -1053,6 +1332,83 @@
                             <!-- Populated dynamically via JS -->
                         </div>
                     </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: AUTHENTICATION & PLAYER IDENTITY (v2.7.0) -->
+        <div id="modal-auth" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+            <div class="modal-card modal-auth-card">
+                <div class="modal-header">
+                    <h2 id="auth-modal-title">🎃 Hunter Sanctum</h2>
+                    <button id="btn-close-auth" class="btn-close" aria-label="Close authentication modal">✖</button>
+                </div>
+
+                <div class="auth-tabs-bar" role="tablist">
+                    <button type="button" class="auth-tab-btn active" id="tab-auth-login" role="tab" aria-selected="true">
+                        🔑 Sign In
+                    </button>
+                    <button type="button" class="auth-tab-btn" id="tab-auth-register" role="tab" aria-selected="false">
+                        ✨ Register
+                    </button>
+                    <button type="button" class="auth-tab-btn" id="tab-auth-guest" role="tab" aria-selected="false">
+                        👻 Guest Pass
+                    </button>
+                </div>
+
+                <!-- Panel 1: Sign In -->
+                <div id="auth-panel-login" class="auth-panel" role="tabpanel">
+                    <div id="auth-login-status" class="auth-status-msg hidden" role="alert"></div>
+                    <form id="form-auth-login" autocomplete="on">
+                        <div class="auth-field-group">
+                            <label for="auth-login-username">Hunter Username</label>
+                            <input type="text" id="auth-login-username" class="auth-input" required autocomplete="username" placeholder="e.g. shadow_hunter">
+                        </div>
+                        <div class="auth-field-group">
+                            <label for="auth-login-password">Crypt Key (Password)</label>
+                            <input type="password" id="auth-login-password" class="auth-input" required autocomplete="current-password" placeholder="••••••••">
+                        </div>
+                        <button type="submit" id="btn-auth-submit-login" class="btn-cta btn-full">
+                            <span>Sign In to Crypt</span> ➔
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Panel 2: Register Account -->
+                <div id="auth-panel-register" class="auth-panel hidden" role="tabpanel">
+                    <div id="auth-reg-status" class="auth-status-msg hidden" role="alert"></div>
+                    <form id="form-auth-register" autocomplete="on">
+                        <div class="auth-field-group">
+                            <label for="auth-reg-username">Choose Username (3–30 characters)</label>
+                            <input type="text" id="auth-reg-username" class="auth-input" required pattern="^[a-zA-Z0-9_-]{3,30}$" autocomplete="username" placeholder="Letters, numbers, underscores">
+                        </div>
+                        <div class="auth-field-group">
+                            <label for="auth-reg-password">Password (minimum 6 characters)</label>
+                            <input type="password" id="auth-reg-password" class="auth-input" required minlength="6" autocomplete="new-password" placeholder="At least 6 characters">
+                        </div>
+                        <div class="auth-field-group">
+                            <label for="auth-reg-nickname">Display Nickname (optional)</label>
+                            <input type="text" id="auth-reg-nickname" class="auth-input" maxlength="40" placeholder="e.g. Shadow Stalker">
+                        </div>
+                        <button type="submit" id="btn-auth-submit-register" class="btn-cta btn-full">
+                            <span>Create Hunter Account</span> ➔
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Panel 3: Guest Entry -->
+                <div id="auth-panel-guest" class="auth-panel hidden" role="tabpanel">
+                    <div id="auth-guest-status" class="auth-status-msg hidden" role="alert"></div>
+                    <p class="onboarding-subtitle">Play immediately without creating a persistent password. Guest sessions are strictly normal player accounts with no administrative privileges.</p>
+                    <form id="form-auth-guest">
+                        <div class="auth-field-group">
+                            <label for="auth-guest-nickname">Guest Nickname (optional)</label>
+                            <input type="text" id="auth-guest-nickname" class="auth-input" maxlength="40" placeholder="Ghost Hunter">
+                        </div>
+                        <button type="submit" id="btn-auth-submit-guest" class="btn-secondary btn-full">
+                            <span>👻 Enter as Guest Hunter</span> ➔
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -1599,11 +1955,11 @@
     <canvas id="confetti-canvas"></canvas>
 
     <!-- Looping horror ambience audio element -->
-    <audio id="bgm-audio" loop preload="none">
+    <audio id="bgm-audio" loop preload="auto">
         <source src="/sounds/spooky-master-main.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Compact Mobile Bottom Navigation Bar (v2.6.0) -->
+    <!-- Compact Mobile Bottom Navigation Bar (v2.7.0) -->
     <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
         <a href="/" class="mobile-nav-item active" data-route="/" aria-current="page" aria-label="Home">
             <span class="mobile-nav-icon">🏠</span>
@@ -1621,6 +1977,10 @@
             <span class="mobile-nav-icon">📜</span>
             <span class="mobile-nav-label">Progress</span>
         </a>
+        <a href="/leaderboard" class="mobile-nav-item" data-route="/leaderboard" aria-label="Leaderboard">
+            <span class="mobile-nav-icon">🏆</span>
+            <span class="mobile-nav-label">Scores</span>
+        </a>
         <button type="button" id="btn-mobile-more" class="mobile-nav-item" aria-haspopup="dialog" aria-expanded="false" aria-label="More Navigation Options">
             <span class="mobile-nav-icon">☰</span>
             <span class="mobile-nav-label">More</span>
@@ -1636,11 +1996,39 @@
                 <button type="button" id="btn-close-mobile-more" class="btn-close-sheet" aria-label="Close menu">✕</button>
             </div>
             <div class="mobile-more-grid">
+                <a href="/hunt" class="mobile-more-card" data-route="/hunt">
+                    <span class="more-card-icon">🏹</span>
+                    <div>
+                        <strong>Hunt Mode Selection</strong>
+                        <span>All 9 crypt game modes</span>
+                    </div>
+                </a>
+                <a href="/genie" class="mobile-more-card" data-route="/genie">
+                    <span class="more-card-icon">🧞</span>
+                    <div>
+                        <strong>Spooky Genie & Oracle</strong>
+                        <span>AI Oracle & Studio</span>
+                    </div>
+                </a>
+                <a href="/journey" class="mobile-more-card" data-route="/journey">
+                    <span class="more-card-icon">🗺️</span>
+                    <div>
+                        <strong>Haunted Journey</strong>
+                        <span>Story campaign map</span>
+                    </div>
+                </a>
+                <a href="/duels" class="mobile-more-card" data-route="/duels">
+                    <span class="more-card-icon">⚔️</span>
+                    <div>
+                        <strong>Haunted Duels</strong>
+                        <span>PvP combat & traps</span>
+                    </div>
+                </a>
                 <a href="/play" class="mobile-more-card" data-route="/play">
                     <span class="more-card-icon">🎮</span>
                     <div>
-                        <strong>Play Setup</strong>
-                        <span>Configure quiz match</span>
+                        <strong>Custom Play Setup</strong>
+                        <span>Configure match chamber</span>
                     </div>
                 </a>
                 <a href="/daily-haunt" class="mobile-more-card" data-route="/daily-haunt">

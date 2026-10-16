@@ -108,8 +108,13 @@ export class SoundEngine {
     setMusicVolume(val) {
         const parsed = parseFloat(val);
         this.musicVolume = Number.isFinite(parsed) ? Math.max(0, Math.min(1, parsed)) : 0.25;
-        if (this.bgmAudio && this.bgmPlaying) {
-            this.fadeBackgroundTo(this.musicVolume, 150);
+        if (this.bgmAudio) {
+            this.bgmAudio.volume = this.musicVolume;
+            if (this.musicVolume === 0) {
+                this.bgmAudio.muted = true;
+            } else if (this.musicEnabled) {
+                this.bgmAudio.muted = false;
+            }
         }
     }
 
@@ -125,10 +130,13 @@ export class SoundEngine {
         }
 
         if (this.bgmAudio) {
-            const wasPlaying = this.bgmPlaying;
-            this.bgmAudio.src = track.url;
-            if (wasPlaying && restartIfPlaying && this.musicEnabled) {
-                this.startBackgroundAmbience();
+            const currentSrc = this.bgmAudio.getAttribute("src") || this.bgmAudio.currentSrc || "";
+            if (!currentSrc || !currentSrc.includes(track.url)) {
+                const wasPlaying = this.bgmPlaying;
+                this.bgmAudio.src = track.url;
+                if (wasPlaying && restartIfPlaying && this.musicEnabled) {
+                    this.startBackgroundAmbience();
+                }
             }
         }
     }
@@ -197,28 +205,49 @@ export class SoundEngine {
         this.ambienceRequested = true;
         this.unlock();
 
-        if (this.bgmAudio.paused || this.bgmAudio.ended) {
-            this.bgmAudio.loop = true;
-            this.bgmAudio.volume = 0;
-            this.bgmAudio.muted = false;
+        this.bgmAudio.loop = true;
+        this.bgmAudio.muted = false;
+        if (this.musicVolume > 0) {
+            this.bgmAudio.volume = this.musicVolume;
+        }
 
+        if (this.bgmAudio.paused || this.bgmAudio.ended) {
             const playPromise = this.bgmAudio.play();
             if (playPromise !== undefined) {
                 playPromise.then(() => {
                     this.bgmPlaying = true;
+                    this.isAutoplayBlocked = false;
                     this.notifyBgmStateChange();
-                    this.fadeBackgroundTo(this.musicVolume, 1500);
                 }).catch((err) => {
                     console.warn("Autoplay blocked; waiting for user gesture.", err);
                     this.bgmPlaying = false;
+                    this.isAutoplayBlocked = true;
                     this.notifyBgmStateChange();
+                    this.attachAutoplayUnlocker();
                 });
             }
         } else {
             this.bgmPlaying = true;
+            this.isAutoplayBlocked = false;
             this.notifyBgmStateChange();
-            this.fadeBackgroundTo(this.musicVolume, 500);
         }
+    }
+
+    attachAutoplayUnlocker() {
+        if (this._unlockerAttached) return;
+        this._unlockerAttached = true;
+        const onFirstGesture = () => {
+            this._unlockerAttached = false;
+            window.removeEventListener("click", onFirstGesture);
+            window.removeEventListener("keydown", onFirstGesture);
+            window.removeEventListener("touchstart", onFirstGesture);
+            if (this.musicEnabled && (this.ambienceRequested || this.isAutoplayBlocked)) {
+                this.startBackgroundAmbience();
+            }
+        };
+        window.addEventListener("click", onFirstGesture, { once: true });
+        window.addEventListener("keydown", onFirstGesture, { once: true });
+        window.addEventListener("touchstart", onFirstGesture, { once: true });
     }
 
     fadeBackgroundTo(targetVolume, durationMs = 1000, onDone = null) {

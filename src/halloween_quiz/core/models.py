@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from enum import Enum
+import re
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -287,3 +288,52 @@ class DiamondTransaction(BaseModel):
     reason: str
     reference_id: str
     created_at: str
+
+
+class UserRegisterRequest(BaseModel):
+    username: str = Field(..., min_length=3, max_length=30)
+    password: str = Field(..., min_length=6, max_length=128)
+    nickname: str | None = Field(default=None, max_length=40)
+    avatar_id: str | None = Field(default="pumpkin_hunter", max_length=50)
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        clean = v.strip().lower()
+        if not re.match(r"^[a-zA-Z0-9_-]{3,30}$", clean):
+            raise ValueError(
+                "Username must be 3-30 characters containing only letters, numbers, hyphens, and underscores."
+            )
+        return clean
+
+    @field_validator("nickname")
+    @classmethod
+    def sanitize_nickname(cls, v: str | None) -> str:
+        if not v:
+            return "Ghost Hunter"
+        v = v.strip()
+        while v and v[0] in ("=", "+", "-", "@", "\t", "\r"):
+            v = v[1:].strip()
+        return v[:40] or "Ghost Hunter"
+
+
+class UserLoginRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=50)
+    password: str = Field(..., min_length=1, max_length=128)
+
+
+class UserGuestRequest(BaseModel):
+    nickname: str | None = Field(default="Ghost Hunter", max_length=40)
+    avatar_id: str | None = Field(default="pumpkin_hunter", max_length=50)
+
+
+class UserAuthResponse(BaseModel):
+    token: str
+    user_id: str
+    username: str
+    role: str = "player"
+    nickname: str
+    avatar_id: str
+    is_guest: bool = False
+    message: str = "Authenticated"
+
