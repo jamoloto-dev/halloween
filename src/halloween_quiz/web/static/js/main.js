@@ -470,6 +470,8 @@ export class HalloweenQuizApp {
         this.entitlementsMgr = new EntitlementsManager(this);
         this._isEnteringFromLanding = false;
         this._authSubmitting = false;
+        this._authNetworkOffline = false;
+        this.pendingPostAuthRoute = null;
 
         // Initialize Player Profile & Data
         this.profile = this.initPlayerProfile();
@@ -502,10 +504,25 @@ export class HalloweenQuizApp {
         if (localStorage.getItem("spooky_force_landing") === "true") {
             return false;
         }
-        return Boolean(
-            localStorage.getItem("spooky_gate_entered") === "true" ||
-            localStorage.getItem("spooky_session_token")
-        );
+        const hasToken = Boolean(localStorage.getItem("spooky_session_token"));
+        if (hasToken) {
+            if (this.currentUser) {
+                return true;
+            }
+            if (this._authNetworkOffline) {
+                return localStorage.getItem("spooky_gate_entered") === "true";
+            }
+            return false;
+        }
+        return localStorage.getItem("spooky_gate_entered") === "true";
+    }
+
+    ensureGateEntered() {
+        if (!this.hasEnteredGate()) {
+            this.bootstrapHome();
+            return false;
+        }
+        return true;
     }
 
     // ==========================================
@@ -610,6 +627,9 @@ export class HalloweenQuizApp {
     }
 
     showScreen(screenName) {
+        if (screenName !== "landing" && !this.hasEnteredGate()) {
+            screenName = "landing";
+        }
         document.body.setAttribute("data-active-screen", screenName);
         Object.entries(this.screens).forEach(([name, screen]) => {
             if (!screen) return;
@@ -627,7 +647,7 @@ export class HalloweenQuizApp {
                 this.router.navigate("/play/session");
             } else if (screenName === "gameover" && !window.location.pathname.startsWith("/results")) {
                 this.router.navigate(this.sessionId ? `/results/${this.sessionId}` : "/results");
-            } else if ((screenName === "start" || screenName === "landing") && window.location.pathname !== "/" && window.location.pathname !== "/play") {
+            } else if (screenName === "start" && window.location.pathname !== "/" && window.location.pathname !== "/play") {
                 this.router.navigate("/");
             }
         }
@@ -656,10 +676,16 @@ export class HalloweenQuizApp {
     // ROUTE LIFECYCLE BOOTSTRAP METHODS (v2.6.0)
     // ==========================================
     bootstrapHome() {
-        this.closeAllModals();
         this.renderLobbyExperience();
 
         if (!this.hasEnteredGate()) {
+            if (this._isEnteringFromLanding) {
+                document.body.setAttribute("data-active-screen", "auth");
+                this.dom.modalAuth?.classList.remove("hidden");
+                this.dom.modalAuth?.classList.add("active");
+                return;
+            }
+            this.closeAllModals();
             this._isEnteringFromLanding = false;
             if (this.dom.btnLandingEnter) {
                 this.dom.btnLandingEnter.disabled = false;
@@ -668,11 +694,13 @@ export class HalloweenQuizApp {
             return;
         }
 
+        this.closeAllModals();
         this.showScreen("start");
         this.sound.startBackgroundAmbience();
     }
 
     bootstrapHunt() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         document.body.setAttribute("data-active-screen", "hunt");
         Object.values(this.screens).forEach((s) => {
@@ -687,6 +715,7 @@ export class HalloweenQuizApp {
     }
 
     bootstrapGenie() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         document.body.setAttribute("data-active-screen", "genie");
         Object.values(this.screens).forEach((s) => {
@@ -709,6 +738,7 @@ export class HalloweenQuizApp {
     }
 
     bootstrapPlay() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         this.showScreen("start");
         this.applyProfileToUi();
@@ -716,6 +746,7 @@ export class HalloweenQuizApp {
     }
 
     bootstrapQuiz() {
+        if (!this.ensureGateEntered()) return;
         if (!this.isQuizActive()) {
             this.showScreen("start");
         } else {
@@ -724,15 +755,18 @@ export class HalloweenQuizApp {
     }
 
     bootstrapResults(sessionId = null) {
+        if (!this.ensureGateEntered()) return;
         this.showScreen("gameover");
     }
 
     bootstrapJourney() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         this.campaignMgr.openCampaign();
     }
 
     bootstrapJourneyChapter(chapterId) {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         this.campaignMgr.openCampaign();
         if (this.campaignChapters && this.campaignChapters.length > 0) {
@@ -749,6 +783,7 @@ export class HalloweenQuizApp {
     }
 
     bootstrapDailyHaunt() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         const pageDaily = document.getElementById("page-daily-haunt");
         if (pageDaily) {
@@ -759,11 +794,13 @@ export class HalloweenQuizApp {
     }
 
     bootstrapDuels() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         this.duelsMgr.openDuels();
     }
 
     async bootstrapDuelInvite(duelCode) {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         const pageDuel = document.getElementById("page-duel-invite");
         if (pageDuel) {
@@ -797,6 +834,7 @@ export class HalloweenQuizApp {
     }
 
     bootstrapProgress() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         if (this.dom.modalMastery) {
             this.dom.modalMastery.classList.remove("hidden");
@@ -806,11 +844,13 @@ export class HalloweenQuizApp {
     }
 
     bootstrapLeaderboard() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         this.leaderboardMgr.openLeaderboard();
     }
 
     bootstrapPass() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         if (this.dom.modalPremium) {
             this.dom.modalPremium.classList.remove("hidden");
@@ -820,16 +860,19 @@ export class HalloweenQuizApp {
     }
 
     bootstrapSettings() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         this.settingsMgr.openSettings();
     }
 
     bootstrapHunters() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         this.openAvatarPicker("avatars");
     }
 
     bootstrapHunterStudio() {
+        if (!this.ensureGateEntered()) return;
         this.closeAllModals();
         this.openAvatarPicker("studio");
     }
@@ -1536,12 +1579,31 @@ export class HalloweenQuizApp {
                 });
                 if (res.ok) {
                     const data = await res.json();
+                    this._authNetworkOffline = false;
                     this.setAuthenticatedUser(data, token, false);
+                    try {
+                        if (localStorage.getItem("spooky_force_landing") !== "true") {
+                            localStorage.setItem("spooky_gate_entered", "true");
+                        }
+                    } catch (_) {}
+                    this.pendingPostAuthRoute = null;
+                    if (!this._isEnteringFromLanding && this.hasEnteredGate()) {
+                        this.router?.resolveRoute(window.location.pathname || "/", false);
+                    }
                     return;
                 }
                 localStorage.removeItem("spooky_session_token");
+                localStorage.removeItem("spooky_gate_entered");
+                this.currentUser = null;
+                if (!this._isEnteringFromLanding) {
+                    this.router?.resolveRoute(window.location.pathname || "/", false);
+                }
             } catch (err) {
                 console.warn("Auth check failed:", err);
+                this._authNetworkOffline = true;
+                if (!this._isEnteringFromLanding && this.hasEnteredGate()) {
+                    this.router?.resolveRoute(window.location.pathname || "/", false);
+                }
             }
         }
 
@@ -1579,13 +1641,31 @@ export class HalloweenQuizApp {
             this.profileMgr.saveProfile();
         }
         this._isEnteringFromLanding = false;
-        this.closeAuth();
-        this.showScreen("start");
+        const targetRoute = this.pendingPostAuthRoute;
+        this.pendingPostAuthRoute = null;
+
+        this.dom.modalAuth?.classList.add("hidden");
+        this.dom.modalAuth?.classList.remove("active");
         if (this.sound.musicEnabled && !this.sound.bgmPlaying) {
             this.sound.startBackgroundAmbience();
         }
         this.updateAuthUi();
         this.renderLobbyExperience();
+
+        if (this.router && targetRoute) {
+            const match = this.router.matchRoute(targetRoute);
+            const nonPostAuthPages = new Set(["home", "quiz", "results", "privacy"]);
+            if (match && !nonPostAuthPages.has(match.route.page)) {
+                this.router.navigate(targetRoute, true);
+                return;
+            }
+        }
+
+        if (this.router && window.location.pathname !== "/" && window.location.pathname !== "/play") {
+            this.router.navigate("/", true);
+            return;
+        }
+        this.showScreen("start");
     }
 
     async initDefaultGuestSession() {

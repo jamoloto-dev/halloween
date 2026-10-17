@@ -5777,7 +5777,9 @@ body[data-active-screen="auth"] .app-footer,
 body[data-active-screen="auth"] #screen-landing,
 body[data-active-screen="auth"] #screen-start,
 body[data-active-screen="auth"] #screen-quiz,
-body[data-active-screen="auth"] #screen-gameover {
+body[data-active-screen="auth"] #screen-gameover,
+body[data-active-screen="auth"] .page-view,
+body[data-active-screen="auth"] .modal-overlay:not(#modal-auth) {
   display: none !important;
 }
 

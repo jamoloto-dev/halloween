@@ -472,3 +472,177 @@ def test_e2e_landing_audio_rejection_and_auth_register_login_flow(page):
     expect(page.locator("#lobby-diamond-count")).to_have_text("275")
 
 
+@pytest.mark.e2e
+def test_e2e_clean_first_visit_deep_link_gate_all_routes(page):
+    """Verify a first-time visitor with clean localStorage cannot bypass Landing -> ENTER -> Auth on any direct route."""
+    if not _is_server_available(BASE_URL):
+        pytest.skip(f"Web server at {BASE_URL} not reachable.")
+
+    from playwright.sync_api import expect
+
+    direct_routes = [
+        "/",
+        "/hunt",
+        "/genie",
+        "/play",
+        "/play/session",
+        "/journey",
+        "/daily-haunt",
+        "/duels",
+        "/progress",
+        "/leaderboard",
+        "/settings",
+        "/pass",
+        "/hunters",
+        "/hunter-studio",
+        "/results",
+    ]
+
+    forbidden_selectors = [
+        "#screen-start",
+        "#screen-quiz",
+        "#screen-gameover",
+        "#page-hunt",
+        "#page-genie",
+        "#page-daily-haunt",
+        "#modal-campaign",
+        "#modal-duels",
+        "#modal-mastery",
+        "#modal-leaderboard",
+        "#modal-settings",
+        "#modal-premium",
+        "#modal-avatar-picker",
+    ]
+
+    page.goto(BASE_URL)
+    page.wait_for_load_state("networkidle")
+
+    for route in direct_routes:
+        page.evaluate("() => localStorage.clear()")
+        page.goto(f"{BASE_URL}{route}")
+        page.wait_for_load_state("networkidle")
+
+        expect(page.locator("#screen-landing")).to_be_visible()
+        expect(page.locator("#btn-landing-enter")).to_be_visible()
+
+        state = page.evaluate("""() => ({
+            activeScreen: document.body.getAttribute('data-active-screen'),
+            hasEnteredGate: window.halloweenApp.hasEnteredGate(),
+            ambienceRequested: window.halloweenApp.sound.ambienceRequested,
+        })""")
+        assert state["activeScreen"] == "landing", f"Route {route} bypassed landing screen: {state}"
+        assert state["hasEnteredGate"] is False, f"Route {route} falsely marked gate entered"
+        assert state["ambienceRequested"] is False, f"Route {route} triggered audio before ENTER"
+
+        for sel in forbidden_selectors:
+            expect(page.locator(sel)).not_to_be_visible()
+
+
+@pytest.mark.e2e
+def test_e2e_deep_link_post_auth_destination_and_invalid_token_gate(page):
+    """Verify deep-link destinations after Guest/Sign-In entry, onboarding non-bypass, and invalid token rejection."""
+    if not _is_server_available(BASE_URL):
+        pytest.skip(f"Web server at {BASE_URL} not reachable.")
+
+    import uuid
+
+    from playwright.sync_api import expect
+
+    # 1. Clean first-time visit to /hunt -> Landing -> ENTER -> Guest -> arrives at /hunt (#page-hunt)
+    page.goto(BASE_URL)
+    page.wait_for_load_state("networkidle")
+    page.evaluate("() => localStorage.clear()")
+
+    page.goto(f"{BASE_URL}/hunt")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+    expect(page.locator("#page-hunt")).not_to_be_visible()
+
+    page.locator("#btn-landing-enter").click()
+    expect(page.locator("#modal-auth")).to_be_visible()
+    expect(page.locator("#page-hunt")).not_to_be_visible()
+
+    page.locator("#btn-auth-quick-guest").click()
+    expect(page).to_have_url(re.compile(r"/hunt$"))
+    expect(page.locator("#page-hunt")).to_be_visible()
+    expect(page.locator("#screen-start")).not_to_be_visible()
+
+    # 2. Clean first-time visit to /journey -> Landing -> ENTER -> Register -> arrives at /journey (#modal-campaign)
+    unique_user = f"deeplink_{uuid.uuid4().hex[:8]}"
+    page.evaluate("() => localStorage.clear()")
+    page.goto(f"{BASE_URL}/journey")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+    expect(page.locator("#modal-campaign")).not_to_be_visible()
+
+    page.locator("#btn-landing-enter").click()
+    expect(page.locator("#modal-auth")).to_be_visible()
+    page.locator("#tab-auth-register").click()
+    page.locator("#auth-reg-username").fill(unique_user)
+    page.locator("#auth-reg-password").fill("spookypass123")
+    page.locator("#auth-reg-nickname").fill("DeepLinkHunter")
+    page.locator("#btn-auth-submit-register").click()
+
+    expect(page).to_have_url(re.compile(r"/journey$"))
+    expect(page.locator("#modal-campaign")).to_be_visible()
+
+    # 3. Clean first-time visit to /settings -> Landing -> ENTER -> Sign In -> arrives at /settings (#modal-settings)
+    page.evaluate("() => localStorage.clear()")
+    page.goto(f"{BASE_URL}/settings")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+    expect(page.locator("#modal-settings")).not_to_be_visible()
+
+    page.locator("#btn-landing-enter").click()
+    expect(page.locator("#modal-auth")).to_be_visible()
+    page.locator("#auth-login-username").fill(unique_user)
+    page.locator("#auth-login-password").fill("spookypass123")
+    page.locator("#btn-auth-submit-login").click()
+
+    expect(page).to_have_url(re.compile(r"/settings$"))
+    expect(page.locator("#modal-settings")).to_be_visible()
+
+    # 4. Clean first-time visit to /play/session (no active quiz) -> Landing -> ENTER -> Guest -> falls back to dashboard (/)
+    page.evaluate("() => localStorage.clear()")
+    page.goto(f"{BASE_URL}/play/session")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+    expect(page.locator("#screen-quiz")).not_to_be_visible()
+
+    page.locator("#btn-landing-enter").click()
+    expect(page.locator("#modal-auth")).to_be_visible()
+    page.locator("#btn-auth-quick-guest").click()
+
+    expect(page).to_have_url(re.compile(r"/$"))
+    expect(page.locator("#screen-start")).to_be_visible()
+    expect(page.locator("#screen-quiz")).not_to_be_visible()
+
+    # 5. Verify profile onboarding completion alone never sets spooky_gate_entered and cannot bypass the gate
+    page.evaluate("""() => {
+        localStorage.clear();
+        window.halloweenApp.onboardingMgr.completeOnboarding();
+    }""")
+    assert page.evaluate("() => localStorage.getItem('spooky_gate_entered')") is None
+    page.goto(f"{BASE_URL}/genie")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+    expect(page.locator("#page-genie")).not_to_be_visible()
+
+    # 6. Verify expired/invalid session token revokes gate access and returns visitor to Landing screen
+    page.evaluate("""() => {
+        localStorage.clear();
+        localStorage.setItem('spooky_session_token', 'invalid_expired_token_12345');
+        localStorage.setItem('spooky_gate_entered', 'true');
+    }""")
+    page.goto(f"{BASE_URL}/hunt")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+    expect(page.locator("#page-hunt")).not_to_be_visible()
+    token_state = page.evaluate("""() => ({
+        token: localStorage.getItem('spooky_session_token'),
+        gate: localStorage.getItem('spooky_gate_entered'),
+        hasEntered: window.halloweenApp.hasEnteredGate(),
+    })""")
+    assert token_state["token"] is None
+    assert token_state["gate"] is None
+    assert token_state["hasEntered"] is False

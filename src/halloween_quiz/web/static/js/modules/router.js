@@ -150,6 +150,21 @@ export class GameRouter {
         this.currentRoute = resolved.route;
         this.currentParams = resolved.params;
 
+        const isGated =
+            resolved.route.page !== "privacy" &&
+            this.app &&
+            typeof this.app.hasEnteredGate === "function" &&
+            !this.app.hasEnteredGate();
+
+        if (isGated) {
+            const nonPostAuthPages = new Set(["home", "quiz", "results", "privacy"]);
+            if (match && !nonPostAuthPages.has(resolved.route.page)) {
+                this.app.pendingPostAuthRoute = pathname;
+            } else {
+                this.app.pendingPostAuthRoute = null;
+            }
+        }
+
         // 1. Update Document Title
         document.title = resolved.route.title;
 
@@ -235,10 +250,16 @@ export class GameRouter {
             hunter_studio: document.getElementById("modal-avatar-picker"),
         };
 
-        // Ensure all modal overlays are hidden unless targeted
+        const isGated =
+            pageName !== "privacy" &&
+            this.app &&
+            typeof this.app.hasEnteredGate === "function" &&
+            !this.app.hasEnteredGate();
+
+        // Ensure all modal overlays are hidden unless targeted and gate is entered
         Object.entries(modalMap).forEach(([key, modalEl]) => {
             if (!modalEl) return;
-            if (key === pageName) {
+            if (!isGated && key === pageName) {
                 modalEl.classList.remove("hidden");
                 modalEl.classList.add("active");
             } else {
@@ -246,6 +267,27 @@ export class GameRouter {
                 modalEl.classList.add("hidden");
             }
         });
+
+        if (isGated) {
+            const authModal = document.getElementById("modal-auth");
+            const landingScreen = document.getElementById("screen-landing");
+            if (this.app._isEnteringFromLanding && authModal) {
+                authModal.classList.remove("hidden");
+                authModal.classList.add("active");
+                document.body.setAttribute("data-active-screen", "auth");
+            } else {
+                if (authModal) {
+                    authModal.classList.remove("active");
+                    authModal.classList.add("hidden");
+                }
+                if (landingScreen) {
+                    landingScreen.classList.remove("hidden");
+                    landingScreen.classList.add("active");
+                }
+                document.body.setAttribute("data-active-screen", "landing");
+            }
+            return;
+        }
 
         if (pageName !== "home") {
             const authModal = document.getElementById("modal-auth");
@@ -258,21 +300,12 @@ export class GameRouter {
 
         // 4. Activate specific screen / page container
         if (pageName === "home") {
-            if (this.app && typeof this.app.hasEnteredGate === "function" && !this.app.hasEnteredGate()) {
-                const landingScreen = document.getElementById("screen-landing");
-                if (landingScreen) {
-                    landingScreen.classList.remove("hidden");
-                    landingScreen.classList.add("active");
-                }
-                document.body.setAttribute("data-active-screen", "landing");
-            } else {
-                const startScreen = document.getElementById("screen-start");
-                if (startScreen) {
-                    startScreen.classList.remove("hidden");
-                    startScreen.classList.add("active");
-                }
-                document.body.setAttribute("data-active-screen", "start");
+            const startScreen = document.getElementById("screen-start");
+            if (startScreen) {
+                startScreen.classList.remove("hidden");
+                startScreen.classList.add("active");
             }
+            document.body.setAttribute("data-active-screen", "start");
         } else if (pageName === "play") {
             const startScreen = document.getElementById("screen-start");
             if (startScreen) {
@@ -306,6 +339,15 @@ export class GameRouter {
 
     bootstrapCurrentPage(pageName, params, isClientTransition) {
         if (!this.app) return;
+
+        if (
+            pageName !== "privacy" &&
+            typeof this.app.hasEnteredGate === "function" &&
+            !this.app.hasEnteredGate()
+        ) {
+            this.app.bootstrapHome?.();
+            return;
+        }
 
         switch (pageName) {
             case "home":
