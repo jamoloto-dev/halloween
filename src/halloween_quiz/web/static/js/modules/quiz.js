@@ -95,6 +95,10 @@ export class QuizLifecycleManager {
             this.app.strikesRemaining = 3;
 
             // Mode-specific HUD elements
+            const screenQuizEl = document.getElementById("screen-quiz");
+            if (screenQuizEl) {
+                screenQuizEl.setAttribute("data-active-mode", (data.mode || mode || "classic").toLowerCase());
+            }
             if (this.dom.qModeBadge) {
                 const modeLabels = {
                     classic: "🎃 Classic",
@@ -104,6 +108,8 @@ export class QuizLifecycleManager {
                     endless: "💀 Endless",
                     daily: "🕯️ Daily",
                     adaptive: "🧠 Adaptive",
+                    campaign: "🗺️ Campaign",
+                    duel: "⚔️ Duel",
                 };
                 const mKey = (data.mode || mode || "").toLowerCase();
                 this.dom.qModeBadge.textContent = modeLabels[mKey] || (data.mode || mode).toUpperCase();
@@ -170,6 +176,10 @@ export class QuizLifecycleManager {
             this.app.roundAnswered = 0;
             this.app.strikesRemaining = 3;
 
+            const screenQuizEl = document.getElementById("screen-quiz");
+            if (screenQuizEl) {
+                screenQuizEl.setAttribute("data-active-mode", (data.mode || mode || "classic").toLowerCase());
+            }
             if (this.dom.qModeBadge) {
                 this.dom.qModeBadge.textContent = (data.mode || mode).toUpperCase();
             }
@@ -216,9 +226,15 @@ export class QuizLifecycleManager {
         this.app.isAnswerPending = false;
         this.app.isFeedbackActive = false;
 
-        // Reset Panels
+        // Reset Panels & Tension States
         this.dom.feedbackPanel?.classList.add("hidden");
         this.dom.feedbackAdaptiveBox?.classList.add("hidden");
+        document.getElementById("active-quiz-card")?.classList.remove("timer-critical", "timer-warning-state");
+        const deltaBadge = document.getElementById("hud-score-delta");
+        if (deltaBadge) {
+            deltaBadge.classList.add("hidden");
+            deltaBadge.classList.remove("delta-pop");
+        }
 
         // Question HUD
         const counterText = this.app.gameMode === "endless"
@@ -447,6 +463,7 @@ export class QuizLifecycleManager {
     updateTimerHud(remaining, total) {
         const bar = this.dom.timerBar || this.dom.timerProgress || document.getElementById("timer-bar");
         const text = this.dom.timerDisplay || this.dom.timerText || document.getElementById("timer-display");
+        const quizCard = document.getElementById("active-quiz-card");
         if (!bar && !text) return;
 
         if (total <= 0) {
@@ -457,6 +474,7 @@ export class QuizLifecycleManager {
             if (text) {
                 text.textContent = "Untimed";
             }
+            quizCard?.classList.remove("timer-critical", "timer-warning-state");
             return;
         }
 
@@ -469,6 +487,13 @@ export class QuizLifecycleManager {
                 bar.className = "progress-fill timer-bar-fill timer-warning";
             } else {
                 bar.className = "progress-fill timer-bar-fill timer-normal";
+            }
+        }
+        if (quizCard) {
+            if (remaining <= 5 && remaining > 0) {
+                quizCard.classList.add("timer-critical");
+            } else {
+                quizCard.classList.remove("timer-critical");
             }
         }
         if (text) {
@@ -572,8 +597,11 @@ export class QuizLifecycleManager {
     showAnswerResult(result, selectedAnswer = "") {
         this.isFeedbackActive = true;
         this.app.isFeedbackActive = true;
+        document.getElementById("active-quiz-card")?.classList.remove("timer-critical", "timer-warning-state");
+        const prevScore = this.app.currentScore || 0;
         const totalScore = result.total_score !== undefined ? result.total_score : (result.current_score !== undefined ? result.current_score : this.app.currentScore);
         const streak = result.streak !== undefined ? result.streak : (result.current_streak !== undefined ? result.current_streak : this.app.currentStreak);
+        const earnedDelta = result.points_awarded !== undefined ? result.points_awarded : Math.max(0, totalScore - prevScore);
         this.app.currentScore = totalScore;
         this.app.currentStreak = streak;
         this.nextQuestionData = result.next_question;
@@ -694,11 +722,21 @@ export class QuizLifecycleManager {
             this.dom.feedbackAdaptiveBox.classList.add("hidden");
         }
 
-        // HUD Scores
+        // HUD Scores & Floating Delta
         if (this.dom.liveScore) this.dom.liveScore.textContent = this.app.currentScore;
         if (this.dom.streakCount) this.dom.streakCount.textContent = `${this.app.currentStreak} Streak`;
         if (this.dom.qScoreHud) this.dom.qScoreHud.textContent = `Score: ${this.app.currentScore}`;
         if (this.dom.qStreakHud) this.dom.qStreakHud.textContent = `🔥 ${this.app.currentStreak}`;
+        const deltaBadge = document.getElementById("hud-score-delta");
+        if (deltaBadge) {
+            if (result.is_correct && earnedDelta > 0) {
+                deltaBadge.textContent = `+${earnedDelta}`;
+                deltaBadge.className = "hud-score-delta delta-pop delta-positive";
+            } else {
+                deltaBadge.textContent = "+0";
+                deltaBadge.className = "hud-score-delta delta-pop delta-zero";
+            }
+        }
 
         // Feedback Panel
         this.dom.feedbackPanel?.classList.remove("hidden");
@@ -725,13 +763,28 @@ export class QuizLifecycleManager {
             const data = await res.json();
             const summary = data.summary || {};
 
-            // Update Profile Stats
+            // Update Profile Stats & Personal Best Comparison
+            const prevBest = this.profile?.stats?.best_score || 0;
+            const isNewPersonalBest = data.score > 0 && data.score > prevBest;
             if (this.profile && this.profile.stats) {
                 this.profile.stats.games_played += 1;
                 if (data.score > this.profile.stats.best_score) {
                     this.profile.stats.best_score = data.score;
                 }
                 this.app.saveProfile?.();
+            }
+
+            const pbBanner = document.getElementById("summary-pb-banner");
+            if (pbBanner) {
+                pbBanner.classList.remove("hidden");
+                if (isNewPersonalBest) {
+                    pbBanner.textContent = `🏆 NEW PERSONAL BEST! (${data.score} PTS)`;
+                    pbBanner.className = "summary-pb-banner pb-new-record";
+                } else {
+                    const bestRecord = Math.max(data.score || 0, prevBest);
+                    pbBanner.textContent = `📜 Verified Personal Best: ${bestRecord} PTS`;
+                    pbBanner.className = "summary-pb-banner pb-comparison";
+                }
             }
 
             if (this.dom.statFinalScore) this.dom.statFinalScore.textContent = data.score;

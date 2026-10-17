@@ -29,8 +29,9 @@
         <div class="fog-layer fog-two"></div>
     </div>
 
-    <!-- Supernatural Anti-Gravity Atmospheric Environment (Pointer-events none) -->
+    <!-- Supernatural Cinematic Gothic Horror Environment (Pointer-events none) -->
     <div class="supernatural-env" aria-hidden="true">
+        <div class="moonlight-rays"></div>
         <div class="supernatural-moon-wrap">
             <div class="supernatural-moon">
                 <div class="moon-crater c-1"></div>
@@ -39,7 +40,20 @@
             </div>
             <div class="moon-halo"></div>
         </div>
-        <div class="haunted-skyline-silhouette"></div>
+        <div class="haunted-skyline-silhouette">
+            <svg class="gothic-citadel-svg" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+                <!-- Distant Haunted Ridge & Crypt Spires -->
+                <path fill="rgba(8, 6, 15, 0.85)" d="M0,280 L60,265 L95,190 L115,255 L180,245 L220,140 L245,95 L270,140 L295,235 L360,250 L410,175 L430,245 L510,260 L560,110 L585,55 L610,110 L640,210 L680,150 L705,235 L780,255 L840,180 L875,120 L910,180 L960,250 L1040,260 L1095,130 L1120,75 L1145,130 L1185,245 L1260,255 L1310,185 L1340,250 L1440,270 L1440,320 L0,320 Z"></path>
+                <!-- Foreground Gothic Manor, Iron Gates & Crypt Silhouette -->
+                <path fill="#05040a" d="M0,295 L85,288 L110,230 L128,288 L215,282 L232,165 L245,125 L258,165 L272,275 L340,285 L395,240 L425,285 L535,280 L552,145 L570,115 L585,78 L600,115 L618,145 L635,275 L745,285 L855,278 L875,160 L895,278 L1065,282 L1095,155 L1120,102 L1145,155 L1170,280 L1290,288 L1320,225 L1345,288 L1440,292 L1440,320 L0,320 Z"></path>
+                <!-- Faint Candlelit Gothic Arched Windows -->
+                <rect x="579" y="148" width="12" height="24" rx="6" fill="rgba(255, 148, 66, 0.38)" />
+                <rect x="562" y="185" width="10" height="20" rx="5" fill="rgba(255, 138, 40, 0.28)" />
+                <rect x="598" y="185" width="10" height="20" rx="5" fill="rgba(255, 138, 40, 0.28)" />
+                <rect x="241" y="182" width="8" height="18" rx="4" fill="rgba(192, 132, 252, 0.26)" />
+                <rect x="1115" y="168" width="10" height="22" rx="5" fill="rgba(255, 138, 40, 0.3)" />
+            </svg>
+        </div>
         <div class="anti-gravity-particles">
             <span class="particle p-1">✦</span>
             <span class="particle p-2">✧</span>
@@ -150,6 +164,9 @@
                             <span class="btn-cta-text">🎃 ENTER THE HAUNT</span>
                             <span class="btn-cta-arrow" aria-hidden="true">➔</span>
                         </button>
+                        <a href="/hunt" id="btn-hero-hunt-modes" class="btn-secondary btn-hero-hunt-portal" data-route="/hunt" aria-label="Select Mission and Game Modes">
+                            <span>🏹 SELECT MISSION (9 REALMS)</span>
+                        </a>
                     </div>
                 </header>
 
@@ -282,6 +299,8 @@
 
                         <!-- Secondary Navigation Pills -->
                         <div class="lobby-nav-pills">
+                            <a href="/hunt" id="btn-lobby-hunt-modes" class="lobby-nav-pill" data-route="/hunt">🏹 Game Modes</a>
+                            <a href="/genie" id="btn-lobby-genie" class="lobby-nav-pill" data-route="/genie">🧞 Spooky Genie</a>
                             <button type="button" id="btn-lobby-leaderboard" class="lobby-nav-pill">🏆 Leaderboard</button>
                             <button type="button" id="btn-lobby-settings" class="lobby-nav-pill">⚙️ Settings</button>
                         </div>
@@ -452,8 +471,8 @@
         </section>
 
         <!-- SCREEN 2: ACTIVE QUIZ -->
-        <section id="screen-quiz" class="game-screen" aria-labelledby="question-text">
-            <div class="card quiz-card">
+        <section id="screen-quiz" class="game-screen" aria-labelledby="question-text" data-active-mode="classic">
+            <div class="card quiz-card" id="active-quiz-card">
                 <!-- Status HUD -->
                 <div class="quiz-hud">
                     <div class="hud-item progress-indicator">
@@ -476,6 +495,16 @@
                     <div class="hud-item score-indicator">
                         <span>Score:</span>
                         <strong id="live-score">0</strong>
+                        <span id="hud-score-delta" class="hud-score-delta hidden" aria-live="polite">+0</span>
+                    </div>
+
+                    <div class="hud-item hud-session-controls" role="group" aria-label="In-game session controls">
+                        <button type="button" id="btn-quiz-audio-toggle" class="hud-ctrl-btn" title="Toggle Game Audio" aria-label="Toggle Game Audio">
+                            🔊
+                        </button>
+                        <button type="button" id="btn-quiz-exit" class="hud-ctrl-btn hud-ctrl-exit" title="Retreat from Crypt to Main Menu" aria-label="Exit to Main Menu">
+                            🚪 Exit
+                        </button>
                     </div>
                 </div>
 
@@ -619,6 +648,9 @@
                     <span class="trophy-emoji" id="summary-badge-icon" aria-hidden="true">🏆</span>
                     <h2 id="summary-title">Spooky Master!</h2>
                     <p id="summary-subtitle" class="subtitle">You survived the Halloween trivia challenge!</p>
+                    <div id="summary-pb-banner" class="summary-pb-banner hidden" role="status" aria-live="polite">
+                        ✨ New Personal Best in the Crypt!
+                    </div>
                 </div>
 
                 <div class="stats-grid">
@@ -689,6 +721,7 @@
 
                 <div class="summary-actions">
                     <button id="btn-play-again" class="btn-cta">🎃 Play Another Round</button>
+                    <a href="/hunt" id="btn-select-mission-finish" class="btn-secondary" data-route="/hunt">🏹 Select Another Mission</a>
                     <button id="btn-view-board-finish" class="btn-secondary">🏆 View Leaderboard</button>
                     <button id="btn-view-mastery-finish" class="btn-secondary">📜 View Profile & Mastery</button>
                 </div>
@@ -700,16 +733,20 @@
             <div class="card page-card hunt-page-card">
                 <div class="page-card-header">
                     <div class="page-title-group">
-                        <span class="badge badge-tier">⚔️ Supernatural Game Modes</span>
+                        <span class="badge badge-tier">⚔️ The Haunted World · 9 Cursed Portals</span>
                         <h2 id="hunt-page-title">🏹 Select Your Hunt</h2>
-                        <p class="page-subtitle">Choose your challenge across the 9 supernatural crypt game modes. Survive the haunt and prove your trivia mastery.</p>
+                        <p class="page-subtitle">Choose your destination across the 9 supernatural crypt realms. Each portal enforces distinct survival rules, timers, and scoring trials.</p>
                     </div>
                     <a href="/" class="btn-ghost-sm" data-route="/">← Return Home</a>
                 </div>
 
                 <div class="hunt-modes-grid" role="list" aria-label="Game Modes">
                     <!-- 1. Classic Crypt -->
-                    <div class="hunt-mode-card featured-mode" role="listitem">
+                    <div class="hunt-mode-card featured-mode" role="listitem" data-realm="classic">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📍 Realm I · The Obsidian Crypt</span>
+                            <span class="hunt-portal-status">● Portal Open</span>
+                        </div>
                         <div class="hunt-mode-top">
                             <span class="hunt-mode-icon" aria-hidden="true">⚰️</span>
                             <div class="hunt-mode-info">
@@ -730,7 +767,11 @@
                     </div>
 
                     <!-- 2. Quick Bite -->
-                    <div class="hunt-mode-card" role="listitem">
+                    <div class="hunt-mode-card" role="listitem" data-realm="quick">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📍 Realm II · Belltower Lightning</span>
+                            <span class="hunt-portal-status">● Portal Open</span>
+                        </div>
                         <div class="hunt-mode-top">
                             <span class="hunt-mode-icon" aria-hidden="true">⚡</span>
                             <div class="hunt-mode-info">
@@ -751,7 +792,11 @@
                     </div>
 
                     <!-- 3. Midnight Panic -->
-                    <div class="hunt-mode-card" role="listitem">
+                    <div class="hunt-mode-card" role="listitem" data-realm="panic">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📍 Realm III · Blood-Moon Clocktower</span>
+                            <span class="hunt-portal-status status-danger">● High Tension</span>
+                        </div>
                         <div class="hunt-mode-top">
                             <span class="hunt-mode-icon" aria-hidden="true">⏳</span>
                             <div class="hunt-mode-info">
@@ -772,7 +817,11 @@
                     </div>
 
                     <!-- 4. Deep Dive -->
-                    <div class="hunt-mode-card" role="listitem">
+                    <div class="hunt-mode-card" role="listitem" data-realm="deep">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📍 Realm IV · Forbidden Library</span>
+                            <span class="hunt-portal-status">● Portal Open</span>
+                        </div>
                         <div class="hunt-mode-top">
                             <span class="hunt-mode-icon" aria-hidden="true">📖</span>
                             <div class="hunt-mode-info">
@@ -793,7 +842,11 @@
                     </div>
 
                     <!-- 5. Endless Night -->
-                    <div class="hunt-mode-card" role="listitem">
+                    <div class="hunt-mode-card" role="listitem" data-realm="endless">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📍 Realm V · Catacombs of Endurance</span>
+                            <span class="hunt-portal-status status-danger">● 3 Strikes Permadeath</span>
+                        </div>
                         <div class="hunt-mode-top">
                             <span class="hunt-mode-icon" aria-hidden="true">💀</span>
                             <div class="hunt-mode-info">
@@ -814,7 +867,11 @@
                     </div>
 
                     <!-- 6. Daily Haunt -->
-                    <div class="hunt-mode-card" role="listitem">
+                    <div class="hunt-mode-card" role="listitem" data-realm="daily">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📍 Realm VI · The Midnight Altar</span>
+                            <span class="hunt-portal-status">● 24h Global Seed</span>
+                        </div>
                         <div class="hunt-mode-top">
                             <span class="hunt-mode-icon" aria-hidden="true">🕯️</span>
                             <div class="hunt-mode-info">
@@ -835,7 +892,11 @@
                     </div>
 
                     <!-- 7. Dynamic Realm -->
-                    <div class="hunt-mode-card" role="listitem">
+                    <div class="hunt-mode-card" role="listitem" data-realm="adaptive">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📍 Realm VII · Shifting Astral Sanctum</span>
+                            <span class="hunt-portal-status">● AI Calibrated</span>
+                        </div>
                         <div class="hunt-mode-top">
                             <span class="hunt-mode-icon" aria-hidden="true">🌀</span>
                             <div class="hunt-mode-info">
@@ -856,7 +917,11 @@
                     </div>
 
                     <!-- 8. The Haunted Journey -->
-                    <div class="hunt-mode-card" role="listitem">
+                    <div class="hunt-mode-card" role="listitem" data-realm="journey">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📍 Realm VIII · Blackwood Estate</span>
+                            <span class="hunt-portal-status">● 6 Chapters</span>
+                        </div>
                         <div class="hunt-mode-top">
                             <span class="hunt-mode-icon" aria-hidden="true">🗺️</span>
                             <div class="hunt-mode-info">
@@ -877,7 +942,11 @@
                     </div>
 
                     <!-- 9. Haunted Duels -->
-                    <div class="hunt-mode-card" role="listitem">
+                    <div class="hunt-mode-card" role="listitem" data-realm="duels">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📍 Realm IX · Cursed PvP Colosseum</span>
+                            <span class="hunt-portal-status">● Async 1v1</span>
+                        </div>
                         <div class="hunt-mode-top">
                             <span class="hunt-mode-icon" aria-hidden="true">⚔️</span>
                             <div class="hunt-mode-info">
@@ -905,16 +974,20 @@
             <div class="card page-card genie-page-card">
                 <div class="page-card-header">
                     <div class="page-title-group">
-                        <span class="badge badge-tier">🔮 Supernatural AI Oracle</span>
+                        <span class="badge badge-tier">🔮 Occult Sanctum · Supernatural Intelligence</span>
                         <h2 id="genie-page-title">🧞 The Spooky Genie & Oracle</h2>
-                        <p class="page-subtitle">Harness supernatural intelligence: consult the ancient Oracle for cryptic lore hints, synthesize bespoke hunter avatars, or inspect adaptive grimoire analytics.</p>
+                        <p class="page-subtitle">Step into the candlelit sanctum: consult the ancient Oracle for cryptic lore whispers, forge bespoke hunter guises, or inspect your adaptive grimoire telemetry.</p>
                     </div>
                     <a href="/" class="btn-ghost-sm" data-route="/">← Return Home</a>
                 </div>
 
                 <div class="genie-chambers-grid">
                     <!-- Chamber 1: The Cryptic Oracle -->
-                    <div class="genie-chamber-card">
+                    <div class="genie-chamber-card" data-sanctum="oracle">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">🕯️ Sanctum I · Whispering Altar</span>
+                            <span class="hunt-portal-status">● Active</span>
+                        </div>
                         <div class="genie-chamber-header">
                             <span class="genie-chamber-icon" aria-hidden="true">🔮</span>
                             <div>
@@ -934,7 +1007,11 @@
                     </div>
 
                     <!-- Chamber 2: Supernatural AI Hunter Studio -->
-                    <div class="genie-chamber-card">
+                    <div class="genie-chamber-card" data-sanctum="studio">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">⚗️ Sanctum II · Alchemical Forge</span>
+                            <span class="hunt-portal-status">● Ready</span>
+                        </div>
                         <div class="genie-chamber-header">
                             <span class="genie-chamber-icon" aria-hidden="true">🧪</span>
                             <div>
@@ -951,7 +1028,11 @@
                     </div>
 
                     <!-- Chamber 3: Adaptive Grimoire Insights -->
-                    <div class="genie-chamber-card">
+                    <div class="genie-chamber-card" data-sanctum="grimoire">
+                        <div class="hunt-portal-banner">
+                            <span class="hunt-realm-location">📖 Sanctum III · Archive of Souls</span>
+                            <span class="hunt-portal-status">● Synced</span>
+                        </div>
                         <div class="genie-chamber-header">
                             <span class="genie-chamber-icon" aria-hidden="true">📜</span>
                             <div>
@@ -961,6 +1042,20 @@
                         </div>
                         <div class="genie-chamber-body">
                             <p>Examine your supernatural player telemetry. The genie tracks your category mastery, response speed calibration, and current streak endurance.</p>
+                            <div class="genie-telemetry-strip" id="genie-live-telemetry-bar">
+                                <div class="genie-tele-item">
+                                    <span class="genie-tele-lbl">Trials</span>
+                                    <strong id="genie-stat-games">0</strong>
+                                </div>
+                                <div class="genie-tele-item">
+                                    <span class="genie-tele-lbl">Best Score</span>
+                                    <strong id="genie-stat-best-score">0</strong>
+                                </div>
+                                <div class="genie-tele-item">
+                                    <span class="genie-tele-lbl">Best Streak</span>
+                                    <strong id="genie-stat-streak">0</strong>
+                                </div>
+                            </div>
                             <a href="/progress" class="btn-secondary btn-full" data-route="/progress">
                                 <span>📜 View Hunter Progress & Mastery</span> ➔
                             </a>

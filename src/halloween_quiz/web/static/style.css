@@ -1,25 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
-
 :root {
-  --ink:#f8f4ff;
-  --muted:#aaa0bc;
+  --ink:#f4f1fa;
+  --muted:#a99fc0;
   --faint:#736a84;
-  --canvas:#0c0914;
-  --surface:#171223;
-  --line:rgba(237,224,255,.12);
-  --line-strong:rgba(237,224,255,.2);
-  --orange:#ff8a28;
+  --canvas:#07050c;
+  --surface:#130e1e;
+  --line:rgba(226,216,248,.13);
+  --line-strong:rgba(226,216,248,.24);
+  --orange:#e87620;
   --orange-light:#ffc071;
   --gold:#ffd98a;
   --lime:#7bea86;
-  --red:#ff7186;
-  --purple:#c084fc;
-  --shadow:0 24px 70px rgba(0,0,0,.38);
-  --radius-xl:24px;
-  --radius-lg:16px;
-  --radius-md:11px;
-  --font:'Manrope',system-ui,sans-serif;
-  --mono:'DM Mono',ui-monospace,monospace;
+  --red:#d93852;
+  --purple:#b388eb;
+  --shadow:0 28px 80px rgba(0,0,0,.62);
+  --radius-xl:22px;
+  --radius-lg:15px;
+  --radius-md:10px;
+  --font:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-display:'Cinzel','Palatino Linotype','Book Antiqua','Georgia',serif;
+  --mono:'DM Mono',ui-monospace,'Cascadia Code','Fira Code',monospace;
 }
 
 * { box-sizing:border-box; margin:0; }
@@ -28,9 +27,9 @@ body {
   min-height:100vh;
   color:var(--ink);
   font-family:var(--font);
-  background:radial-gradient(900px 560px at -12% -8%,rgba(116,66,176,.2),transparent 65%),
-             radial-gradient(760px 520px at 108% 100%,rgba(255,104,24,.13),transparent 64%),
-             linear-gradient(142deg,#0c0914 0%,#100b1c 52%,#0b0913 100%);
+  background:radial-gradient(960px 600px at 14% -8%,rgba(104,62,168,.18),transparent 65%),
+             radial-gradient(820px 540px at 88% 102%,rgba(201,42,66,.11),transparent 64%),
+             linear-gradient(160deg,#05040a 0%,#0b0815 48%,#06040b 100%);
   overflow-x:hidden;
 }
 
@@ -5159,3 +5158,407 @@ body[data-page="play"] .crypt-custom-summary {
 .auth-status-msg.hidden {
   display: none !important;
 }
+
+/* ==========================================================================
+   CINEMATIC HORROR GAME TRANSFORMATION (v2.8.0)
+   Dark Gothic Manor, Crypt Portals, Diegetic HUD & Low-Time Tension
+   ========================================================================== */
+
+/* 1. Layered Gothic Environment & Moonlight Beams */
+.moonlight-rays {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 65% 45% at 82% 12%, rgba(214, 222, 255, 0.08) 0%, transparent 70%),
+    linear-gradient(125deg, transparent 30%, rgba(168, 130, 255, 0.04) 48%, rgba(226, 232, 255, 0.06) 53%, transparent 68%);
+  z-index: 0;
+}
+
+.haunted-skyline-silhouette {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(32vh, 260px);
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.92;
+}
+
+.gothic-citadel-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 -12px 28px rgba(0, 0, 0, 0.85));
+}
+
+.floating-objects .float-item {
+  opacity: 0.15 !important;
+  filter: grayscale(0.45) contrast(1.15) drop-shadow(0 0 10px rgba(179, 136, 235, 0.35));
+}
+
+/* 2. Gothic Game Typography & Diegetic Panels */
+.brand-title,
+.lobby-hero-title,
+.lobby-card-heading,
+#hunt-page-title,
+#genie-page-title,
+#daily-haunt-title,
+#summary-title {
+  font-family: var(--font-display), var(--font);
+  letter-spacing: 0.03em;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.85), 0 0 24px rgba(232, 118, 32, 0.22);
+}
+
+.top-nav {
+  background: linear-gradient(180deg, rgba(8, 6, 15, 0.94) 0%, rgba(14, 10, 24, 0.88) 100%);
+  border-bottom: 1px solid rgba(214, 198, 255, 0.16);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+}
+
+.nav-branding,
+.nav-btn,
+.btn-ghost-sm,
+.btn-cta,
+.btn-secondary {
+  text-decoration: none;
+}
+
+.nav-branding,
+.nav-btn,
+.btn-ghost-sm {
+  color: var(--ink);
+}
+
+/* Hide website footer during active quiz session for full-screen game immersion */
+body[data-active-screen="quiz"] .app-footer {
+  display: none;
+}
+
+/* 3. Main Menu / Title Screen Hero & Mission Select CTA */
+.lobby-hero {
+  position: relative;
+  border: 1px solid rgba(232, 118, 32, 0.28);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(179, 136, 235, 0.14), transparent 62%),
+    linear-gradient(165deg, rgba(19, 14, 32, 0.94) 0%, rgba(9, 7, 17, 0.97) 100%);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.lobby-hero-cta-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.btn-hero-hunt-portal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 12px 22px;
+  border-radius: 14px;
+  border: 1px solid rgba(179, 136, 235, 0.48);
+  background: linear-gradient(165deg, rgba(36, 24, 58, 0.92), rgba(18, 12, 32, 0.96));
+  color: #ede6ff;
+  font-weight: 800;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-hero-hunt-portal:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 192, 113, 0.65);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.65), 0 0 18px rgba(179, 136, 235, 0.28);
+  color: #fff;
+}
+
+.lobby-nav-pills {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.lobby-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  text-decoration: none;
+  text-align: center;
+}
+
+/* 4. Haunted World Mission Portals (#page-hunt & #page-genie) */
+.hunt-portal-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.72rem;
+}
+
+.hunt-realm-location {
+  color: var(--gold);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hunt-portal-status {
+  color: #7bea86;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hunt-portal-status.status-danger {
+  color: #ff7186;
+}
+
+.hunt-mode-card[data-realm="panic"] {
+  border-color: rgba(217, 56, 82, 0.38);
+  background: linear-gradient(175deg, rgba(40, 14, 26, 0.9) 0%, rgba(19, 12, 26, 0.92) 100%);
+}
+
+.hunt-mode-card[data-realm="endless"] {
+  border-color: rgba(123, 234, 134, 0.3);
+  background: linear-gradient(175deg, rgba(16, 32, 28, 0.9) 0%, rgba(16, 13, 27, 0.92) 100%);
+}
+
+.hunt-mode-card[data-realm="adaptive"] {
+  border-color: rgba(179, 136, 235, 0.4);
+  background: linear-gradient(175deg, rgba(30, 19, 48, 0.92) 0%, rgba(16, 12, 28, 0.94) 100%);
+}
+
+.genie-telemetry-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: rgba(8, 5, 15, 0.78);
+  border: 1px solid rgba(179, 136, 235, 0.25);
+  text-align: center;
+}
+
+.genie-tele-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.genie-tele-lbl {
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.genie-tele-item strong {
+  font-family: var(--mono);
+  font-size: 1rem;
+  color: var(--gold);
+}
+
+/* 5. Immersive Gameplay HUD, Session Controls, Score Delta & Low-Time Tension */
+#screen-quiz[data-active-mode="panic"] .quiz-card {
+  border-color: rgba(217, 56, 82, 0.45);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75), 0 0 32px rgba(217, 56, 82, 0.14);
+}
+
+#screen-quiz[data-active-mode="endless"] .quiz-card {
+  border-color: rgba(123, 234, 134, 0.38);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75), 0 0 32px rgba(123, 234, 134, 0.12);
+}
+
+#screen-quiz[data-active-mode="adaptive"] .quiz-card {
+  border-color: rgba(179, 136, 235, 0.48);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75), 0 0 32px rgba(179, 136, 235, 0.16);
+}
+
+.hud-session-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.hud-ctrl-btn {
+  min-height: 36px;
+  min-width: 36px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: rgba(14, 10, 24, 0.85);
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.hud-ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--orange-light);
+}
+
+.hud-ctrl-exit {
+  border-color: rgba(217, 56, 82, 0.42);
+  color: #ffb3c1;
+}
+
+.hud-ctrl-exit:hover {
+  background: rgba(217, 56, 82, 0.2);
+  border-color: #ff7186;
+  color: #fff;
+}
+
+.score-indicator {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-score-delta {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.hud-score-delta.delta-positive {
+  background: rgba(123, 234, 134, 0.18);
+  border: 1px solid rgba(123, 234, 134, 0.5);
+  color: #7bea86;
+}
+
+.hud-score-delta.delta-zero {
+  background: rgba(217, 56, 82, 0.18);
+  border: 1px solid rgba(217, 56, 82, 0.45);
+  color: #ff8fa3;
+}
+
+.hud-score-delta.delta-pop {
+  animation: hud-delta-rise 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes hud-delta-rise {
+  from { opacity: 0; transform: translateY(6px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Low-Time (< 5s) Crimson Heartbeat Tension Vignette */
+.quiz-card.timer-critical {
+  border-color: rgba(239, 68, 68, 0.78) !important;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.8),
+    0 0 36px rgba(220, 38, 38, 0.35),
+    inset 0 0 28px rgba(220, 38, 38, 0.16) !important;
+  animation: crypt-heartbeat-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes crypt-heartbeat-pulse {
+  0%, 100% {
+    box-shadow:
+      0 24px 70px rgba(0, 0, 0, 0.8),
+      0 0 26px rgba(220, 38, 38, 0.25),
+      inset 0 0 20px rgba(220, 38, 38, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 24px 70px rgba(0, 0, 0, 0.85),
+      0 0 44px rgba(239, 68, 68, 0.5),
+      inset 0 0 34px rgba(239, 68, 68, 0.24);
+  }
+}
+
+html.reduced-motion .quiz-card.timer-critical,
+html.reduced-motion .hud-score-delta.delta-pop {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-card.timer-critical,
+  .hud-score-delta.delta-pop {
+    animation: none !important;
+  }
+}
+
+/* 6. Results Personal Best Banner & Mission Select Action */
+.summary-pb-banner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.summary-pb-banner.pb-new-record {
+  background: rgba(255, 217, 138, 0.16);
+  border: 1px solid rgba(255, 217, 138, 0.55);
+  color: var(--gold);
+  box-shadow: 0 0 18px rgba(255, 217, 138, 0.22);
+}
+
+.summary-pb-banner.pb-comparison {
+  background: rgba(179, 136, 235, 0.12);
+  border: 1px solid rgba(179, 136, 235, 0.35);
+  color: #dcd0ff;
+}
+
+.summary-actions a.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* 7. Mobile (320px-430px) Game-Feel & Overflow Safeguards */
+@media (max-width: 480px) {
+  .hunt-modes-grid,
+  .genie-chambers-grid {
+    grid-template-columns: 1fr;
+  }
+  .lobby-hero-cta-wrap {
+    flex-direction: column;
+    width: 100%;
+  }
+  .btn-hero-hunt-portal,
+  #btn-enter-the-haunt {
+    width: 100%;
+  }
+  .hud-session-controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
