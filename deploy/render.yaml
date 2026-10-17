@@ -6,7 +6,6 @@ services:
     branch: main
     plan: starter
     autoDeploy: true
-    pullRequestPreviews: false
     healthCheckPath: /health
     domains:
       - halloween.jamoloto.dev
