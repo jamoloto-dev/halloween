@@ -6,6 +6,62 @@ import time
 from collections import defaultdict
 
 from fastapi import HTTPException, Request, status
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+
+class HeadRequestMiddleware:
+    """Handle HTTP HEAD requests across all routes by executing GET and stripping response bodies."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http" and scope["method"] == "HEAD":
+            scope = dict(scope)
+            scope["method"] = "GET"
+
+            async def wrapped_send(message: Message) -> None:
+                if message["type"] == "http.response.start":
+                    await send(message)
+                elif message["type"] == "http.response.body":
+                    more_body = message.get("more_body", False)
+                    if not more_body:
+                        await send({"type": "http.response.body", "body": b"", "more_body": False})
+                else:
+                    await send(message)
+
+            await self.app(scope, receive, wrapped_send)
+        else:
+            await self.app(scope, receive, send)
+
+
+class SecurityHeadersMiddleware:
+    """Attach standard defense-in-depth security headers to HTTP responses."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def wrapped_send(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                header_keys = {h[0].decode("latin-1").lower() for h in headers}
+                if "x-content-type-options" not in header_keys:
+                    headers.append((b"x-content-type-options", b"nosniff"))
+                if "x-frame-options" not in header_keys:
+                    headers.append((b"x-frame-options", b"SAMEORIGIN"))
+                if "referrer-policy" not in header_keys:
+                    headers.append((b"referrer-policy", b"strict-origin-when-cross-origin"))
+                if "x-xss-protection" not in header_keys:
+                    headers.append((b"x-xss-protection", b"1; mode=block"))
+                message["headers"] = headers
+            await send(message)
+
+        await self.app(scope, receive, wrapped_send)
 
 
 class InMemoryRateLimiter:

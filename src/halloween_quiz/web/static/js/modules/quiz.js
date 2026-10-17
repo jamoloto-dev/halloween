@@ -372,25 +372,55 @@ export class QuizLifecycleManager {
 
     startQuestionTimer(timeLimit) {
         this.stopQuestionTimer();
+
+        if (!timeLimit || timeLimit <= 0) {
+            this.timerTotal = 0;
+            this.timerRemaining = 0;
+            this.updateTimerHud(0, 0);
+            return;
+        }
+
         this.timerTotal = timeLimit;
         this.timerRemaining = timeLimit;
         this.timeQuestionStarted = Date.now();
+        this.questionDeadline = Date.now() + (timeLimit * 1000);
+        this.isTimingOut = false;
+        this.lastWarningSecond = null;
 
         this.updateTimerHud(this.timerRemaining, this.timerTotal);
 
         this.timerInterval = setInterval(() => {
-            this.timerRemaining -= 1;
-            this.updateTimerHud(this.timerRemaining, this.timerTotal);
-
-            if (this.timerRemaining <= 5 && this.timerRemaining > 0) {
-                this.sound.play("timer_warning");
+            if (this.isTimingOut || this.isAnswerPending || this.isFeedbackActive || this.app.isGameOver) {
+                return;
             }
 
-            if (this.timerRemaining <= 0) {
+            const now = Date.now();
+            const remainingMs = Math.max(0, this.questionDeadline - now);
+            const remainingSec = remainingMs / 1000;
+            this.timerRemaining = remainingSec;
+
+            this.updateTimerHud(remainingSec, this.timerTotal);
+
+            const wholeSec = Math.ceil(remainingSec);
+            if (wholeSec <= 5 && wholeSec > 0 && wholeSec !== this.lastWarningSecond) {
+                this.lastWarningSecond = wholeSec;
+                this.sound?.play?.("timer_warning");
+            }
+
+            if (remainingMs <= 0) {
+                this.isTimingOut = true;
                 this.stopQuestionTimer();
                 this.handleTimeout();
             }
-        }, 1000);
+        }, 100);
+    }
+
+    startTimer(seconds) {
+        this.startQuestionTimer(seconds);
+    }
+
+    stopTimer() {
+        this.stopQuestionTimer();
     }
 
     stopQuestionTimer() {
@@ -398,20 +428,51 @@ export class QuizLifecycleManager {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
+        this.isTimingOut = false;
+    }
+
+    extendTimer(seconds = 10) {
+        this.timerTotal += seconds;
+        this.timerRemaining += seconds;
+        if (this.questionDeadline) {
+            this.questionDeadline += seconds * 1000;
+        }
+        this.updateTimerHud(this.timerRemaining, this.timerTotal);
+    }
+
+    updateTimerUi() {
+        this.updateTimerHud(this.timerRemaining, this.timerTotal);
     }
 
     updateTimerHud(remaining, total) {
-        if (!this.dom.timerProgress || !this.dom.timerText) return;
-        const pct = Math.max(0, Math.min(100, (remaining / total) * 100));
-        this.dom.timerProgress.style.width = `${pct}%`;
-        this.dom.timerText.textContent = `${Math.max(0, remaining)}s`;
+        const bar = this.dom.timerBar || this.dom.timerProgress || document.getElementById("timer-bar");
+        const text = this.dom.timerDisplay || this.dom.timerText || document.getElementById("timer-display");
+        if (!bar && !text) return;
 
-        if (pct < 25) {
-            this.dom.timerProgress.className = "timer-bar-fill timer-danger";
-        } else if (pct < 50) {
-            this.dom.timerProgress.className = "timer-bar-fill timer-warning";
-        } else {
-            this.dom.timerProgress.className = "timer-bar-fill timer-normal";
+        if (total <= 0) {
+            if (bar) {
+                bar.style.width = "100%";
+                bar.className = "progress-fill timer-bar-fill timer-normal";
+            }
+            if (text) {
+                text.textContent = "Untimed";
+            }
+            return;
+        }
+
+        const pct = Math.max(0, Math.min(100, (remaining / total) * 100));
+        if (bar) {
+            bar.style.width = `${pct}%`;
+            if (pct < 25) {
+                bar.className = "progress-fill timer-bar-fill timer-danger";
+            } else if (pct < 50) {
+                bar.className = "progress-fill timer-bar-fill timer-warning";
+            } else {
+                bar.className = "progress-fill timer-bar-fill timer-normal";
+            }
+        }
+        if (text) {
+            text.textContent = `${Math.max(0, remaining).toFixed(1)}s`;
         }
     }
 

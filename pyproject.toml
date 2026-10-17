@@ -79,3 +79,6 @@ addopts = "-v"
 markers = [
     "e2e: End-to-end browser tests requiring Playwright and running server",
 ]
+filterwarnings = [
+    "ignore:Please use `import python_multipart`:PendingDeprecationWarning",
+]

@@ -8,17 +8,20 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from halloween_quiz import __version__
 from halloween_quiz.core.ai_avatars import avatar_service, get_generated_avatar_dir
+from halloween_quiz.core.auth import auth_service
 from halloween_quiz.core.engine import QuestionBank, SessionManager
 from halloween_quiz.core.entitlements import entitlement_service
 from halloween_quiz.core.storage import ScoreRepository
 from halloween_quiz.web.routes import router
+from halloween_quiz.web.security import HeadRequestMiddleware, SecurityHeadersMiddleware
 
 # Configure structured logging
 logging.basicConfig(
@@ -65,6 +68,7 @@ def init_app_state(app: FastAPI) -> None:
     bank = QuestionBank(questions_path)
     score_repo = ScoreRepository(db_path)
     entitlement_service.set_repository(score_repo)
+    auth_service.set_repository(score_repo)
 
     # Initialize and verify persistent avatar storage directory
     generated_avatar_dir = get_generated_avatar_dir()
@@ -80,6 +84,7 @@ def init_app_state(app: FastAPI) -> None:
 
     app.state.question_bank = bank
     app.state.score_repo = score_repo
+    app.state.auth_service = auth_service
     app.state.active_sessions = SessionManager(ttl_seconds=session_ttl, max_sessions=max_sessions)
     app.state._is_initialized = True
     logger.info(
@@ -139,6 +144,7 @@ def create_app() -> FastAPI:
             if orig not in cors_origins and "*" not in cors_origins:
                 cors_origins.append(orig)
 
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cors_origins,
@@ -146,6 +152,8 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(HeadRequestMiddleware)
 
     # Determine paths
     root_dir = Path(__file__).resolve().parent.parent.parent.parent
@@ -232,6 +240,61 @@ def create_app() -> FastAPI:
             return HTMLResponse(privacy_file.read_text(encoding="utf-8"))
         return HTMLResponse("<h1>Privacy Policy</h1>")
 
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def get_favicon():
+        ico_file = static_dir / "favicon.ico"
+        if ico_file.exists():
+            return FileResponse(ico_file, media_type="image/x-icon")
+        svg_file = static_dir / "favicon.svg"
+        if svg_file.exists():
+            return FileResponse(svg_file, media_type="image/svg+xml")
+        raise HTTPException(status_code=404, detail="Favicon not found")
+
+    @app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
+    async def get_robots(request: Request):
+        base_url = str(request.base_url).rstrip("/")
+        if custom_domain:
+            clean_dom = custom_domain.replace("https://", "").replace("http://", "").strip("/")
+            base_url = f"https://{clean_dom}"
+        content = (
+            "User-agent: *\n"
+            "Allow: /\n"
+            "Disallow: /api/\n"
+            f"Sitemap: {base_url}/sitemap.xml\n"
+        )
+        return PlainTextResponse(content, media_type="text/plain; charset=utf-8")
+
+    @app.get("/sitemap.xml", response_class=Response, include_in_schema=False)
+    async def get_sitemap(request: Request):
+        base_url = str(request.base_url).rstrip("/")
+        if custom_domain:
+            clean_dom = custom_domain.replace("https://", "").replace("http://", "").strip("/")
+            base_url = f"https://{clean_dom}"
+        pages = [
+            ("", "daily", "1.0"),
+            ("/hunt", "daily", "0.9"),
+            ("/genie", "weekly", "0.8"),
+            ("/journey", "weekly", "0.9"),
+            ("/daily-haunt", "daily", "0.9"),
+            ("/duels", "weekly", "0.8"),
+            ("/leaderboard", "hourly", "0.8"),
+            ("/progress", "weekly", "0.7"),
+            ("/pass", "weekly", "0.7"),
+            ("/settings", "monthly", "0.5"),
+            ("/privacy", "monthly", "0.4"),
+        ]
+        items = "\n".join(
+            f"  <url>\n    <loc>{base_url}{path}</loc>\n    <changefreq>{freq}</changefreq>\n    <priority>{prio}</priority>\n  </url>"
+            for path, freq, prio in pages
+        )
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"{items}\n"
+            "</urlset>"
+        )
+        return Response(content=xml, media_type="application/xml; charset=utf-8")
+
     # Include REST API routes
     app.include_router(router)
 
@@ -275,6 +338,14 @@ def create_app() -> FastAPI:
     @app.get("/", response_class=HTMLResponse)
     async def index(request: Request):
         return render_game_page(request, "home", "Spooky Master 🎃 Halloween Quiz Challenge")
+
+    @app.get("/hunt", response_class=HTMLResponse)
+    async def hunt_page(request: Request):
+        return render_game_page(request, "hunt", "Spooky Master — Hunt Mode Selection")
+
+    @app.get("/genie", response_class=HTMLResponse)
+    async def genie_page(request: Request):
+        return render_game_page(request, "genie", "Spooky Master — Spooky Genie & Oracle")
 
     @app.get("/play", response_class=HTMLResponse)
     async def play_setup(request: Request):

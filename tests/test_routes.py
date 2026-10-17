@@ -19,6 +19,8 @@ def client(tmp_path, monkeypatch):
     "route,expected_title_fragment",
     [
         ("/", "Spooky Master"),
+        ("/hunt", "Hunt Mode Selection"),
+        ("/genie", "Spooky Genie & Oracle"),
         ("/play", "Play Setup"),
         ("/play/session", "Active Quiz"),
         ("/results", "Hunt Results"),

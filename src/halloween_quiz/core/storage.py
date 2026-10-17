@@ -3,8 +3,9 @@
 import csv
 import json
 import os
+import uuid
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -183,6 +184,49 @@ class GeneratedAvatarDB(Base):
             "active": self.active,
             "created_at": dt.isoformat(),
         }
+
+
+class UserDB(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
+    username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False, default="player")
+    nickname: Mapped[str] = mapped_column(String(100), nullable=False, default="Ghost Hunter")
+    avatar_id: Mapped[str] = mapped_column(String(50), nullable=False, default="pumpkin_hunter")
+    profile_data_json: Mapped[str | None] = mapped_column(String(4000), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "user_id": self.user_id,
+            "username": self.username,
+            "role": self.role,
+            "nickname": self.nickname,
+            "avatar_id": self.avatar_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class UserSessionDB(Base):
+    __tablename__ = "user_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    token: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    role: Mapped[str] = mapped_column(String(20), nullable=False, default="player")
+    is_guest: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
 
 @event.listens_for(Engine, "connect")
@@ -765,4 +809,122 @@ class ScoreRepository:
         with self.SessionLocal() as session:
             row = session.get(GeneratedAvatarDB, avatar_id)
             return row.to_dict() if row else None
+
+    # -----------------------------------------------------------------------
+    # User Accounts and Session Authentication
+    # -----------------------------------------------------------------------
+    def create_user(
+        self,
+        username: str,
+        password_hash: str,
+        role: str = "player",
+        nickname: str = "Ghost Hunter",
+        avatar_id: str = "pumpkin_hunter",
+    ) -> dict:
+        """Create a new user account."""
+        user_id = f"usr_{uuid.uuid4().hex}"
+        now = datetime.now(timezone.utc)
+        user = UserDB(
+            user_id=user_id,
+            username=username.lower().strip(),
+            password_hash=password_hash,
+            role=role if role in ("player", "admin") else "player",
+            nickname=nickname.strip()[:40] or "Ghost Hunter",
+            avatar_id=avatar_id.strip()[:50] or "pumpkin_hunter",
+            created_at=now,
+            updated_at=now,
+        )
+        with self.SessionLocal() as session:
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            return user.to_dict()
+
+    def get_user_by_username(self, username: str) -> UserDB | None:
+        """Retrieve user record by username."""
+        clean = (username or "").lower().strip()
+        with self.SessionLocal() as session:
+            stmt = select(UserDB).where(UserDB.username == clean).limit(1)
+            return session.execute(stmt).scalar_one_or_none()
+
+    def get_user_by_id(self, user_id: str) -> UserDB | None:
+        """Retrieve user record by user_id."""
+        with self.SessionLocal() as session:
+            stmt = select(UserDB).where(UserDB.user_id == user_id).limit(1)
+            return session.execute(stmt).scalar_one_or_none()
+
+    def create_user_session(
+        self,
+        user_id: str,
+        role: str = "player",
+        is_guest: bool = False,
+        ttl_seconds: int = 86400 * 30,
+    ) -> str:
+        """Create a new session token for user or guest."""
+        token = f"spooky_sess_{uuid.uuid4().hex}_{uuid.uuid4().hex[:8]}"
+        now = datetime.now(timezone.utc)
+        expires_at = now + timedelta(seconds=ttl_seconds)
+        user_sess = UserSessionDB(
+            token=token,
+            user_id=user_id,
+            role=role if role in ("player", "admin") else "player",
+            is_guest=is_guest,
+            created_at=now,
+            expires_at=expires_at,
+        )
+        with self.SessionLocal() as session:
+            session.add(user_sess)
+            session.commit()
+            return token
+
+    def get_session(self, token: str) -> dict | None:
+        """Retrieve session record if valid and unexpired."""
+        with self.SessionLocal() as session:
+            stmt = select(UserSessionDB).where(UserSessionDB.token == token).limit(1)
+            sess = session.execute(stmt).scalar_one_or_none()
+            if not sess:
+                return None
+            return {
+                "token": sess.token,
+                "user_id": sess.user_id,
+                "role": sess.role,
+                "is_guest": sess.is_guest,
+                "created_at": sess.created_at,
+                "expires_at": sess.expires_at,
+            }
+
+    def delete_session(self, token: str) -> bool:
+        """Delete an active session token."""
+        with self.SessionLocal() as session:
+            stmt = select(UserSessionDB).where(UserSessionDB.token == token)
+            sess = session.execute(stmt).scalar_one_or_none()
+            if sess:
+                session.delete(sess)
+                session.commit()
+                return True
+            return False
+
+    def update_user_profile(
+        self,
+        user_id: str,
+        nickname: str | None = None,
+        avatar_id: str | None = None,
+        profile_data_json: str | None = None,
+    ) -> bool:
+        """Update user nickname, avatar, or profile state."""
+        with self.SessionLocal() as session:
+            stmt = select(UserDB).where(UserDB.user_id == user_id)
+            user = session.execute(stmt).scalar_one_or_none()
+            if not user:
+                return False
+            if nickname is not None:
+                user.nickname = nickname.strip()[:40]
+            if avatar_id is not None:
+                user.avatar_id = avatar_id.strip()[:50]
+            if profile_data_json is not None:
+                user.profile_data_json = profile_data_json
+            user.updated_at = datetime.now(timezone.utc)
+            session.commit()
+            return True
+
 

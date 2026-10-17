@@ -10,6 +10,8 @@ export class GameRouter {
         this.app = app;
         this.routes = [
             { path: "/", page: "home", title: "Spooky Master 🎃 Halloween Quiz Challenge" },
+            { path: "/hunt", page: "hunt", title: "Spooky Master — Hunt Mode Selection" },
+            { path: "/genie", page: "genie", title: "Spooky Master — Spooky Genie & Oracle" },
             { path: "/play", page: "play", title: "Spooky Master — Play Setup" },
             { path: "/play/session", page: "quiz", title: "Spooky Master — Active Quiz" },
             { path: "/results", page: "results", title: "Spooky Master — Hunt Results" },
@@ -179,8 +181,13 @@ export class GameRouter {
 
             const isCurrent =
                 linkRoute === pathname ||
+                (linkRoute === "/hunt" && pageName === "hunt") ||
+                (linkRoute === "/genie" && pageName === "genie") ||
                 (linkRoute === "/journey" && (pageName === "journey" || pageName === "journey_chapter")) ||
                 (linkRoute === "/duels" && (pageName === "duels" || pageName === "duel_invite")) ||
+                (linkRoute === "/progress" && pageName === "progress") ||
+                (linkRoute === "/leaderboard" && pageName === "leaderboard") ||
+                (linkRoute === "/settings" && pageName === "settings") ||
                 (linkRoute === "/" && pageName === "home");
 
             if (isCurrent) {
@@ -194,40 +201,27 @@ export class GameRouter {
     }
 
     activatePageView(pageName, params) {
-        // Hide all page containers
+        // 1. Hide all page-view containers
         const allPages = document.querySelectorAll(".page-view");
         allPages.forEach((el) => {
             el.classList.remove("active");
             el.classList.add("hidden");
         });
 
-        // Match page element
-        const targetPage = document.getElementById(`page-${pageName.replace(/_/g, "-")}`);
-        if (targetPage) {
-            targetPage.classList.remove("hidden");
-            targetPage.classList.add("active");
-        }
-
-        // Also sync legacy screen containers and modals for complete backward compatibility
-        const legacyScreens = {
-            home: document.getElementById("screen-start"),
-            play: document.getElementById("screen-start"),
-            quiz: document.getElementById("screen-quiz"),
-            results: document.getElementById("screen-gameover"),
-        };
-
-        Object.entries(legacyScreens).forEach(([key, el]) => {
-            if (!el) return;
-            if (key === pageName) {
-                el.classList.remove("hidden");
-                el.classList.add("active");
-            } else if (pageName === "quiz" || pageName === "results") {
+        // 2. Hide all legacy game screens
+        const legacyScreens = [
+            document.getElementById("screen-start"),
+            document.getElementById("screen-quiz"),
+            document.getElementById("screen-gameover"),
+        ];
+        legacyScreens.forEach((el) => {
+            if (el) {
                 el.classList.remove("active");
                 el.classList.add("hidden");
             }
         });
 
-        // Sync legacy modals (Journey, Duels, Mastery, Leaderboard, Settings, Pass)
+        // 3. Map routed pages to modal overlays if backed by modal markup
         const modalMap = {
             journey: document.getElementById("modal-campaign"),
             journey_chapter: document.getElementById("modal-campaign"),
@@ -240,16 +234,45 @@ export class GameRouter {
             hunter_studio: document.getElementById("modal-avatar-picker"),
         };
 
-        // If on a routed page, ensure its corresponding container is active and not hidden
+        // Ensure all modal overlays are hidden unless targeted
         Object.entries(modalMap).forEach(([key, modalEl]) => {
             if (!modalEl) return;
             if (key === pageName) {
                 modalEl.classList.remove("hidden");
                 modalEl.classList.add("active");
-            } else if (modalEl && !document.querySelector(`.modal-overlay.active`)) {
-                // Keep clean state
+            } else {
+                modalEl.classList.remove("active");
+                modalEl.classList.add("hidden");
             }
         });
+
+        // 4. Activate specific screen / page container
+        if (pageName === "home" || pageName === "play") {
+            const startScreen = document.getElementById("screen-start");
+            if (startScreen) {
+                startScreen.classList.remove("hidden");
+                startScreen.classList.add("active");
+            }
+        } else if (pageName === "quiz") {
+            const quizScreen = document.getElementById("screen-quiz");
+            if (quizScreen) {
+                quizScreen.classList.remove("hidden");
+                quizScreen.classList.add("active");
+            }
+        } else if (pageName === "results") {
+            const resultsScreen = document.getElementById("screen-gameover");
+            if (resultsScreen) {
+                resultsScreen.classList.remove("hidden");
+                resultsScreen.classList.add("active");
+            }
+        } else {
+            // Activate corresponding page-view if present (e.g. #page-hunt, #page-genie, #page-daily-haunt)
+            const targetPage = document.getElementById(`page-${pageName.replace(/_/g, "-")}`);
+            if (targetPage) {
+                targetPage.classList.remove("hidden");
+                targetPage.classList.add("active");
+            }
+        }
     }
 
     bootstrapCurrentPage(pageName, params, isClientTransition) {
@@ -258,6 +281,12 @@ export class GameRouter {
         switch (pageName) {
             case "home":
                 this.app.bootstrapHome?.();
+                break;
+            case "hunt":
+                this.app.bootstrapHunt?.();
+                break;
+            case "genie":
+                this.app.bootstrapGenie?.();
                 break;
             case "play":
                 this.app.bootstrapPlay?.();

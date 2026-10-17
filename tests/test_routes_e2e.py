@@ -229,3 +229,33 @@ def test_active_quiz_leave_confirmation_guard(page: Page):
     # Successfully navigated away to /journey
     expect(page).to_have_url(re.compile(r"/journey$"))
     expect(page.locator("#modal-campaign")).to_be_visible()
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize(
+    "width,height",
+    [
+        (320, 568),
+        (360, 740),
+        (375, 667),
+        (390, 844),
+        (414, 896),
+        (430, 932),
+    ],
+)
+def test_mobile_viewports_no_horizontal_overflow(page: Page, width: int, height: int):
+    """Verifies zero horizontal overflow across responsive mobile viewports and game routes."""
+    page.set_viewport_size({"width": width, "height": height})
+    routes = ["/", "/play", "/journey", "/hunters", "/hunter-studio", "/settings", "/leaderboard"]
+
+    for route in routes:
+        page.goto(f"{BASE_URL}{route}")
+        page.wait_for_load_state("networkidle")
+
+        scroll_width = page.evaluate("() => document.documentElement.scrollWidth")
+        client_width = page.evaluate("() => document.documentElement.clientWidth")
+        assert scroll_width <= client_width, (
+            f"Horizontal overflow detected on route '{route}' at viewport {width}x{height}: "
+            f"scrollWidth={scroll_width} > clientWidth={client_width}"
+        )
+
