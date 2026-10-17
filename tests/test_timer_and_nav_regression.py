@@ -171,19 +171,50 @@ def _is_server_available(url: str = BASE_URL) -> bool:
 
 @pytest.mark.e2e
 def test_browser_hunt_genie_and_auth_navigation(page):
-    """Browser E2E test verifying mutual exclusivity: no stacked screens under #screen-start."""
+    """Browser E2E test verifying Landing -> ENTER -> Guest Auth -> Dashboard -> /hunt -> /genie mutual exclusivity."""
     if not _is_server_available(BASE_URL):
         pytest.skip(f"Web server at {BASE_URL} not reachable.")
 
     from playwright.sync_api import expect
 
-    # 1. Start at home
+    # 1. Start at home as a new visitor: verify Dedicated Landing Screen (#screen-landing) is active
     page.goto(BASE_URL)
     page.wait_for_load_state("networkidle")
+    landing_screen = page.locator("#screen-landing")
     start_screen = page.locator("#screen-start")
-    expect(start_screen).to_be_visible()
+    expect(landing_screen).to_be_visible()
+    expect(start_screen).not_to_be_visible()
 
-    # 2. Navigate to /hunt: verify page-hunt is visible and screen-start is HIDDEN
+    # Verify single visible primary button (ENTER) on landing screen and zero vertical scroll
+    visible_buttons = page.evaluate("""() => {
+        const btns = Array.from(document.querySelectorAll('button, a.btn-cta, a.btn-secondary'));
+        return btns.filter(el => {
+            const style = window.getComputedStyle(el);
+            const rect = el.getBoundingClientRect();
+            return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+        }).map(el => el.id || el.textContent.trim());
+    }""")
+    assert visible_buttons == ["btn-landing-enter"]
+
+    has_vertical_scroll = page.evaluate(
+        "() => document.documentElement.scrollHeight > window.innerHeight + 2"
+    )
+    assert not has_vertical_scroll
+
+    # 2. Click ENTER (#btn-landing-enter) -> transitions to Dedicated Auth Sanctum (#modal-auth)
+    page.locator("#btn-landing-enter").click()
+    auth_modal = page.locator("#modal-auth")
+    expect(auth_modal).to_be_visible()
+    expect(landing_screen).not_to_be_visible()
+    expect(start_screen).not_to_be_visible()
+
+    # 3. Choose Play as Guest (#btn-auth-quick-guest) -> transitions to Compact Game Dashboard (#screen-start)
+    page.locator("#btn-auth-quick-guest").click()
+    expect(start_screen).to_be_visible()
+    expect(auth_modal).not_to_be_visible()
+    expect(page.locator("#dashboard-icon-grid")).to_be_visible()
+
+    # 4. Navigate to /hunt: verify page-hunt is visible and screen-start is HIDDEN
     hunt_nav = page.locator('.top-nav a[data-route="/hunt"]')
     expect(hunt_nav).to_be_visible()
     hunt_nav.click()
@@ -194,7 +225,7 @@ def test_browser_hunt_genie_and_auth_navigation(page):
     expect(page_hunt).to_be_visible()
     expect(start_screen).not_to_be_visible()
 
-    # 3. Navigate to /genie: verify page-genie is visible and screen-start is HIDDEN
+    # 5. Navigate to /genie: verify page-genie is visible and screen-start is HIDDEN
     genie_nav = page.locator('.top-nav a[data-route="/genie"]')
     expect(genie_nav).to_be_visible()
     genie_nav.click()
@@ -206,13 +237,12 @@ def test_browser_hunt_genie_and_auth_navigation(page):
     expect(page_hunt).not_to_be_visible()
     expect(start_screen).not_to_be_visible()
 
-    # 4. Open Auth Sanctum Modal
+    # 6. Open Auth Sanctum Modal from top nav
     auth_btn = page.locator("#btn-nav-auth")
     expect(auth_btn).to_be_visible()
     auth_btn.click()
     page.wait_for_timeout(200)
 
-    auth_modal = page.locator("#modal-auth")
     expect(auth_modal).to_be_visible()
 
     # Switch to Register tab
@@ -228,10 +258,18 @@ def test_browser_hunt_genie_and_auth_navigation(page):
 
 
 def test_cinematic_horror_world_hud_and_results_markup(client):
-    """Verify gothic world SVG, 9 realm portals, 3 genie sanctums, HUD controls, and PB banner."""
+    """Verify landing screen, auth sanctum, compact dashboard, gothic world SVG, 9 realm portals, and HUD markup."""
     res = client.get("/")
     assert res.status_code == 200
     html = res.text
+
+    # Dedicated Landing Screen & Single ENTER Action
+    assert 'id="screen-landing"' in html
+    assert 'id="btn-landing-enter"' in html
+    assert 'id="btn-auth-music-toggle"' in html
+    assert 'id="btn-auth-quick-guest"' in html
+    assert 'id="dashboard-icon-grid"' in html
+    assert 'id="bgm-audio" src="/sounds/spooky-master-main.mp3"' in html
 
     # Gothic architecture & hero mission select CTA
     assert 'class="gothic-citadel-svg"' in html
@@ -274,12 +312,9 @@ def test_browser_hud_controls_low_time_tension_and_mobile_hunt_overflow(page):
 
     from playwright.sync_api import expect
 
+    page.add_init_script("window.localStorage.setItem('spooky_gate_entered', 'true');")
     page.goto(f"{BASE_URL}/hunt")
     page.wait_for_load_state("networkidle")
-    page.evaluate("""() => {
-        const modal = document.getElementById('modal-onboarding');
-        if (modal) modal.classList.add('hidden');
-    }""")
 
     # Launch Quick Bite directly from /hunt portal
     quick_btn = page.locator('#page-hunt .btn-start-mode[data-mode="quick"]')
@@ -311,14 +346,104 @@ def test_browser_hud_controls_low_time_tension_and_mobile_hunt_overflow(page):
     expect(page.locator("#screen-start")).to_be_visible()
     expect(quiz_screen).not_to_be_visible()
 
-    # Check mobile 320px and 390px viewports on /hunt and /genie for zero horizontal overflow
-    for width, height in [(320, 568), (390, 844)]:
+    # Check mobile 320px, 360px, 390px, 430px, 768px, and 1440px viewports for zero horizontal overflow
+    for width, height in [(320, 568), (360, 800), (390, 844), (430, 932), (768, 1024), (1440, 900)]:
         page.set_viewport_size({"width": width, "height": height})
-        for route in ["/hunt", "/genie"]:
+        for route in ["/", "/hunt", "/genie"]:
             page.goto(f"{BASE_URL}{route}")
             page.wait_for_load_state("networkidle")
             overflow = page.evaluate(
                 "() => document.documentElement.scrollWidth > document.documentElement.clientWidth"
             )
             assert not overflow, f"Horizontal overflow on {route} at {width}x{height}"
+
+
+@pytest.mark.e2e
+def test_e2e_landing_audio_rejection_and_auth_register_login_flow(page):
+    """Verify Landing -> ENTER audio playback & rejection resilience -> Auth validation, Register, Logout, Login."""
+    if not _is_server_available(BASE_URL):
+        pytest.skip(f"Web server at {BASE_URL} not reachable.")
+
+    import uuid
+
+    from playwright.sync_api import expect
+
+    page.goto(BASE_URL)
+    page.wait_for_load_state("networkidle")
+
+    # 1. Verify no autoplay on initial landing screen load
+    initial_audio_state = page.evaluate("""() => ({
+        paused: document.getElementById('bgm-audio').paused,
+        ambienceRequested: window.halloweenApp.sound.ambienceRequested,
+        activeScreen: document.body.getAttribute('data-active-screen'),
+    })""")
+    assert initial_audio_state["paused"] is True
+    assert initial_audio_state["ambienceRequested"] is False
+    assert initial_audio_state["activeScreen"] == "landing"
+
+    # 2. Simulate browser autoplay rejection on first ENTER click and verify app still transitions cleanly
+    page.evaluate("""() => {
+        const audio = document.getElementById('bgm-audio');
+        window.__origPlay = audio.play.bind(audio);
+        audio.play = () => Promise.reject(new DOMException('Autoplay blocked by test', 'NotAllowedError'));
+    }""")
+
+    page.locator("#btn-landing-enter").click()
+    expect(page.locator("#modal-auth")).to_be_visible()
+    assert page.evaluate("() => document.body.getAttribute('data-active-screen')") == "auth"
+
+    # Restore real play() and test the obvious music retry toggle (#btn-auth-music-toggle) on Auth screen
+    page.evaluate("""() => {
+        const audio = document.getElementById('bgm-audio');
+        if (window.__origPlay) audio.play = window.__origPlay;
+    }""")
+    expect(page.locator("#btn-auth-music-toggle")).to_be_visible()
+    page.locator("#btn-auth-music-toggle").click()
+    assert page.evaluate("() => window.halloweenApp.sound.ambienceRequested") is True
+
+    # 3. Verify client-side validation on Sign In
+    page.locator("#btn-auth-submit-login").click()
+    expect(page.locator("#auth-login-status")).to_be_visible()
+    expect(page.locator("#auth-login-status")).to_contain_text("Hunter Username and Password")
+
+    # 4. Switch to Register, verify client-side validation, then register a new player account
+    page.locator("#tab-auth-register").click()
+    page.locator("#auth-reg-username").fill("ab")
+    page.locator("#auth-reg-password").fill("123")
+    page.locator("#btn-auth-submit-register").click()
+    expect(page.locator("#auth-reg-status")).to_be_visible()
+    expect(page.locator("#auth-reg-status")).to_contain_text("3–30 characters")
+
+    unique_user = f"hunter_{uuid.uuid4().hex[:8]}"
+    page.locator("#auth-reg-username").fill(unique_user)
+    page.locator("#auth-reg-password").fill("spookypass123")
+    page.locator("#auth-reg-nickname").fill("Lord Blackwood")
+    page.locator("#btn-auth-submit-register").click()
+
+    # Transitions into compact game dashboard (#screen-start) as authenticated non-guest player
+    expect(page.locator("#screen-start")).to_be_visible()
+    expect(page.locator("#modal-auth")).not_to_be_visible()
+    expect(page.locator("#lobby-player-name")).to_have_text("Lord Blackwood")
+
+    auth_state = page.evaluate("""() => ({
+        role: window.halloweenApp.currentUser?.role,
+        is_guest: window.halloweenApp.currentUser?.is_guest,
+        username: window.halloweenApp.currentUser?.username,
+    })""")
+    assert auth_state["role"] == "player"
+    assert auth_state["is_guest"] is False
+    assert auth_state["username"] == unique_user
+
+    # 5. Sign out and sign back in with the registered account
+    page.evaluate("() => window.halloweenApp.handleLogout()")
+    page.wait_for_timeout(200)
+    page.locator("#btn-nav-auth").click()
+    expect(page.locator("#modal-auth")).to_be_visible()
+    page.locator("#auth-login-username").fill(unique_user)
+    page.locator("#auth-login-password").fill("spookypass123")
+    page.locator("#btn-auth-submit-login").click()
+
+    expect(page.locator("#modal-auth")).not_to_be_visible()
+    assert page.evaluate("() => window.halloweenApp.currentUser?.username") == unique_user
+
 

@@ -56,6 +56,7 @@ export class ProfileManager {
                         if (!parsed.preferences.theme) parsed.preferences.theme = "default";
                     }
 
+                    this.hadStoredProfile = true;
                     this.profile = parsed;
                     this.app.profile = parsed;
                     this.app.sound.applyPreferences(parsed.preferences);
@@ -75,6 +76,7 @@ export class ProfileManager {
             localStorage.getItem("halloween_music_volume") ||
             localStorage.getItem("halloween_muted")
         );
+        this.hadStoredProfile = hasLegacyData;
 
         let defaultMusicVol = parseFloat(localStorage.getItem("halloween_music_volume") || "0.25");
         if (!Number.isFinite(defaultMusicVol) || defaultMusicVol < 0) defaultMusicVol = 0.25;
@@ -129,8 +131,6 @@ export class ProfileManager {
 
         if (hasLegacyData) {
             this.saveProfile(newProfile);
-        } else {
-            this.app.openOnboarding?.();
         }
 
         return newProfile;

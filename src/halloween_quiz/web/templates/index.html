@@ -103,7 +103,31 @@
             <button id="btn-notice-dismiss" class="btn-notice-close" aria-label="Dismiss notice">✕</button>
         </div>
 
-        <!-- SCREEN 1: SETUP / HAUNTED GAME LOBBY -->
+        <!-- SCREEN 0: DEDICATED CINEMATIC HORROR LANDING SCREEN -->
+        <section id="screen-landing" class="game-screen landing-screen hidden" aria-labelledby="landing-title">
+            <div class="landing-sanctum-stage">
+                <div class="landing-moonlight-halo" aria-hidden="true"></div>
+                <div class="landing-mansion-silhouette" aria-hidden="true"></div>
+                <div class="landing-fog-veil" aria-hidden="true"></div>
+                <div class="landing-content-frame">
+                    <div class="landing-emblem-wrap" aria-hidden="true">
+                        <img class="landing-brand-logo" src="/static/logo.svg" alt="" width="76" height="76">
+                        <span class="landing-orbit-glow"></span>
+                    </div>
+                    <p class="landing-eyebrow">CINEMATIC HORROR TRIVIA</p>
+                    <h1 id="landing-title" class="landing-main-title">SPOOKY MASTER</h1>
+                    <p class="landing-tagline">Beyond the wrought-iron gates stands Blackwood Manor. Step into the moonlight and test your nerve.</p>
+                    <div class="landing-cta-box">
+                        <button type="button" id="btn-landing-enter" class="btn-cta btn-landing-enter" aria-label="Enter Spooky Master">
+                            <span class="btn-cta-glimmer" aria-hidden="true"></span>
+                            <span class="btn-landing-enter-text">ENTER</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 1: SETUP / HAUNTED GAME LOBBY (COMPACT GAME DASHBOARD) -->
         <section id="screen-start" class="game-screen active" aria-labelledby="start-title">
             <div class="lobby-wrapper">
 
@@ -119,6 +143,7 @@
                             <div class="lobby-identity-name-row">
                                 <span id="lobby-player-name" class="lobby-hunter-name">Ghost Hunter</span>
                                 <span id="lobby-player-tier" class="badge badge-tier">Lost Soul 🌑</span>
+                                <span id="lobby-auth-mode-badge" class="badge badge-auth-mode">Guest Session</span>
                             </div>
                             <span class="lobby-hunter-sub">Hunter Status: <span class="status-online">● Ready for the Haunt</span></span>
                         </div>
@@ -142,7 +167,7 @@
                     </div>
                 </div>
 
-                <!-- 2. OPENING HERO SECTION -->
+                <!-- 2. COMPACT GAME COMMAND HEADER -->
                 <header class="lobby-hero" id="lobby-hero-entrance">
                     <div class="lobby-floating-emblem" aria-hidden="true">
                         <div class="emblem-orb">
@@ -153,10 +178,10 @@
                         <div class="orbit-glow-ring ring-one"></div>
                         <div class="orbit-glow-ring ring-two"></div>
                     </div>
-                    <p class="lobby-eyebrow">ENTER IF YOU DARE</p>
+                    <p class="lobby-eyebrow">BLACKWOOD MANOR COMMAND DECK</p>
                     <h1 id="start-title" class="lobby-hero-title">🎃 SPOOKY MASTER</h1>
                     <p class="lobby-hero-subtitle">
-                        Enter the haunted world of trivia, survive its supernatural challenges and become the ultimate hunter.
+                        Choose your realm, continue your campaign, or launch an instant crypt hunt.
                     </p>
                     <div class="lobby-hero-cta-wrap">
                         <button type="button" id="btn-enter-the-haunt" class="btn-cta btn-enter-haunt" aria-label="Enter the Haunt">
@@ -169,6 +194,50 @@
                         </a>
                     </div>
                 </header>
+
+                <!-- 2B. COMPACT ICON-LED MOBILE GAME LAUNCHER GRID -->
+                <nav class="dashboard-icon-grid" id="dashboard-icon-grid" aria-label="Quick Game Realms">
+                    <a href="/hunt" id="tile-dash-modes" class="dash-icon-tile tile-primary" data-route="/hunt">
+                        <span class="dash-tile-icon" aria-hidden="true">🏹</span>
+                        <span class="dash-tile-label">9 Realms</span>
+                        <small class="dash-tile-meta">Game Modes</small>
+                    </a>
+                    <a href="/journey" id="tile-dash-journey" class="dash-icon-tile" data-route="/journey">
+                        <span class="dash-tile-icon" aria-hidden="true">🗺️</span>
+                        <span class="dash-tile-label">Journey</span>
+                        <small class="dash-tile-meta">6 Chapters</small>
+                    </a>
+                    <a href="/daily-haunt" id="tile-dash-daily" class="dash-icon-tile" data-route="/daily-haunt">
+                        <span class="dash-tile-icon" aria-hidden="true">🕯️</span>
+                        <span class="dash-tile-label">Daily Haunt</span>
+                        <small class="dash-tile-meta">24h Seed</small>
+                    </a>
+                    <a href="/duels" id="tile-dash-duels" class="dash-icon-tile" data-route="/duels">
+                        <span class="dash-tile-icon" aria-hidden="true">⚔️</span>
+                        <span class="dash-tile-label">PvP Duels</span>
+                        <small class="dash-tile-meta">1v1 Traps</small>
+                    </a>
+                    <a href="/genie" id="tile-dash-genie" class="dash-icon-tile" data-route="/genie">
+                        <span class="dash-tile-icon" aria-hidden="true">🧞</span>
+                        <span class="dash-tile-label">Genie</span>
+                        <small class="dash-tile-meta">AI Oracle</small>
+                    </a>
+                    <a href="/progress" id="tile-dash-progress" class="dash-icon-tile" data-route="/progress">
+                        <span class="dash-tile-icon" aria-hidden="true">📜</span>
+                        <span class="dash-tile-label">Profile</span>
+                        <small class="dash-tile-meta">Mastery</small>
+                    </a>
+                    <a href="/leaderboard" id="tile-dash-leaderboard" class="dash-icon-tile" data-route="/leaderboard">
+                        <span class="dash-tile-icon" aria-hidden="true">🏆</span>
+                        <span class="dash-tile-label">Rankings</span>
+                        <small class="dash-tile-meta">Top Scores</small>
+                    </a>
+                    <a href="/settings" id="tile-dash-settings" class="dash-icon-tile" data-route="/settings">
+                        <span class="dash-tile-icon" aria-hidden="true">⚙️</span>
+                        <span class="dash-tile-label">Settings</span>
+                        <small class="dash-tile-meta">Audio & FX</small>
+                    </a>
+                </nav>
 
                 <!-- 3. MAIN GAME LOBBY CENTERPIECE (2-Column Grid on Desktop, Stack on Mobile) -->
                 <div class="lobby-centerpiece-grid">
@@ -1431,30 +1500,39 @@
             </div>
         </div>
 
-        <!-- MODAL: AUTHENTICATION & PLAYER IDENTITY (v2.7.0) -->
+        <!-- MODAL / SCREEN: DEDICATED AUTHENTICATION & PLAYER IDENTITY SANCTUM -->
         <div id="modal-auth" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
             <div class="modal-card modal-auth-card">
-                <div class="modal-header">
-                    <h2 id="auth-modal-title">🎃 Hunter Sanctum</h2>
-                    <button id="btn-close-auth" class="btn-close" aria-label="Close authentication modal">✖</button>
+                <div class="modal-header auth-sanctum-header">
+                    <div class="auth-header-title-wrap">
+                        <span class="auth-sanctum-kicker">BLACKWOOD MANOR GATEWAY</span>
+                        <h2 id="auth-modal-title">🎃 Hunter Sanctum</h2>
+                    </div>
+                    <div class="auth-header-controls">
+                        <button type="button" id="btn-auth-music-toggle" class="btn-auth-music" title="Toggle or retry background music" aria-label="Toggle Background Music">
+                            🎵 <span id="auth-music-status">Music: ON</span>
+                        </button>
+                        <button id="btn-close-auth" class="btn-close" aria-label="Close authentication modal">✖</button>
+                    </div>
                 </div>
+                <p class="auth-sanctum-lead">Identify yourself before crossing the threshold, or enter immediately as a Guest Hunter.</p>
 
-                <div class="auth-tabs-bar" role="tablist">
-                    <button type="button" class="auth-tab-btn active" id="tab-auth-login" role="tab" aria-selected="true">
+                <div class="auth-tabs-bar" role="tablist" aria-label="Authentication methods">
+                    <button type="button" class="auth-tab-btn active" id="tab-auth-login" role="tab" aria-selected="true" aria-controls="auth-panel-login">
                         🔑 Sign In
                     </button>
-                    <button type="button" class="auth-tab-btn" id="tab-auth-register" role="tab" aria-selected="false">
+                    <button type="button" class="auth-tab-btn" id="tab-auth-register" role="tab" aria-selected="false" aria-controls="auth-panel-register">
                         ✨ Register
                     </button>
-                    <button type="button" class="auth-tab-btn" id="tab-auth-guest" role="tab" aria-selected="false">
+                    <button type="button" class="auth-tab-btn" id="tab-auth-guest" role="tab" aria-selected="false" aria-controls="auth-panel-guest">
                         👻 Guest Pass
                     </button>
                 </div>
 
                 <!-- Panel 1: Sign In -->
-                <div id="auth-panel-login" class="auth-panel" role="tabpanel">
+                <div id="auth-panel-login" class="auth-panel" role="tabpanel" aria-labelledby="tab-auth-login">
                     <div id="auth-login-status" class="auth-status-msg hidden" role="alert"></div>
-                    <form id="form-auth-login" autocomplete="on">
+                    <form id="form-auth-login" autocomplete="on" novalidate>
                         <div class="auth-field-group">
                             <label for="auth-login-username">Hunter Username</label>
                             <input type="text" id="auth-login-username" class="auth-input" required autocomplete="username" placeholder="e.g. shadow_hunter">
@@ -1470,9 +1548,9 @@
                 </div>
 
                 <!-- Panel 2: Register Account -->
-                <div id="auth-panel-register" class="auth-panel hidden" role="tabpanel">
+                <div id="auth-panel-register" class="auth-panel hidden" role="tabpanel" aria-labelledby="tab-auth-register">
                     <div id="auth-reg-status" class="auth-status-msg hidden" role="alert"></div>
-                    <form id="form-auth-register" autocomplete="on">
+                    <form id="form-auth-register" autocomplete="on" novalidate>
                         <div class="auth-field-group">
                             <label for="auth-reg-username">Choose Username (3–30 characters)</label>
                             <input type="text" id="auth-reg-username" class="auth-input" required pattern="^[a-zA-Z0-9_-]{3,30}$" autocomplete="username" placeholder="Letters, numbers, underscores">
@@ -1492,18 +1570,27 @@
                 </div>
 
                 <!-- Panel 3: Guest Entry -->
-                <div id="auth-panel-guest" class="auth-panel hidden" role="tabpanel">
+                <div id="auth-panel-guest" class="auth-panel hidden" role="tabpanel" aria-labelledby="tab-auth-guest">
                     <div id="auth-guest-status" class="auth-status-msg hidden" role="alert"></div>
-                    <p class="onboarding-subtitle">Play immediately without creating a persistent password. Guest sessions are strictly normal player accounts with no administrative privileges.</p>
-                    <form id="form-auth-guest">
+                    <p class="onboarding-subtitle">Play immediately without creating a password. Guest progress is stored in your current browser session and local device storage, with standard player access only.</p>
+                    <form id="form-auth-guest" novalidate>
                         <div class="auth-field-group">
                             <label for="auth-guest-nickname">Guest Nickname (optional)</label>
                             <input type="text" id="auth-guest-nickname" class="auth-input" maxlength="40" placeholder="Ghost Hunter">
                         </div>
-                        <button type="submit" id="btn-auth-submit-guest" class="btn-secondary btn-full">
+                        <button type="submit" id="btn-auth-submit-guest" class="btn-cta btn-full">
                             <span>👻 Enter as Guest Hunter</span> ➔
                         </button>
                     </form>
+                </div>
+
+                <!-- Express Guest Action Footer -->
+                <div class="auth-guest-express-bar" id="auth-guest-express-bar">
+                    <div class="auth-divider"><span>OR PLAY INSTANTLY</span></div>
+                    <button type="button" id="btn-auth-quick-guest" class="btn-secondary btn-full btn-auth-quick-guest" aria-label="Play as Guest">
+                        <span>👻 Play as Guest</span>
+                    </button>
+                    <small class="auth-guest-footnote">Guest progress is saved locally to this browser session. Register anytime to bind your records permanently.</small>
                 </div>
             </div>
         </div>
@@ -2050,7 +2137,7 @@
     <canvas id="confetti-canvas"></canvas>
 
     <!-- Looping horror ambience audio element -->
-    <audio id="bgm-audio" loop preload="auto">
+    <audio id="bgm-audio" src="/sounds/spooky-master-main.mp3" loop preload="auto">
         <source src="/sounds/spooky-master-main.mp3" type="audio/mpeg">
     </audio>
 

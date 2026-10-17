@@ -102,6 +102,7 @@ export class HalloweenQuizApp {
 
         // Screens
         this.screens = {
+            landing: document.getElementById("screen-landing"),
             start: document.getElementById("screen-start"),
             quiz: document.getElementById("screen-quiz"),
             gameover: document.getElementById("screen-gameover"),
@@ -109,6 +110,9 @@ export class HalloweenQuizApp {
 
         // DOM Element Registry
         this.dom = {
+            // Landing Screen
+            btnLandingEnter: document.getElementById("btn-landing-enter"),
+
             // Setup / Start Form
             formStart: document.getElementById("form-start-quiz"),
             playerName: document.getElementById("player-name"),
@@ -127,6 +131,7 @@ export class HalloweenQuizApp {
             btnLobbyAvatar: document.getElementById("btn-lobby-avatar"),
             lobbyPlayerName: document.getElementById("lobby-player-name"),
             lobbyPlayerTier: document.getElementById("lobby-player-tier"),
+            lobbyAuthModeBadge: document.getElementById("lobby-auth-mode-badge"),
             lobbyDiamondsPill: document.getElementById("lobby-diamonds-pill"),
             lobbyDiamondCount: document.getElementById("lobby-diamond-count"),
             btnLobbyEditProfile: document.getElementById("btn-lobby-edit-profile"),
@@ -417,9 +422,15 @@ export class HalloweenQuizApp {
             btnGenieConsultOracle: document.getElementById("btn-genie-consult-oracle"),
             genieOracleResult: document.getElementById("genie-oracle-result"),
 
-            // Auth Modal
+            // Auth Modal / Dedicated Auth Screen
             modalAuth: document.getElementById("modal-auth"),
             btnCloseAuth: document.getElementById("btn-close-auth"),
+            btnAuthMusicToggle: document.getElementById("btn-auth-music-toggle"),
+            authMusicStatus: document.getElementById("auth-music-status"),
+            btnAuthQuickGuest: document.getElementById("btn-auth-quick-guest"),
+            btnAuthSubmitLogin: document.getElementById("btn-auth-submit-login"),
+            btnAuthSubmitRegister: document.getElementById("btn-auth-submit-register"),
+            btnAuthSubmitGuest: document.getElementById("btn-auth-submit-guest"),
             tabAuthLogin: document.getElementById("tab-auth-login"),
             tabAuthRegister: document.getElementById("tab-auth-register"),
             tabAuthGuest: document.getElementById("tab-auth-guest"),
@@ -457,6 +468,8 @@ export class HalloweenQuizApp {
         this.themesMgr = new ThemesManager(this);
         this.shopMgr = new ShopManager(this);
         this.entitlementsMgr = new EntitlementsManager(this);
+        this._isEnteringFromLanding = false;
+        this._authSubmitting = false;
 
         // Initialize Player Profile & Data
         this.profile = this.initPlayerProfile();
@@ -483,6 +496,17 @@ export class HalloweenQuizApp {
 
         // Initialize Client-side Router
         this.router.init();
+    }
+
+    hasEnteredGate() {
+        if (localStorage.getItem("spooky_force_landing") === "true") {
+            return false;
+        }
+        return Boolean(
+            localStorage.getItem("spooky_gate_entered") === "true" ||
+            localStorage.getItem("spooky_session_token") ||
+            this.profileMgr?.hadStoredProfile
+        );
     }
 
     // ==========================================
@@ -577,6 +601,10 @@ export class HalloweenQuizApp {
             return;
         }
         this.closeAllModals();
+        if (!this.hasEnteredGate()) {
+            this.showScreen("landing");
+            return;
+        }
         this.showScreen("start");
         this.sound.startBackgroundAmbience();
         this.renderLobbyExperience();
@@ -600,12 +628,12 @@ export class HalloweenQuizApp {
                 this.router.navigate("/play/session");
             } else if (screenName === "gameover" && !window.location.pathname.startsWith("/results")) {
                 this.router.navigate(this.sessionId ? `/results/${this.sessionId}` : "/results");
-            } else if (screenName === "start" && window.location.pathname !== "/" && window.location.pathname !== "/play") {
+            } else if ((screenName === "start" || screenName === "landing") && window.location.pathname !== "/" && window.location.pathname !== "/play") {
                 this.router.navigate("/");
             }
         }
 
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo({ top: 0, behavior: "instant" });
     }
 
     isQuizActive() {
@@ -629,14 +657,20 @@ export class HalloweenQuizApp {
     // ROUTE LIFECYCLE BOOTSTRAP METHODS (v2.6.0)
     // ==========================================
     bootstrapHome() {
-        const isOnboardingOpen = this.dom.modalOnboarding && !this.dom.modalOnboarding.classList.contains("hidden");
         this.closeAllModals();
-        if (isOnboardingOpen) {
-            this.dom.modalOnboarding.classList.remove("hidden");
+        this.renderLobbyExperience();
+
+        if (!this.hasEnteredGate()) {
+            this._isEnteringFromLanding = false;
+            if (this.dom.btnLandingEnter) {
+                this.dom.btnLandingEnter.disabled = false;
+            }
+            this.showScreen("landing");
+            return;
         }
+
         this.showScreen("start");
         this.sound.startBackgroundAmbience();
-        this.renderLobbyExperience();
     }
 
     bootstrapHunt() {
@@ -1411,9 +1445,16 @@ export class HalloweenQuizApp {
     }
 
     updateMusicNavButton(isPlaying) {
-        const activeState = Boolean(isPlaying || this.sound?.musicEnabled);
+        const realPlaying = Boolean(
+            isPlaying &&
+            this.sound?.bgmAudio &&
+            !this.sound.bgmAudio.paused &&
+            !this.sound.bgmAudio.muted
+        );
+        const activeState = Boolean(realPlaying || (isPlaying && this.sound?.musicEnabled));
+
         if (this.dom.btnNavMusicToggle && this.dom.navMusicStatus) {
-            if (isPlaying) {
+            if (activeState) {
                 this.dom.btnNavMusicToggle.classList.add("is-playing");
                 this.dom.btnNavMusicToggle.classList.add("active");
                 this.dom.navMusicStatus.textContent = "ON";
@@ -1423,12 +1464,48 @@ export class HalloweenQuizApp {
                 this.dom.navMusicStatus.textContent = "OFF";
             }
         }
+        if (this.dom.btnAuthMusicToggle && this.dom.authMusicStatus) {
+            this.dom.btnAuthMusicToggle.classList.toggle("is-playing", activeState);
+            this.dom.btnAuthMusicToggle.setAttribute("aria-pressed", String(activeState));
+            this.dom.authMusicStatus.textContent = activeState ? "Music: ON" : "Music: OFF";
+        }
         const quizAudioBtn = document.getElementById("btn-quiz-audio-toggle");
         if (quizAudioBtn) {
             quizAudioBtn.textContent = activeState ? "🔊" : "🔇";
             quizAudioBtn.classList.toggle("is-muted", !activeState);
             quizAudioBtn.setAttribute("aria-pressed", String(activeState));
         }
+    }
+
+    handleLandingEnter() {
+        if (this._isEnteringFromLanding) return;
+        this._isEnteringFromLanding = true;
+
+        if (this.dom.btnLandingEnter) {
+            this.dom.btnLandingEnter.disabled = true;
+        }
+
+        // 1. Register genuine user gesture for Web Audio & HTML5 Audio
+        this.sound.unlock();
+        this.sound.play("ui_click");
+
+        // 2. Attempt to start background music and handle returned playback promise gracefully
+        const playPromise = this.sound.startBackgroundAmbience();
+        if (playPromise && typeof playPromise.catch === "function") {
+            playPromise.catch(() => {
+                this.updateMusicNavButton(false);
+            });
+        }
+
+        // 3. Transition from dedicated landing screen to dedicated authentication sanctum
+        Object.values(this.screens).forEach((s) => {
+            if (s) {
+                s.classList.remove("active");
+                s.classList.add("hidden");
+            }
+        });
+        document.body.setAttribute("data-active-screen", "auth");
+        this.openAuth("login");
     }
 
     // ==========================================
@@ -1467,13 +1544,32 @@ export class HalloweenQuizApp {
             }
             if (user.user_id) this.profile.player_id = user.user_id;
             this.profile.is_guest = Boolean(user.is_guest);
-            this.profile.role = user.role || "player";
+            this.profile.role = "player";
             if (persistProfile || localStorage.getItem("spooky_player_profile")) {
                 this.profileMgr?.saveProfile();
             }
             this.applyProfileToUi();
         }
         this.updateAuthUi();
+    }
+
+    completeAuthEntry() {
+        try {
+            localStorage.setItem("spooky_gate_entered", "true");
+            localStorage.removeItem("spooky_force_landing");
+        } catch (_) {}
+        if (this.profileMgr) {
+            this.profileMgr.hadStoredProfile = true;
+            this.profileMgr.saveProfile();
+        }
+        this._isEnteringFromLanding = false;
+        this.closeAuth();
+        this.showScreen("start");
+        if (this.sound.musicEnabled && !this.sound.bgmPlaying) {
+            this.sound.startBackgroundAmbience();
+        }
+        this.updateAuthUi();
+        this.renderLobbyExperience();
     }
 
     async initDefaultGuestSession() {
@@ -1499,16 +1595,27 @@ export class HalloweenQuizApp {
     }
 
     updateAuthUi() {
-        if (!this.dom.navAuthLabel) return;
         const isRegistered = Boolean(this.currentUser && !this.currentUser.is_guest);
-        if (isRegistered) {
-            this.dom.navAuthLabel.textContent = this.currentUser.nickname || this.currentUser.username;
-            this.dom.btnNavAuth?.classList.add("signed-in");
-            this.dom.btnNavAuth?.setAttribute("title", `Signed in as ${this.currentUser.username} (${this.currentUser.role || "player"}). Click to sign out.`);
-        } else {
-            this.dom.navAuthLabel.textContent = "Sign In";
-            this.dom.btnNavAuth?.classList.remove("signed-in");
-            this.dom.btnNavAuth?.setAttribute("title", "Sign in or create a player account");
+        if (this.dom.navAuthLabel) {
+            if (isRegistered) {
+                this.dom.navAuthLabel.textContent = this.currentUser.nickname || this.currentUser.username;
+                this.dom.btnNavAuth?.classList.add("signed-in");
+                this.dom.btnNavAuth?.setAttribute("title", `Signed in as ${this.currentUser.username} (player). Click to sign out.`);
+            } else {
+                this.dom.navAuthLabel.textContent = "Sign In";
+                this.dom.btnNavAuth?.classList.remove("signed-in");
+                this.dom.btnNavAuth?.setAttribute("title", "Sign in or create a player account");
+            }
+        }
+
+        if (this.dom.lobbyAuthModeBadge) {
+            if (isRegistered) {
+                this.dom.lobbyAuthModeBadge.textContent = `🔑 ${this.currentUser.username}`;
+                this.dom.lobbyAuthModeBadge.classList.add("is-authenticated");
+            } else {
+                this.dom.lobbyAuthModeBadge.textContent = "👻 Guest Session";
+                this.dom.lobbyAuthModeBadge.classList.remove("is-authenticated");
+            }
         }
 
         if (this.dom.lobbyPlayerName && this.profile?.nickname) {
@@ -1518,6 +1625,7 @@ export class HalloweenQuizApp {
 
     openAuth(tab = "login") {
         this.switchAuthTab(tab);
+        this.updateMusicNavButton(this.sound.bgmPlaying);
         this.dom.modalAuth?.classList.remove("hidden");
         this.dom.modalAuth?.classList.add("active");
     }
@@ -1525,42 +1633,74 @@ export class HalloweenQuizApp {
     closeAuth() {
         this.dom.modalAuth?.classList.add("hidden");
         this.dom.modalAuth?.classList.remove("active");
+        if (document.body.getAttribute("data-active-screen") === "auth") {
+            if (this.hasEnteredGate()) {
+                this.showScreen("start");
+            } else {
+                this._isEnteringFromLanding = false;
+                if (this.dom.btnLandingEnter) {
+                    this.dom.btnLandingEnter.disabled = false;
+                }
+                this.showScreen("landing");
+            }
+        }
     }
 
     switchAuthTab(tabName) {
         const tabs = [this.dom.tabAuthLogin, this.dom.tabAuthRegister, this.dom.tabAuthGuest];
         const panels = [this.dom.authPanelLogin, this.dom.authPanelRegister, this.dom.authPanelGuest];
 
-        tabs.forEach((t) => t?.classList.remove("active"));
+        tabs.forEach((t) => {
+            t?.classList.remove("active");
+            t?.setAttribute("aria-selected", "false");
+        });
         panels.forEach((p) => p?.classList.add("hidden"));
 
         if (tabName === "register") {
             this.dom.tabAuthRegister?.classList.add("active");
+            this.dom.tabAuthRegister?.setAttribute("aria-selected", "true");
             this.dom.authPanelRegister?.classList.remove("hidden");
             this.dom.authRegUsername?.focus();
         } else if (tabName === "guest") {
             this.dom.tabAuthGuest?.classList.add("active");
+            this.dom.tabAuthGuest?.setAttribute("aria-selected", "true");
             this.dom.authPanelGuest?.classList.remove("hidden");
             this.dom.authGuestNickname?.focus();
         } else {
             this.dom.tabAuthLogin?.classList.add("active");
+            this.dom.tabAuthLogin?.setAttribute("aria-selected", "true");
             this.dom.authPanelLogin?.classList.remove("hidden");
             this.dom.authLoginUsername?.focus();
         }
     }
 
     async handleLogin(username, password) {
+        if (this._authSubmitting) return;
         const statusEl = this.dom.authLoginStatus;
         if (statusEl) {
             statusEl.className = "auth-status-msg hidden";
             statusEl.textContent = "";
         }
 
+        const cleanUser = (username || "").trim();
+        if (!cleanUser || !password) {
+            if (statusEl) {
+                statusEl.className = "auth-status-msg error";
+                statusEl.textContent = "Please enter both your Hunter Username and Password.";
+            }
+            return;
+        }
+
+        this._authSubmitting = true;
+        if (this.dom.btnAuthSubmitLogin) {
+            this.dom.btnAuthSubmitLogin.disabled = true;
+        }
+
         try {
             const res = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username: cleanUser, password }),
             });
             const data = await res.json();
             if (!res.ok) {
@@ -1568,21 +1708,48 @@ export class HalloweenQuizApp {
             }
 
             this.setAuthenticatedUser(data, data.token, true);
-            this.closeAuth();
+            this.completeAuthEntry();
             this.showToast("Signed In", `Welcome back, ${data.nickname || data.username}!`, "🔑");
         } catch (err) {
             if (statusEl) {
                 statusEl.className = "auth-status-msg error";
                 statusEl.textContent = err.message;
             }
+        } finally {
+            this._authSubmitting = false;
+            if (this.dom.btnAuthSubmitLogin) {
+                this.dom.btnAuthSubmitLogin.disabled = false;
+            }
         }
     }
 
     async handleRegister(username, password, nickname) {
+        if (this._authSubmitting) return;
         const statusEl = this.dom.authRegStatus;
         if (statusEl) {
             statusEl.className = "auth-status-msg hidden";
             statusEl.textContent = "";
+        }
+
+        const cleanUser = (username || "").trim();
+        if (!cleanUser || !/^[a-zA-Z0-9_-]{3,30}$/.test(cleanUser)) {
+            if (statusEl) {
+                statusEl.className = "auth-status-msg error";
+                statusEl.textContent = "Username must be 3–30 characters (letters, numbers, underscores, or hyphens).";
+            }
+            return;
+        }
+        if (!password || password.length < 6) {
+            if (statusEl) {
+                statusEl.className = "auth-status-msg error";
+                statusEl.textContent = "Password must be at least 6 characters long.";
+            }
+            return;
+        }
+
+        this._authSubmitting = true;
+        if (this.dom.btnAuthSubmitRegister) {
+            this.dom.btnAuthSubmitRegister.disabled = true;
         }
 
         try {
@@ -1590,9 +1757,9 @@ export class HalloweenQuizApp {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    username,
+                    username: cleanUser,
                     password,
-                    nickname: nickname || username,
+                    nickname: (nickname || "").trim() || cleanUser,
                     avatar_id: this.profile?.avatar_id || "pumpkin_hunter",
                 }),
             });
@@ -1602,29 +1769,40 @@ export class HalloweenQuizApp {
             }
 
             this.setAuthenticatedUser(data, data.token, true);
-            this.closeAuth();
+            this.completeAuthEntry();
             this.showToast("Account Created", `Welcome to the crypt, ${data.nickname}!`, "✨");
         } catch (err) {
             if (statusEl) {
                 statusEl.className = "auth-status-msg error";
                 statusEl.textContent = err.message;
             }
+        } finally {
+            this._authSubmitting = false;
+            if (this.dom.btnAuthSubmitRegister) {
+                this.dom.btnAuthSubmitRegister.disabled = false;
+            }
         }
     }
 
     async handleGuest(nickname) {
+        if (this._authSubmitting) return;
         const statusEl = this.dom.authGuestStatus;
         if (statusEl) {
             statusEl.className = "auth-status-msg hidden";
             statusEl.textContent = "";
         }
 
+        const guestNick = (nickname || "").trim() || this.profile?.nickname || "Ghost Hunter";
+        this._authSubmitting = true;
+        if (this.dom.btnAuthSubmitGuest) this.dom.btnAuthSubmitGuest.disabled = true;
+        if (this.dom.btnAuthQuickGuest) this.dom.btnAuthQuickGuest.disabled = true;
+
         try {
             const res = await fetch("/api/auth/guest", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    nickname: nickname || "Ghost Hunter",
+                    nickname: guestNick,
                     avatar_id: this.profile?.avatar_id || "pumpkin_hunter",
                 }),
             });
@@ -1632,13 +1810,32 @@ export class HalloweenQuizApp {
             if (!res.ok) throw new Error(data.detail || "Guest entry failed.");
 
             this.setAuthenticatedUser(data, data.token, true);
-            this.closeAuth();
+            this.completeAuthEntry();
             this.showToast("Guest Session", `Entering as ${data.nickname}.`, "👻");
         } catch (err) {
             if (statusEl) {
                 statusEl.className = "auth-status-msg error";
                 statusEl.textContent = err.message;
             }
+            // Offline fallback so guest entry never dead-ends
+            this.setAuthenticatedUser(
+                {
+                    user_id: this.profile?.player_id || "guest_offline",
+                    username: null,
+                    nickname: guestNick,
+                    avatar_id: this.profile?.avatar_id || "pumpkin_hunter",
+                    role: "player",
+                    is_guest: true,
+                },
+                null,
+                true
+            );
+            this.completeAuthEntry();
+            this.showToast("Guest Session", `Entering as ${guestNick}.`, "👻");
+        } finally {
+            this._authSubmitting = false;
+            if (this.dom.btnAuthSubmitGuest) this.dom.btnAuthSubmitGuest.disabled = false;
+            if (this.dom.btnAuthQuickGuest) this.dom.btnAuthQuickGuest.disabled = false;
         }
     }
 
@@ -1656,6 +1853,10 @@ export class HalloweenQuizApp {
         }
         localStorage.removeItem("spooky_session_token");
         this.currentUser = null;
+        if (this.profile) {
+            this.profile.is_guest = true;
+            this.profile.role = "player";
+        }
         this.updateAuthUi();
         this.showToast("Signed Out", "You have returned to guest status.", "👋");
     }
@@ -2220,15 +2421,28 @@ export class HalloweenQuizApp {
     // EVENT BINDINGS
     // ==========================================
     initEvents() {
-        const unlockAndStartBgm = () => {
+        const unlockAndStartBgm = (event) => {
+            if (document.body.getAttribute("data-active-screen") === "landing") {
+                return;
+            }
+            const target = event?.target;
+            if (target && typeof target.closest === "function") {
+                if (target.closest("#btn-nav-music-toggle, #btn-auth-music-toggle, #btn-quiz-audio-toggle, #modal-btn-bgm-toggle")) {
+                    return;
+                }
+            }
             this.sound.unlock();
-            if (this.sound.musicEnabled && !this.sound.bgmPlaying) {
+            if (this.sound.musicEnabled && !this.sound.bgmPlaying && this.sound.ambienceRequested) {
                 this.sound.startBackgroundAmbience();
             }
         };
         document.addEventListener("click", unlockAndStartBgm);
         document.addEventListener("keydown", unlockAndStartBgm);
-        document.addEventListener("pointerdown", unlockAndStartBgm);
+
+        // Dedicated Landing Screen ENTER Action
+        this.dom.btnLandingEnter?.addEventListener("click", () => {
+            this.handleLandingEnter();
+        });
 
         // Home Branding Navigation
         this.dom.btnHome?.addEventListener("click", () => this.openHome());
@@ -2246,6 +2460,7 @@ export class HalloweenQuizApp {
             if (
                 !button ||
                 button.disabled ||
+                button.id === "btn-landing-enter" ||
                 button.id === "btn-start" ||
                 button.id === "btn-enter-the-haunt" ||
                 button.id === "btn-lobby-quick-play" ||
@@ -2625,6 +2840,15 @@ export class HalloweenQuizApp {
             this.updateMusicNavButton(this.sound.bgmPlaying);
         });
 
+        // Auth Screen Music Toggle / Retry Button
+        this.dom.btnAuthMusicToggle?.addEventListener("click", () => {
+            this.sound.toggleBgm();
+            this.profile.preferences.music_enabled = this.sound.musicEnabled;
+            this.saveProfile();
+            this.syncSettingsUi();
+            this.updateMusicNavButton(this.sound.bgmPlaying);
+        });
+
         // In-Game HUD Audio Toggle & Exit Crypt Controls
         const btnQuizAudioToggle = document.getElementById("btn-quiz-audio-toggle");
         btnQuizAudioToggle?.addEventListener("click", () => {
@@ -2656,7 +2880,9 @@ export class HalloweenQuizApp {
 
         this.dom.btnCloseAuth?.addEventListener("click", () => this.closeAuth());
         this.dom.modalAuth?.addEventListener("click", (e) => {
-            if (e.target === this.dom.modalAuth) this.closeAuth();
+            if (e.target === this.dom.modalAuth && document.body.getAttribute("data-active-screen") !== "auth") {
+                this.closeAuth();
+            }
         });
 
         this.dom.tabAuthLogin?.addEventListener("click", () => this.switchAuthTab("login"));
@@ -2667,9 +2893,7 @@ export class HalloweenQuizApp {
             e.preventDefault();
             const u = this.dom.authLoginUsername?.value?.trim();
             const p = this.dom.authLoginPassword?.value;
-            if (u && p) {
-                this.handleLogin(u, p);
-            }
+            this.handleLogin(u, p);
         });
 
         this.dom.formAuthRegister?.addEventListener("submit", (e) => {
@@ -2677,13 +2901,16 @@ export class HalloweenQuizApp {
             const u = this.dom.authRegUsername?.value?.trim();
             const p = this.dom.authRegPassword?.value;
             const n = this.dom.authRegNickname?.value?.trim();
-            if (u && p) {
-                this.handleRegister(u, p, n);
-            }
+            this.handleRegister(u, p, n);
         });
 
         this.dom.formAuthGuest?.addEventListener("submit", (e) => {
             e.preventDefault();
+            const n = this.dom.authGuestNickname?.value?.trim();
+            this.handleGuest(n);
+        });
+
+        this.dom.btnAuthQuickGuest?.addEventListener("click", () => {
             const n = this.dom.authGuestNickname?.value?.trim();
             this.handleGuest(n);
         });

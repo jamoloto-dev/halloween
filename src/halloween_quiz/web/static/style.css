@@ -5562,3 +5562,417 @@ html.reduced-motion .hud-score-delta.delta-pop {
   }
 }
 
+/* ==========================================================================
+   CINEMATIC HORROR LANDING SCREEN, AUTH SANCTUM & COMPACT MOBILE GAME UX
+   ========================================================================== */
+
+/* 1. Full-Screen Landing Isolation (Zero Scroll, Single ENTER Button) */
+body[data-active-screen="landing"] {
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+body[data-active-screen="landing"] .top-nav,
+body[data-active-screen="landing"] .mobile-bottom-nav,
+body[data-active-screen="landing"] .app-footer,
+body[data-active-screen="landing"] #screen-start,
+body[data-active-screen="landing"] #screen-quiz,
+body[data-active-screen="landing"] #screen-gameover,
+body[data-active-screen="landing"] .page-view,
+body[data-active-screen="landing"] .modal-overlay {
+  display: none !important;
+}
+
+body[data-active-screen="landing"] main.container {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden !important;
+}
+
+.landing-screen.active {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.landing-sanctum-stage {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(1.5rem, 4vh, 2.75rem) clamp(1.25rem, 4vw, 2.5rem);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 117, 24, 0.22) 0%, transparent 62%),
+    radial-gradient(circle at 50% 100%, rgba(124, 58, 237, 0.18) 0%, transparent 65%),
+    linear-gradient(180deg, rgba(16, 10, 28, 0.94) 0%, rgba(8, 5, 15, 0.98) 100%);
+  border: 1px solid rgba(255, 138, 61, 0.42);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.88),
+    0 0 48px rgba(255, 107, 26, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.landing-moonlight-halo {
+  position: absolute;
+  top: -70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 214, 153, 0.24) 0%, rgba(255, 117, 24, 0.08) 48%, transparent 72%);
+  pointer-events: none;
+}
+
+.landing-mansion-silhouette {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 45%;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(5, 3, 10, 0.85) 100%),
+    repeating-linear-gradient(90deg, rgba(255, 117, 24, 0.03) 0px, rgba(255, 117, 24, 0.03) 1px, transparent 1px, transparent 36px);
+  pointer-events: none;
+}
+
+.landing-fog-veil {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 85%, rgba(168, 85, 247, 0.14) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.landing-content-frame {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.65rem, 1.8vh, 1.15rem);
+  width: 100%;
+}
+
+.landing-emblem-wrap {
+  position: relative;
+  width: clamp(68px, 12vh, 92px);
+  height: clamp(68px, 12vh, 92px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(255, 117, 24, 0.26) 0%, rgba(22, 12, 36, 0.92) 72%);
+  border: 1px solid rgba(255, 149, 56, 0.55);
+  box-shadow: 0 0 28px rgba(255, 117, 24, 0.35);
+}
+
+.landing-brand-logo {
+  width: 62%;
+  height: 62%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(255, 117, 24, 0.5));
+}
+
+.landing-eyebrow {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffb366;
+}
+
+.landing-main-title {
+  margin: 0;
+  font-family: var(--font-display, "Creepster", system-ui, serif);
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  color: #fff6ec;
+  text-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.9),
+    0 0 26px rgba(255, 117, 24, 0.55);
+}
+
+.landing-tagline {
+  margin: 0;
+  max-width: 46ch;
+  font-size: clamp(0.92rem, 2.2vw, 1.06rem);
+  line-height: 1.48;
+  color: #dfd5ec;
+}
+
+.landing-cta-box {
+  margin-top: clamp(0.5rem, 1.5vh, 1rem);
+  width: 100%;
+  max-width: 320px;
+}
+
+.btn-landing-enter {
+  width: 100%;
+  min-height: 56px;
+  padding: 0.95rem 2.25rem;
+  font-size: 1.18rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: linear-gradient(180deg, #ff8524 0%, #d94b00 100%);
+  border: 2px solid #ffb870;
+  border-radius: 999px;
+  box-shadow:
+    0 12px 30px rgba(217, 75, 0, 0.48),
+    0 0 22px rgba(255, 133, 36, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.btn-landing-enter:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  background: linear-gradient(180deg, #ff9840 0%, #e8580c 100%);
+  box-shadow:
+    0 16px 36px rgba(232, 88, 12, 0.6),
+    0 0 30px rgba(255, 152, 64, 0.5);
+}
+
+.btn-landing-enter:focus-visible {
+  outline: 3px solid #ffe066 !important;
+  outline-offset: 4px !important;
+}
+
+/* 2. Full-Screen Dedicated Authentication Sanctum (body[data-active-screen="auth"]) */
+body[data-active-screen="auth"] {
+  height: 100vh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+body[data-active-screen="auth"] .top-nav,
+body[data-active-screen="auth"] .mobile-bottom-nav,
+body[data-active-screen="auth"] .app-footer,
+body[data-active-screen="auth"] #screen-landing,
+body[data-active-screen="auth"] #screen-start,
+body[data-active-screen="auth"] #screen-quiz,
+body[data-active-screen="auth"] #screen-gameover {
+  display: none !important;
+}
+
+body[data-active-screen="auth"] #modal-auth.active {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: max(0.75rem, env(safe-area-inset-top, 0px)) 0.85rem max(0.75rem, env(safe-area-inset-bottom, 0px));
+  background: radial-gradient(circle at 50% 20%, rgba(36, 18, 58, 0.94) 0%, rgba(7, 4, 14, 0.98) 100%);
+}
+
+.auth-sanctum-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.auth-header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.auth-sanctum-kicker {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffa952;
+}
+
+.auth-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-auth-music {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: rgba(255, 117, 24, 0.14);
+  border: 1px solid rgba(255, 117, 24, 0.42);
+  color: #ffd8b0;
+  cursor: pointer;
+}
+
+.btn-auth-music.is-playing {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(74, 222, 128, 0.5);
+  color: #bbf7d0;
+}
+
+.auth-sanctum-lead {
+  margin: 0 0 0.85rem 0;
+  font-size: 0.88rem;
+  color: var(--muted, #bfb3d6);
+  line-height: 1.4;
+}
+
+.auth-guest-express-bar {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: center;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.btn-auth-quick-guest {
+  min-height: 44px;
+  font-weight: 800;
+  border-color: rgba(192, 132, 252, 0.5) !important;
+}
+
+.auth-guest-footnote {
+  font-size: 0.74rem;
+  color: rgba(223, 213, 236, 0.72);
+  line-height: 1.35;
+}
+
+.badge-auth-mode {
+  font-size: 0.7rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(192, 132, 252, 0.4);
+  color: #e9d5ff;
+}
+
+.badge-auth-mode.is-authenticated {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: #bbf7d0;
+}
+
+/* 3. Compact Icon-Led Mobile Game Dashboard (.dashboard-icon-grid) */
+.dashboard-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.35rem 0 0.85rem 0;
+}
+
+.dash-icon-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.2rem;
+  padding: 0.65rem 0.35rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(28, 19, 44, 0.92) 0%, rgba(16, 11, 27, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ink, #f8f2ff);
+  text-decoration: none;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.38);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dash-icon-tile:hover,
+.dash-icon-tile:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(255, 138, 61, 0.65);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 117, 24, 0.22);
+}
+
+.dash-icon-tile.tile-primary {
+  border-color: rgba(255, 138, 61, 0.52);
+  background: linear-gradient(180deg, rgba(58, 28, 22, 0.92) 0%, rgba(28, 15, 28, 0.96) 100%);
+}
+
+.dash-tile-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.dash-tile-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff5ea;
+}
+
+.dash-tile-meta {
+  font-size: 0.64rem;
+  color: rgba(226, 214, 242, 0.72);
+  line-height: 1.1;
+}
+
+@media (max-width: 960px) {
+  .dashboard-icon-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-icon-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.42rem;
+  }
+  .dash-icon-tile {
+    padding: 0.52rem 0.25rem;
+    border-radius: 12px;
+  }
+  .dash-tile-icon {
+    font-size: 1.2rem;
+  }
+  .dash-tile-label {
+    font-size: 0.7rem;
+  }
+  .dash-tile-meta {
+    display: none;
+  }
+  .landing-sanctum-stage {
+    padding: 1.35rem 1.1rem;
+    border-radius: 20px;
+  }
+}
+
+

@@ -208,8 +208,9 @@ export class GameRouter {
             el.classList.add("hidden");
         });
 
-        // 2. Hide all legacy game screens
+        // 2. Hide all legacy game screens (including #screen-landing)
         const legacyScreens = [
+            document.getElementById("screen-landing"),
             document.getElementById("screen-start"),
             document.getElementById("screen-quiz"),
             document.getElementById("screen-gameover"),
@@ -246,25 +247,53 @@ export class GameRouter {
             }
         });
 
+        if (pageName !== "home") {
+            const authModal = document.getElementById("modal-auth");
+            if (authModal) {
+                authModal.classList.remove("active");
+                authModal.classList.add("hidden");
+            }
+            document.body.setAttribute("data-active-screen", pageName);
+        }
+
         // 4. Activate specific screen / page container
-        if (pageName === "home" || pageName === "play") {
+        if (pageName === "home") {
+            if (this.app && typeof this.app.hasEnteredGate === "function" && !this.app.hasEnteredGate()) {
+                const landingScreen = document.getElementById("screen-landing");
+                if (landingScreen) {
+                    landingScreen.classList.remove("hidden");
+                    landingScreen.classList.add("active");
+                }
+                document.body.setAttribute("data-active-screen", "landing");
+            } else {
+                const startScreen = document.getElementById("screen-start");
+                if (startScreen) {
+                    startScreen.classList.remove("hidden");
+                    startScreen.classList.add("active");
+                }
+                document.body.setAttribute("data-active-screen", "start");
+            }
+        } else if (pageName === "play") {
             const startScreen = document.getElementById("screen-start");
             if (startScreen) {
                 startScreen.classList.remove("hidden");
                 startScreen.classList.add("active");
             }
+            document.body.setAttribute("data-active-screen", "start");
         } else if (pageName === "quiz") {
             const quizScreen = document.getElementById("screen-quiz");
             if (quizScreen) {
                 quizScreen.classList.remove("hidden");
                 quizScreen.classList.add("active");
             }
+            document.body.setAttribute("data-active-screen", "quiz");
         } else if (pageName === "results") {
             const resultsScreen = document.getElementById("screen-gameover");
             if (resultsScreen) {
                 resultsScreen.classList.remove("hidden");
                 resultsScreen.classList.add("active");
             }
+            document.body.setAttribute("data-active-screen", "results");
         } else {
             // Activate corresponding page-view if present (e.g. #page-hunt, #page-genie, #page-daily-haunt)
             const targetPage = document.getElementById(`page-${pageName.replace(/_/g, "-")}`);

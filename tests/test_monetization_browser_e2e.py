@@ -23,6 +23,11 @@ def ensure_server_running():
         pytest.skip(f"Test server not reachable at {BASE_URL}. Skipping browser E2E suite.")
 
 
+@pytest.fixture(autouse=True)
+def enter_dashboard_gate(page: Page):
+    page.add_init_script("window.localStorage.setItem('spooky_gate_entered', 'true');")
+
+
 def test_pass_nav_modal_flow(page: Page):
     """Spooky Master Pass modal can be opened from navigation, displays catalog, and closes."""
     page.goto(BASE_URL)

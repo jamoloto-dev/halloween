@@ -38,6 +38,7 @@ def ensure_server_running():
 @pytest.fixture(scope="function")
 def live_page(page: Page) -> Page:
     """Fixture ensuring page is loaded and any initial onboarding is dismissed for standard tests."""
+    page.add_init_script("window.localStorage.setItem('spooky_gate_entered', 'true');")
     page.goto(BASE_URL)
     page.wait_for_load_state("networkidle")
     page.wait_for_function("() => Boolean(window.halloweenApp)")
@@ -210,9 +211,10 @@ def test_sampled_audio_failure_falls_back_without_throwing(live_page: Page):
 def test_first_launch_onboarding_flow(page: Page):
     """Verify first-launch onboarding modal displays when clean, saves profile, and does not repeat."""
     page.goto(BASE_URL)
-    page.evaluate("() => localStorage.clear()")
+    page.evaluate("() => { localStorage.clear(); localStorage.setItem('spooky_gate_entered', 'true'); }")
     page.reload()
     page.wait_for_load_state("networkidle")
+    page.evaluate("() => window.halloweenApp.openOnboarding()")
 
     onboarding = page.locator("#modal-onboarding")
     expect(onboarding).to_be_visible()
@@ -811,9 +813,10 @@ def test_audio_settings_persistence(live_page: Page):
 def test_onboarding_overlay_dismissal_and_no_blocking(page: Page):
     """Verify fresh visitor can dismiss onboarding with close button and navigate cleanly."""
     page.goto(BASE_URL)
-    page.evaluate("() => localStorage.clear()")
+    page.evaluate("() => { localStorage.clear(); localStorage.setItem('spooky_gate_entered', 'true'); }")
     page.reload()
     page.wait_for_load_state("networkidle")
+    page.evaluate("() => window.halloweenApp.openOnboarding()")
 
     onboarding = page.locator("#modal-onboarding")
     expect(onboarding).to_be_visible()
