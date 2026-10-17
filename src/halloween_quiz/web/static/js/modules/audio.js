@@ -114,11 +114,20 @@ export class SoundEngine {
             this.bgmAudio.muted = !this.musicEnabled;
         }
         if (this.musicEnabled && this.ambienceRequested) {
-            this.startBackgroundAmbience();
-        } else if (!this.musicEnabled && (this.bgmPlaying || (this.bgmAudio && !this.bgmAudio.paused))) {
-            this.stopBackgroundAmbience(false, 200);
+            return this.startBackgroundAmbience();
+        }
+        if (!this.musicEnabled) {
+            if (this.fadeFrame) {
+                cancelAnimationFrame(this.fadeFrame);
+                this.fadeFrame = null;
+            }
+            if (this.bgmAudio && !this.bgmAudio.paused) {
+                this.bgmAudio.pause();
+            }
+            this.bgmPlaying = false;
         }
         this.notifyBgmStateChange();
+        return Promise.resolve(this.bgmPlaying);
     }
 
     setMusicVolume(val) {
@@ -173,14 +182,15 @@ export class SoundEngine {
     }
 
     toggleBgm() {
-        if (!this.bgmAudio) return false;
-        if (this.bgmPlaying || !this.bgmAudio.paused) {
-            this.setMusicEnabled(false);
-            return false;
+        if (!this.bgmAudio) return Promise.resolve(false);
+        const isCurrentlyPlaying = this.bgmPlaying && !this.bgmAudio.paused && !this.bgmAudio.muted;
+        if (isCurrentlyPlaying) {
+            return this.setMusicEnabled(false);
         }
-        this.setMusicEnabled(true);
-        this.startBackgroundAmbience();
-        return true;
+        this.musicEnabled = true;
+        this.isAutoplayBlocked = false;
+        this.bgmAudio.muted = false;
+        return this.startBackgroundAmbience();
     }
 
     toggleSfx() {
@@ -222,6 +232,8 @@ export class SoundEngine {
 
     startBackgroundAmbience() {
         if (!this.bgmAudio || !this.backgroundAvailable || !this.musicEnabled || this.selectedTrack === "silent") {
+            this.bgmPlaying = false;
+            this.notifyBgmStateChange();
             return Promise.resolve(false);
         }
 
@@ -282,7 +294,13 @@ export class SoundEngine {
     attachAutoplayUnlocker() {
         if (this._unlockerAttached) return;
         this._unlockerAttached = true;
-        const onFirstGesture = () => {
+        const onFirstGesture = (event) => {
+            const target = event?.target;
+            if (target && typeof target.closest === "function") {
+                if (target.closest("#btn-nav-music-toggle, #btn-auth-music-toggle, #btn-quiz-audio-toggle, #modal-btn-bgm-toggle")) {
+                    return;
+                }
+            }
             this._unlockerAttached = false;
             window.removeEventListener("click", onFirstGesture);
             window.removeEventListener("keydown", onFirstGesture);
@@ -291,9 +309,9 @@ export class SoundEngine {
                 this.startBackgroundAmbience();
             }
         };
-        window.addEventListener("click", onFirstGesture, { once: true });
-        window.addEventListener("keydown", onFirstGesture, { once: true });
-        window.addEventListener("touchstart", onFirstGesture, { once: true });
+        window.addEventListener("click", onFirstGesture);
+        window.addEventListener("keydown", onFirstGesture);
+        window.addEventListener("touchstart", onFirstGesture);
     }
 
     fadeBackgroundTo(targetVolume, durationMs = 1000, onDone = null) {

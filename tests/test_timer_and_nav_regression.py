@@ -391,6 +391,8 @@ def test_e2e_landing_audio_rejection_and_auth_register_login_flow(page):
     page.locator("#btn-landing-enter").click()
     expect(page.locator("#modal-auth")).to_be_visible()
     assert page.evaluate("() => document.body.getAttribute('data-active-screen')") == "auth"
+    expect(page.locator("#auth-music-status")).to_have_text("Music: OFF (Tap to Retry)")
+    expect(page.locator("#btn-auth-music-toggle")).to_have_attribute("aria-pressed", "false")
 
     # Restore real play() and test the obvious music retry toggle (#btn-auth-music-toggle) on Auth screen
     page.evaluate("""() => {
@@ -399,6 +401,8 @@ def test_e2e_landing_audio_rejection_and_auth_register_login_flow(page):
     }""")
     expect(page.locator("#btn-auth-music-toggle")).to_be_visible()
     page.locator("#btn-auth-music-toggle").click()
+    expect(page.locator("#auth-music-status")).to_have_text("Music: ON")
+    expect(page.locator("#btn-auth-music-toggle")).to_have_attribute("aria-pressed", "true")
     assert page.evaluate("() => window.halloweenApp.sound.ambienceRequested") is True
 
     # 3. Verify client-side validation on Sign In
@@ -445,5 +449,26 @@ def test_e2e_landing_audio_rejection_and_auth_register_login_flow(page):
 
     expect(page.locator("#modal-auth")).not_to_be_visible()
     assert page.evaluate("() => window.halloweenApp.currentUser?.username") == unique_user
+
+    # 6. Verify returning player with stored local profile (pre-gate) still experiences Landing -> Auth -> Dashboard with data preserved
+    page.evaluate("""() => {
+        localStorage.removeItem('spooky_gate_entered');
+        localStorage.removeItem('spooky_session_token');
+        const p = JSON.parse(localStorage.getItem('spooky_player_profile') || '{}');
+        p.nickname = 'VeteranPhantom';
+        p.diamonds = 275;
+        p.stats = { games_played: 12, total_answered: 60, total_correct: 50, best_score: 4200, best_streak: 9, preferred_mode: 'classic' };
+        localStorage.setItem('spooky_player_profile', JSON.stringify(p));
+    }""")
+    page.reload()
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+    page.locator("#btn-landing-enter").click()
+    expect(page.locator("#modal-auth")).to_be_visible()
+    expect(page.locator("#auth-guest-nickname")).to_have_value("VeteranPhantom")
+    page.locator("#btn-auth-quick-guest").click()
+    expect(page.locator("#screen-start")).to_be_visible()
+    expect(page.locator("#lobby-player-name")).to_have_text("VeteranPhantom")
+    expect(page.locator("#lobby-diamond-count")).to_have_text("275")
 
 

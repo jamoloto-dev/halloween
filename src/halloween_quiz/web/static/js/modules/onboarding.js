@@ -66,6 +66,9 @@ export class OnboardingManager {
             this.profile.onboarding_completed = true;
             this.app.saveProfile(this.profile);
         }
+        try {
+            localStorage.setItem("spooky_gate_entered", "true");
+        } catch (_) {}
         this.closeOnboarding();
         this.app.sound?.play("achievement");
         this.app.showToast("Welcome Hunter!", "Your profile is forged. The crypt awaits.", "🎃");

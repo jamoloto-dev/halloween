@@ -504,8 +504,7 @@ export class HalloweenQuizApp {
         }
         return Boolean(
             localStorage.getItem("spooky_gate_entered") === "true" ||
-            localStorage.getItem("spooky_session_token") ||
-            this.profileMgr?.hadStoredProfile
+            localStorage.getItem("spooky_session_token")
         );
     }
 
@@ -1444,14 +1443,17 @@ export class HalloweenQuizApp {
         this.sound?.play?.("achievement");
     }
 
-    updateMusicNavButton(isPlaying) {
+    updateMusicNavButton(isPlaying = this.sound?.bgmPlaying) {
         const realPlaying = Boolean(
             isPlaying &&
             this.sound?.bgmAudio &&
             !this.sound.bgmAudio.paused &&
             !this.sound.bgmAudio.muted
         );
-        const activeState = Boolean(realPlaying || (isPlaying && this.sound?.musicEnabled));
+        const activeState = Boolean(
+            realPlaying || (isPlaying && this.sound?.musicEnabled && !this.sound?.isAutoplayBlocked)
+        );
+        const isBlocked = Boolean(this.sound?.isAutoplayBlocked && !activeState);
 
         if (this.dom.btnNavMusicToggle && this.dom.navMusicStatus) {
             if (activeState) {
@@ -1463,11 +1465,19 @@ export class HalloweenQuizApp {
                 this.dom.btnNavMusicToggle.classList.remove("active");
                 this.dom.navMusicStatus.textContent = "OFF";
             }
+            this.dom.btnNavMusicToggle.setAttribute("aria-pressed", String(activeState));
         }
         if (this.dom.btnAuthMusicToggle && this.dom.authMusicStatus) {
             this.dom.btnAuthMusicToggle.classList.toggle("is-playing", activeState);
+            this.dom.btnAuthMusicToggle.classList.toggle("autoplay-blocked", isBlocked);
             this.dom.btnAuthMusicToggle.setAttribute("aria-pressed", String(activeState));
-            this.dom.authMusicStatus.textContent = activeState ? "Music: ON" : "Music: OFF";
+            if (activeState) {
+                this.dom.authMusicStatus.textContent = "Music: ON";
+            } else if (isBlocked) {
+                this.dom.authMusicStatus.textContent = "Music: OFF (Tap to Retry)";
+            } else {
+                this.dom.authMusicStatus.textContent = "Music: OFF";
+            }
         }
         const quizAudioBtn = document.getElementById("btn-quiz-audio-toggle");
         if (quizAudioBtn) {
@@ -1491,10 +1501,16 @@ export class HalloweenQuizApp {
 
         // 2. Attempt to start background music and handle returned playback promise gracefully
         const playPromise = this.sound.startBackgroundAmbience();
-        if (playPromise && typeof playPromise.catch === "function") {
-            playPromise.catch(() => {
-                this.updateMusicNavButton(false);
-            });
+        if (playPromise && typeof playPromise.then === "function") {
+            playPromise
+                .then((started) => {
+                    this.updateMusicNavButton(Boolean(started));
+                })
+                .catch(() => {
+                    this.updateMusicNavButton(false);
+                });
+        } else {
+            this.updateMusicNavButton(Boolean(this.sound.bgmPlaying));
         }
 
         // 3. Transition from dedicated landing screen to dedicated authentication sanctum
@@ -1625,6 +1641,14 @@ export class HalloweenQuizApp {
 
     openAuth(tab = "login") {
         this.switchAuthTab(tab);
+        if (this.profile?.nickname && this.profile.nickname !== "Ghost Hunter") {
+            if (this.dom.authGuestNickname && !this.dom.authGuestNickname.value) {
+                this.dom.authGuestNickname.value = this.profile.nickname;
+            }
+            if (this.dom.authRegNickname && !this.dom.authRegNickname.value) {
+                this.dom.authRegNickname.value = this.profile.nickname;
+            }
+        }
         this.updateMusicNavButton(this.sound.bgmPlaying);
         this.dom.modalAuth?.classList.remove("hidden");
         this.dom.modalAuth?.classList.add("active");
@@ -2604,10 +2628,15 @@ export class HalloweenQuizApp {
         });
 
         this.dom.modalBtnBgmToggle?.addEventListener("click", () => {
-            this.sound.toggleBgm();
+            const p = this.sound.toggleBgm();
             this.profile.preferences.music_enabled = this.sound.musicEnabled;
             this.saveProfile();
             this.syncSettingsUi();
+            if (p && typeof p.then === "function") {
+                p.then((started) => this.updateMusicNavButton(Boolean(started)));
+            } else {
+                this.updateMusicNavButton(this.sound.bgmPlaying);
+            }
         });
         this.dom.settingMusicTrack?.addEventListener("change", (e) => {
             this.sound.setTrack(e.target.value);
@@ -2831,33 +2860,30 @@ export class HalloweenQuizApp {
         // Spooky Genie & Oracle Consultation (v2.7.0)
         this.dom.btnGenieConsultOracle?.addEventListener("click", () => this.consultOracleWhisper());
 
-        // Top Navigation Music Toggle Button (v2.7.0)
-        this.dom.btnNavMusicToggle?.addEventListener("click", () => {
-            this.sound.toggleBgm();
+        const handleMusicToggleClick = () => {
+            const p = this.sound.toggleBgm();
             this.profile.preferences.music_enabled = this.sound.musicEnabled;
             this.saveProfile();
             this.syncSettingsUi();
-            this.updateMusicNavButton(this.sound.bgmPlaying);
-        });
+            if (p && typeof p.then === "function") {
+                p.then((started) => {
+                    this.syncSettingsUi();
+                    this.updateMusicNavButton(Boolean(started));
+                });
+            } else {
+                this.updateMusicNavButton(this.sound.bgmPlaying);
+            }
+        };
+
+        // Top Navigation Music Toggle Button (v2.7.0)
+        this.dom.btnNavMusicToggle?.addEventListener("click", handleMusicToggleClick);
 
         // Auth Screen Music Toggle / Retry Button
-        this.dom.btnAuthMusicToggle?.addEventListener("click", () => {
-            this.sound.toggleBgm();
-            this.profile.preferences.music_enabled = this.sound.musicEnabled;
-            this.saveProfile();
-            this.syncSettingsUi();
-            this.updateMusicNavButton(this.sound.bgmPlaying);
-        });
+        this.dom.btnAuthMusicToggle?.addEventListener("click", handleMusicToggleClick);
 
         // In-Game HUD Audio Toggle & Exit Crypt Controls
         const btnQuizAudioToggle = document.getElementById("btn-quiz-audio-toggle");
-        btnQuizAudioToggle?.addEventListener("click", () => {
-            this.sound.toggleBgm();
-            this.profile.preferences.music_enabled = this.sound.musicEnabled;
-            this.saveProfile();
-            this.syncSettingsUi();
-            this.updateMusicNavButton(this.sound.bgmPlaying);
-        });
+        btnQuizAudioToggle?.addEventListener("click", handleMusicToggleClick);
 
         const btnQuizExit = document.getElementById("btn-quiz-exit");
         btnQuizExit?.addEventListener("click", () => {
@@ -2865,8 +2891,8 @@ export class HalloweenQuizApp {
             this.openHome();
         });
 
-        // Top Navigation Auth Pill & Sanctum Modal (v2.7.0)
-        this.dom.btnNavAuth?.addEventListener("click", () => {
+        // Top Navigation Auth Pill & Lobby Auth Badge -> Sanctum Modal (v2.7.0)
+        const handleAuthTriggerClick = () => {
             const isRegistered = Boolean(this.currentUser && !this.currentUser.is_guest);
             if (isRegistered) {
                 const conf = window.confirm(`Signed in as ${this.currentUser.nickname || this.currentUser.username}. Would you like to sign out?`);
@@ -2876,7 +2902,9 @@ export class HalloweenQuizApp {
             } else {
                 this.openAuth("login");
             }
-        });
+        };
+        this.dom.btnNavAuth?.addEventListener("click", handleAuthTriggerClick);
+        this.dom.lobbyAuthModeBadge?.addEventListener("click", handleAuthTriggerClick);
 
         this.dom.btnCloseAuth?.addEventListener("click", () => this.closeAuth());
         this.dom.modalAuth?.addEventListener("click", (e) => {
