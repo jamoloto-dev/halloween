@@ -16,6 +16,7 @@ export class PwaManager {
 
     initPwa() {
         if ("serviceWorker" in navigator) {
+            const hadController = Boolean(navigator.serviceWorker.controller);
             window.addEventListener("load", () => {
                 navigator.serviceWorker.register("/sw.js").then((reg) => {
                     // Check for updated service worker
@@ -25,10 +26,10 @@ export class PwaManager {
                 });
             });
 
-            // Reload when new service worker takes control
+            // Reload when an existing service worker is replaced by a new controller
             let refreshing = false;
             navigator.serviceWorker.addEventListener("controllerchange", () => {
-                if (!refreshing) {
+                if (hadController && !refreshing) {
                     refreshing = true;
                     window.location.reload();
                 }

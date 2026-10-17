@@ -225,3 +225,100 @@ def test_browser_hunt_genie_and_auth_navigation(page):
     page.locator("#btn-close-auth").click()
     page.wait_for_timeout(200)
     expect(auth_modal).not_to_be_visible()
+
+
+def test_cinematic_horror_world_hud_and_results_markup(client):
+    """Verify gothic world SVG, 9 realm portals, 3 genie sanctums, HUD controls, and PB banner."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+
+    # Gothic architecture & hero mission select CTA
+    assert 'class="gothic-citadel-svg"' in html
+    assert 'id="btn-hero-hunt-modes"' in html
+
+    # All 9 Haunted World realm portals
+    for realm in [
+        "classic",
+        "quick",
+        "panic",
+        "deep",
+        "endless",
+        "daily",
+        "adaptive",
+        "journey",
+        "duels",
+    ]:
+        assert f'data-realm="{realm}"' in html
+
+    # All 3 Genie sanctum chambers & live telemetry strip
+    for sanctum in ["oracle", "studio", "grimoire"]:
+        assert f'data-sanctum="{sanctum}"' in html
+    assert 'id="genie-live-telemetry-bar"' in html
+
+    # Gameplay HUD controls & floating score delta
+    assert 'id="btn-quiz-audio-toggle"' in html
+    assert 'id="btn-quiz-exit"' in html
+    assert 'id="hud-score-delta"' in html
+
+    # Results Personal Best banner & Select Another Mission CTA
+    assert 'id="summary-pb-banner"' in html
+    assert 'id="btn-select-mission-finish"' in html
+
+
+@pytest.mark.e2e
+def test_browser_hud_controls_low_time_tension_and_mobile_hunt_overflow(page):
+    """Verify in-game HUD exit/audio controls, low-time tension vignette, and mobile /hunt overflow."""
+    if not _is_server_available(BASE_URL):
+        pytest.skip(f"Web server at {BASE_URL} not reachable.")
+
+    from playwright.sync_api import expect
+
+    page.goto(f"{BASE_URL}/hunt")
+    page.wait_for_load_state("networkidle")
+    page.evaluate("""() => {
+        const modal = document.getElementById('modal-onboarding');
+        if (modal) modal.classList.add('hidden');
+    }""")
+
+    # Launch Quick Bite directly from /hunt portal
+    quick_btn = page.locator('#page-hunt .btn-start-mode[data-mode="quick"]')
+    expect(quick_btn).to_be_visible()
+    quick_btn.click()
+
+    quiz_screen = page.locator("#screen-quiz")
+    expect(quiz_screen).to_be_visible()
+    expect(page.locator("#page-hunt")).not_to_be_visible()
+
+    # Footer is hidden during active gameplay for full-screen game immersion
+    expect(page.locator(".app-footer")).not_to_be_visible()
+
+    # Verify in-HUD audio toggle and exit buttons are visible
+    audio_btn = page.locator("#btn-quiz-audio-toggle")
+    exit_btn = page.locator("#btn-quiz-exit")
+    expect(audio_btn).to_be_visible()
+    expect(exit_btn).to_be_visible()
+
+    # Trigger low-time (< 5s) tension state and verify .timer-critical on #active-quiz-card
+    has_critical = page.evaluate("""() => {
+        window.halloweenApp.quizMgr.updateTimerHud(3.5, 20);
+        return document.getElementById('active-quiz-card').classList.contains('timer-critical');
+    }""")
+    assert has_critical is True
+
+    # Exit crypt returns cleanly to main menu
+    exit_btn.click()
+    expect(page.locator("#screen-start")).to_be_visible()
+    expect(quiz_screen).not_to_be_visible()
+
+    # Check mobile 320px and 390px viewports on /hunt and /genie for zero horizontal overflow
+    for width, height in [(320, 568), (390, 844)]:
+        page.set_viewport_size({"width": width, "height": height})
+        for route in ["/hunt", "/genie"]:
+            page.goto(f"{BASE_URL}{route}")
+            page.wait_for_load_state("networkidle")
+            overflow = page.evaluate(
+                "() => document.documentElement.scrollWidth > document.documentElement.clientWidth"
+            )
+            assert not overflow, f"Horizontal overflow on {route} at {width}x{height}"
+

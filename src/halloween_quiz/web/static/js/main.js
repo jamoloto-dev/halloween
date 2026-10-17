@@ -583,6 +583,7 @@ export class HalloweenQuizApp {
     }
 
     showScreen(screenName) {
+        document.body.setAttribute("data-active-screen", screenName);
         Object.entries(this.screens).forEach(([name, screen]) => {
             if (!screen) return;
             if (name === screenName) {
@@ -640,6 +641,7 @@ export class HalloweenQuizApp {
 
     bootstrapHunt() {
         this.closeAllModals();
+        document.body.setAttribute("data-active-screen", "hunt");
         Object.values(this.screens).forEach((s) => {
             s?.classList.remove("active");
             s?.classList.add("hidden");
@@ -653,6 +655,7 @@ export class HalloweenQuizApp {
 
     bootstrapGenie() {
         this.closeAllModals();
+        document.body.setAttribute("data-active-screen", "genie");
         Object.values(this.screens).forEach((s) => {
             s?.classList.remove("active");
             s?.classList.add("hidden");
@@ -660,6 +663,14 @@ export class HalloweenQuizApp {
         if (this.dom.pageGenie) {
             this.dom.pageGenie.classList.remove("hidden");
             this.dom.pageGenie.classList.add("active");
+        }
+        const gGames = document.getElementById("genie-stat-games");
+        const gBest = document.getElementById("genie-stat-best-score");
+        const gStreak = document.getElementById("genie-stat-streak");
+        if (this.profile?.stats) {
+            if (gGames) gGames.textContent = String(this.profile.stats.games_played || 0);
+            if (gBest) gBest.textContent = String(this.profile.stats.best_score || 0);
+            if (gStreak) gStreak.textContent = String(this.profile.stats.best_streak || 0);
         }
         this.sound.startBackgroundAmbience();
     }
@@ -1400,15 +1411,23 @@ export class HalloweenQuizApp {
     }
 
     updateMusicNavButton(isPlaying) {
-        if (!this.dom.btnNavMusicToggle || !this.dom.navMusicStatus) return;
-        if (isPlaying) {
-            this.dom.btnNavMusicToggle.classList.add("is-playing");
-            this.dom.btnNavMusicToggle.classList.add("active");
-            this.dom.navMusicStatus.textContent = "ON";
-        } else {
-            this.dom.btnNavMusicToggle.classList.remove("is-playing");
-            this.dom.btnNavMusicToggle.classList.remove("active");
-            this.dom.navMusicStatus.textContent = "OFF";
+        const activeState = Boolean(isPlaying || this.sound?.musicEnabled);
+        if (this.dom.btnNavMusicToggle && this.dom.navMusicStatus) {
+            if (isPlaying) {
+                this.dom.btnNavMusicToggle.classList.add("is-playing");
+                this.dom.btnNavMusicToggle.classList.add("active");
+                this.dom.navMusicStatus.textContent = "ON";
+            } else {
+                this.dom.btnNavMusicToggle.classList.remove("is-playing");
+                this.dom.btnNavMusicToggle.classList.remove("active");
+                this.dom.navMusicStatus.textContent = "OFF";
+            }
+        }
+        const quizAudioBtn = document.getElementById("btn-quiz-audio-toggle");
+        if (quizAudioBtn) {
+            quizAudioBtn.textContent = activeState ? "🔊" : "🔇";
+            quizAudioBtn.classList.toggle("is-muted", !activeState);
+            quizAudioBtn.setAttribute("aria-pressed", String(activeState));
         }
     }
 
@@ -2604,6 +2623,22 @@ export class HalloweenQuizApp {
             this.saveProfile();
             this.syncSettingsUi();
             this.updateMusicNavButton(this.sound.bgmPlaying);
+        });
+
+        // In-Game HUD Audio Toggle & Exit Crypt Controls
+        const btnQuizAudioToggle = document.getElementById("btn-quiz-audio-toggle");
+        btnQuizAudioToggle?.addEventListener("click", () => {
+            this.sound.toggleBgm();
+            this.profile.preferences.music_enabled = this.sound.musicEnabled;
+            this.saveProfile();
+            this.syncSettingsUi();
+            this.updateMusicNavButton(this.sound.bgmPlaying);
+        });
+
+        const btnQuizExit = document.getElementById("btn-quiz-exit");
+        btnQuizExit?.addEventListener("click", () => {
+            this.abandonQuizSession();
+            this.openHome();
         });
 
         // Top Navigation Auth Pill & Sanctum Modal (v2.7.0)

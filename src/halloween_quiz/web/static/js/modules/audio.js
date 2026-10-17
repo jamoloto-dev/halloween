@@ -84,12 +84,14 @@ export class SoundEngine {
         this.sfxVolume = Number.isFinite(prefs.sfx_volume) ? Math.max(0, Math.min(1, prefs.sfx_volume)) : 0.60;
 
         if (this.bgmAudio) {
-            this.bgmAudio.muted = !this.musicEnabled;
+            this.bgmAudio.muted = !this.musicEnabled || this.musicVolume === 0;
+            this.bgmAudio.volume = this.musicVolume;
             if (this.bgmPlaying) {
                 this.fadeBackgroundTo(this.musicVolume, 150);
             }
         }
         this.setTrack(this.selectedTrack, false);
+        this.notifyBgmStateChange();
     }
 
     setMusicEnabled(enabled) {
@@ -109,6 +111,10 @@ export class SoundEngine {
         const parsed = parseFloat(val);
         this.musicVolume = Number.isFinite(parsed) ? Math.max(0, Math.min(1, parsed)) : 0.25;
         if (this.bgmAudio) {
+            if (this.fadeFrame) {
+                cancelAnimationFrame(this.fadeFrame);
+                this.fadeFrame = null;
+            }
             this.bgmAudio.volume = this.musicVolume;
             if (this.musicVolume === 0) {
                 this.bgmAudio.muted = true;
@@ -116,6 +122,7 @@ export class SoundEngine {
                 this.bgmAudio.muted = false;
             }
         }
+        this.notifyBgmStateChange();
     }
 
     setTrack(trackId, restartIfPlaying = true) {
