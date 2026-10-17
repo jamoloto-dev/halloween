@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 import re
 import secrets
 from datetime import datetime, timezone
@@ -204,7 +203,6 @@ class AuthService:
 
         user_id = session_data["user_id"]
         is_guest = session_data.get("is_guest", False)
-        role = session_data.get("role", "player")
 
         if is_guest:
             return {

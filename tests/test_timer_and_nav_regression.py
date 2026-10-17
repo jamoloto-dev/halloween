@@ -10,11 +10,12 @@ import os
 import re
 import time
 import urllib.request
+
 import pytest
 from fastapi.testclient import TestClient
 
 from halloween_quiz.core.engine import QuestionBank, QuizSession
-from halloween_quiz.core.models import Difficulty, GameMode, QuizConfig
+from halloween_quiz.core.models import GameMode, QuizConfig
 from halloween_quiz.web.app import create_app
 
 BASE_URL = os.getenv("TEST_BASE_URL", "http://localhost:5000")
@@ -133,6 +134,7 @@ def test_authoritative_timer_and_timeout_behavior():
 
     # 5. Advancing to next question resets presentation timestamp to monotonic now
     view_q3 = session_classic.get_current_question_view()
+    assert view_q3 is not None
     assert abs(session_classic._question_presented_at - time.monotonic()) < 0.5
 
 

@@ -42,7 +42,6 @@ def test_user_registration_and_login(test_client):
     assert data["role"] == "player"
     assert data["is_guest"] is False
     assert "token" in data
-    token = data["token"]
 
     # 2. Duplicate registration fails
     dup_resp = test_client.post(

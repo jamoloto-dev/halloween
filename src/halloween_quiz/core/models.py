@@ -1,8 +1,8 @@
 """Core domain models for Halloween Quiz."""
 
+import re
 from datetime import datetime, timezone
 from enum import Enum
-import re
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 

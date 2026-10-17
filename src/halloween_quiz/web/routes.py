@@ -14,6 +14,7 @@ from halloween_quiz.core.ai_avatars import (
     avatar_service,
 )
 from halloween_quiz.core.ai_hints import HintRequest, HintResponse, hint_service
+from halloween_quiz.core.auth import AuthService, auth_service
 from halloween_quiz.core.campaign import (
     CAMPAIGN_CHAPTERS,
     get_stage_by_id,
@@ -28,7 +29,6 @@ from halloween_quiz.core.entitlements import (
     EntitlementStatus,
     entitlement_service,
 )
-from halloween_quiz.core.auth import AuthService, auth_service
 from halloween_quiz.core.models import (
     AnswerResult,
     AnswerSubmission,

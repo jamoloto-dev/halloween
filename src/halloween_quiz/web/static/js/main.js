@@ -1424,30 +1424,35 @@ export class HalloweenQuizApp {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    this.setAuthenticatedUser(data, token);
+                    this.setAuthenticatedUser(data, token, false);
                     return;
                 }
+                localStorage.removeItem("spooky_session_token");
             } catch (err) {
                 console.warn("Auth check failed:", err);
             }
         }
 
-        // If no token exists or token expired: initialize guest session
-        await this.initDefaultGuestSession();
+        this.updateAuthUi();
     }
 
-    setAuthenticatedUser(user, token) {
+    setAuthenticatedUser(user, token, persistProfile = true) {
         this.currentUser = user;
         if (token) {
             localStorage.setItem("spooky_session_token", token);
         }
         if (this.profile) {
-            if (user.nickname) this.profile.nickname = user.nickname;
-            if (user.avatar_id) this.profile.avatar_id = user.avatar_id;
+            if (!user.is_guest || persistProfile) {
+                if (user.nickname) this.profile.nickname = user.nickname;
+                if (user.avatar_id) this.profile.avatar_id = user.avatar_id;
+            }
             if (user.user_id) this.profile.player_id = user.user_id;
             this.profile.is_guest = Boolean(user.is_guest);
             this.profile.role = user.role || "player";
-            this.profileMgr?.saveProfile();
+            if (persistProfile || localStorage.getItem("spooky_player_profile")) {
+                this.profileMgr?.saveProfile();
+            }
+            this.applyProfileToUi();
         }
         this.updateAuthUi();
     }
@@ -1467,7 +1472,7 @@ export class HalloweenQuizApp {
             });
             if (res.ok) {
                 const data = await res.json();
-                this.setAuthenticatedUser(data, data.token);
+                this.setAuthenticatedUser(data, data.token, true);
             }
         } catch (err) {
             console.warn("Guest session init error:", err);
@@ -1487,12 +1492,8 @@ export class HalloweenQuizApp {
             this.dom.btnNavAuth?.setAttribute("title", "Sign in or create a player account");
         }
 
-        if (this.dom.lobbyPlayerName) {
-            this.dom.lobbyPlayerName.textContent = this.profile?.nickname || "Ghost Hunter";
-        }
-        if (this.dom.lobbyPlayerTier) {
-            const role = this.currentUser?.role || "player";
-            this.dom.lobbyPlayerTier.textContent = isRegistered ? `Hunter (${role}) 🕯️` : "Guest Hunter 🌑";
+        if (this.dom.lobbyPlayerName && this.profile?.nickname) {
+            this.dom.lobbyPlayerName.textContent = this.profile.nickname;
         }
     }
 
@@ -1547,7 +1548,7 @@ export class HalloweenQuizApp {
                 throw new Error(data.detail || "Invalid credentials.");
             }
 
-            this.setAuthenticatedUser(data, data.token);
+            this.setAuthenticatedUser(data, data.token, true);
             this.closeAuth();
             this.showToast("Signed In", `Welcome back, ${data.nickname || data.username}!`, "🔑");
         } catch (err) {
@@ -1581,7 +1582,7 @@ export class HalloweenQuizApp {
                 throw new Error(data.detail || "Registration failed.");
             }
 
-            this.setAuthenticatedUser(data, data.token);
+            this.setAuthenticatedUser(data, data.token, true);
             this.closeAuth();
             this.showToast("Account Created", `Welcome to the crypt, ${data.nickname}!`, "✨");
         } catch (err) {
@@ -1611,7 +1612,7 @@ export class HalloweenQuizApp {
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || "Guest entry failed.");
 
-            this.setAuthenticatedUser(data, data.token);
+            this.setAuthenticatedUser(data, data.token, true);
             this.closeAuth();
             this.showToast("Guest Session", `Entering as ${data.nickname}.`, "👻");
         } catch (err) {
@@ -1636,7 +1637,7 @@ export class HalloweenQuizApp {
         }
         localStorage.removeItem("spooky_session_token");
         this.currentUser = null;
-        await this.initDefaultGuestSession();
+        this.updateAuthUi();
         this.showToast("Signed Out", "You have returned to guest status.", "👋");
     }
 
@@ -2275,13 +2276,7 @@ export class HalloweenQuizApp {
         });
 
         // Lobby Actions
-        this.dom.btnEnterTheHaunt?.addEventListener("click", () => {
-            if (this.router) {
-                this.router.navigate("/hunt");
-            } else {
-                this.bootstrapHunt();
-            }
-        });
+        this.dom.btnEnterTheHaunt?.addEventListener("click", () => this.startGame());
         this.dom.btnLobbyContinueJourney?.addEventListener("click", () => this.handleLobbyContinueJourney());
         this.dom.btnLobbyQuickPlay?.addEventListener("click", () => {
             this.startGameWithParams({ mode: "quick", num_questions: 5 });
