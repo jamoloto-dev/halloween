@@ -183,6 +183,29 @@
                     <p class="lobby-hero-subtitle">
                         Choose your realm, continue your campaign, or launch an instant crypt hunt.
                     </p>
+
+                    <!-- Narrator Lore Banner (Automated Horror Voiceover & Subtitles) -->
+                    <div id="narrator-lore-banner" class="narrator-lore-banner" role="region" aria-label="Blackwood Manor Narrator Lore">
+                        <div class="narrator-lore-header">
+                            <span class="narrator-ghost-avatar" aria-hidden="true">👻</span>
+                            <div class="narrator-lore-titles">
+                                <span class="narrator-lore-eyebrow">BLACKWOOD MANOR NARRATOR</span>
+                                <strong class="narrator-lore-title">All Hallows' Eve, 1926</strong>
+                            </div>
+                            <div class="narrator-lore-controls">
+                                <button type="button" id="btn-replay-lore" class="btn-lore-ctrl" title="Replay Blackwood Manor Lore" aria-label="Replay Blackwood Manor Lore">
+                                    🔊 <span>Replay Lore</span>
+                                </button>
+                                <button type="button" id="btn-skip-lore" class="btn-lore-ctrl btn-lore-skip" title="Skip narration to ambient music" aria-label="Skip narration">
+                                    <span>Skip</span> ➔
+                                </button>
+                            </div>
+                        </div>
+                        <p id="narrator-lore-text" class="narrator-lore-text">
+                            "Welcome, brave soul, to Blackwood Manor. Exactly one century ago on All Hallows' Eve, the wrought-iron gates slammed shut, and twelve souls vanished into the darkness..."
+                        </p>
+                    </div>
+
                     <div class="lobby-hero-cta-wrap">
                         <button type="button" id="btn-enter-the-haunt" class="btn-cta btn-enter-haunt" aria-label="Enter the Haunt">
                             <span class="btn-cta-glimmer" aria-hidden="true"></span>
@@ -195,317 +218,399 @@
                     </div>
                 </header>
 
-                <!-- 2B. COMPACT ICON-LED MOBILE GAME LAUNCHER GRID -->
-                <nav class="dashboard-icon-grid" id="dashboard-icon-grid" aria-label="Quick Game Realms">
-                    <a href="/hunt" id="tile-dash-modes" class="dash-icon-tile tile-primary" data-route="/hunt">
+                <!-- 2B. COMPACT ICON-LED MOBILE GAME LAUNCHER GRID (COMMAND DECK HUD) -->
+                <nav class="dashboard-icon-grid" id="dashboard-icon-grid" aria-label="Command Deck HUD">
+                    <!-- 1. Story Campaign & Stage Preview Modal Trigger -->
+                    <button type="button" id="tile-dash-campaign-preview" class="dash-icon-tile tile-primary" aria-label="Story Campaign & Spectral Stage Preview">
+                        <span class="dash-tile-icon" aria-hidden="true">🗺️</span>
+                        <span class="dash-tile-label">Campaign</span>
+                        <small class="dash-tile-meta">Chapter & Stages</small>
+                    </button>
+
+                    <!-- 2. Custom Crypt Chambers & Rules Modal Trigger -->
+                    <button type="button" id="tile-dash-crypt-rules" class="dash-icon-tile" aria-label="Custom Crypt Chambers & Rules">
+                        <span class="dash-tile-icon" aria-hidden="true">🕯️</span>
+                        <span class="dash-tile-label">Crypt Rules</span>
+                        <small class="dash-tile-meta">Difficulty & Modes</small>
+                    </button>
+
+                    <!-- 3. Trivia Categories Modal Trigger -->
+                    <button type="button" id="tile-dash-trivia-categories" class="dash-icon-tile" aria-label="Trivia Categories Filter">
+                        <span class="dash-tile-icon" aria-hidden="true">🔮</span>
+                        <span class="dash-tile-label">Categories</span>
+                        <small class="dash-tile-meta">6 Spooky Realms</small>
+                    </button>
+
+                    <!-- 4. 9 Realms Game Modes -->
+                    <a href="/hunt" id="tile-dash-modes" class="dash-icon-tile" data-route="/hunt">
                         <span class="dash-tile-icon" aria-hidden="true">🏹</span>
                         <span class="dash-tile-label">9 Realms</span>
                         <small class="dash-tile-meta">Game Modes</small>
                     </a>
+
+                    <!-- 5. Campaign Journey Route -->
                     <a href="/journey" id="tile-dash-journey" class="dash-icon-tile" data-route="/journey">
                         <span class="dash-tile-icon" aria-hidden="true">🗺️</span>
                         <span class="dash-tile-label">Journey</span>
                         <small class="dash-tile-meta">6 Chapters</small>
                     </a>
+
+                    <!-- 6. Daily Haunt -->
                     <a href="/daily-haunt" id="tile-dash-daily" class="dash-icon-tile" data-route="/daily-haunt">
                         <span class="dash-tile-icon" aria-hidden="true">🕯️</span>
                         <span class="dash-tile-label">Daily Haunt</span>
                         <small class="dash-tile-meta">24h Seed</small>
                     </a>
+
+                    <!-- 7. PvP Duels -->
                     <a href="/duels" id="tile-dash-duels" class="dash-icon-tile" data-route="/duels">
                         <span class="dash-tile-icon" aria-hidden="true">⚔️</span>
                         <span class="dash-tile-label">PvP Duels</span>
                         <small class="dash-tile-meta">1v1 Traps</small>
                     </a>
+
+                    <!-- 8. Genie -->
                     <a href="/genie" id="tile-dash-genie" class="dash-icon-tile" data-route="/genie">
                         <span class="dash-tile-icon" aria-hidden="true">🧞</span>
                         <span class="dash-tile-label">Genie</span>
                         <small class="dash-tile-meta">AI Oracle</small>
                     </a>
+
+                    <!-- 9. Profile / Mastery -->
                     <a href="/progress" id="tile-dash-progress" class="dash-icon-tile" data-route="/progress">
                         <span class="dash-tile-icon" aria-hidden="true">📜</span>
                         <span class="dash-tile-label">Profile</span>
                         <small class="dash-tile-meta">Mastery</small>
                     </a>
+
+                    <!-- 10. Rankings -->
                     <a href="/leaderboard" id="tile-dash-leaderboard" class="dash-icon-tile" data-route="/leaderboard">
                         <span class="dash-tile-icon" aria-hidden="true">🏆</span>
                         <span class="dash-tile-label">Rankings</span>
-                        <small class="dash-tile-meta">Top Scores</small>
+                        <small class="dash-tile-meta">Cursed Ledger</small>
                     </a>
+
+                    <!-- 11. Settings -->
                     <a href="/settings" id="tile-dash-settings" class="dash-icon-tile" data-route="/settings">
                         <span class="dash-tile-icon" aria-hidden="true">⚙️</span>
                         <span class="dash-tile-label">Settings</span>
                         <small class="dash-tile-meta">Audio & FX</small>
                     </a>
                 </nav>
+            </div>
+        </section>
 
-                <!-- 3. MAIN GAME LOBBY CENTERPIECE (2-Column Grid on Desktop, Stack on Mobile) -->
-                <div class="lobby-centerpiece-grid">
-                    
-                    <!-- LEFT COLUMN: THE HAUNTED JOURNEY (CAMPAIGN PROGRESSION & FLOATING MAP) -->
-                    <div class="lobby-journey-column">
-                        <!-- Continue Journey Card -->
-                        <div class="lobby-card lobby-journey-card" id="lobby-journey-card">
-                            <div class="lobby-card-header">
-                                <span class="lobby-card-badge">STORY CAMPAIGN</span>
-                                <h2 id="lobby-journey-heading" class="lobby-card-heading">CONTINUE YOUR JOURNEY</h2>
-                            </div>
-                            <div class="lobby-journey-details">
-                                <div class="journey-ch-icon" id="lobby-journey-icon">🏚️</div>
-                                <div class="journey-ch-meta">
-                                    <h3 id="lobby-journey-chapter" class="journey-ch-title">Chapter 1: The Abandoned Manor</h3>
-                                    <p id="lobby-journey-stage" class="journey-st-title">Stage 1 — The Wrought-Iron Gate</p>
-                                </div>
-                            </div>
-                            <!-- Progress Bar -->
-                            <div class="lobby-journey-progress-box">
-                                <div class="journey-progress-labels">
-                                    <span class="journey-prog-label">Chapter Progress</span>
-                                    <span id="lobby-journey-progress-text" class="journey-prog-val">0 / 4 Stages Cleared</span>
-                                </div>
-                                <div class="journey-track">
-                                    <div id="lobby-journey-bar-fill" class="journey-bar-fill" style="width: 0%;"></div>
-                                </div>
-                            </div>
-                            <!-- Action Buttons -->
-                            <div class="lobby-journey-actions">
-                                <button type="button" id="btn-lobby-continue-journey" class="btn-cta btn-continue-primary" aria-label="Continue Haunted Journey">
-                                    <span>🗺️ Continue Journey</span>
-                                </button>
-                                <button type="button" id="btn-hero-journey" class="btn-secondary btn-explore-map" aria-label="Explore Chapter Map">
-                                    <span>📜 Explore Chapter Map</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Dynamic Stage Progression Map Preview -->
-                        <div class="lobby-card lobby-map-card" id="lobby-map-preview-card">
-                            <div class="lobby-card-header">
-                                <span class="lobby-card-badge">FLOATING PROGRESSION</span>
-                                <h3 class="lobby-card-subheading">Spectral Stage Preview</h3>
-                            </div>
-                            <div class="floating-stage-map" id="lobby-stage-progression-map" role="list" aria-label="Dynamic Chapter Progression Map">
-                                <!-- Populated dynamically with supernatural floating nodes -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT COLUMN: QUICK ACTIONS, GAME GUIDE & SNAPSHOT -->
-                    <div class="lobby-actions-column">
-                        <!-- Quick Action Game Cards -->
-                        <div class="lobby-quick-cards-group">
-                            <button type="button" id="btn-lobby-quick-play" class="lobby-quick-card card-quick-play" aria-label="Quick Play: 5 fast questions">
-                                <span class="quick-icon">⚡</span>
-                                <div class="quick-content">
-                                    <strong>QUICK PLAY</strong>
-                                    <small>Start immediately · 5 casual questions</small>
-                                </div>
-                                <span class="quick-arrow" aria-hidden="true">➔</span>
-                            </button>
-
-                            <button type="button" id="btn-lobby-daily-haunt" class="lobby-quick-card card-daily-haunt" aria-label="Daily Haunt: Today's global challenge">
-                                <span class="quick-icon">🕯️</span>
-                                <div class="quick-content">
-                                    <strong>DAILY HAUNT</strong>
-                                    <small>Today's challenge · Resets 23:59 UTC</small>
-                                </div>
-                                <span class="quick-arrow" aria-hidden="true">➔</span>
-                            </button>
-
-                            <button type="button" id="btn-lobby-duels" class="lobby-quick-card card-duels" aria-label="Haunted Duels: Challenge a hunter">
-                                <span class="quick-icon">⚔️</span>
-                                <div class="quick-content">
-                                    <strong>HAUNTED DUELS</strong>
-                                    <small>Challenge a hunter · PvP & Spooky Traps</small>
-                                </div>
-                                <span class="quick-arrow" aria-hidden="true">➔</span>
-                            </button>
-                        </div>
-
-                        <!-- Atmospheric Spooky Guide -->
-                        <div class="lobby-card lobby-guide-card" id="lobby-guide-box">
-                            <div class="guide-top-row">
-                                <div class="guide-title-box">
-                                    <span class="guide-ghost-avatar" aria-hidden="true">👻</span>
-                                    <span class="guide-name">Spooky Guide</span>
-                                </div>
-                                <button type="button" id="btn-guide-next-hint" class="btn-guide-next" title="Whisper another supernatural hint" aria-label="Whisper another supernatural hint">
-                                    🔮 Whisper Hint
-                                </button>
-                            </div>
-                            <blockquote class="guide-quote-box">
-                                <p id="lobby-guide-quote" class="guide-quote-text">
-                                    "Something strange is waiting inside the Abandoned Manor... The spirits respond to swift answers."
-                                </p>
-                            </blockquote>
-                        </div>
-
-                        <!-- Compact Progress Snapshot -->
-                        <div class="lobby-card lobby-snapshot-card" id="lobby-progress-snapshot">
-                            <div class="snapshot-header">
-                                <span class="snapshot-title">📜 Hunter Progress Snapshot</span>
-                                <button type="button" id="btn-lobby-progress" class="btn-ghost-sm" aria-label="View complete hunter profile">View Full ➔</button>
-                            </div>
-                            <div class="snapshot-grid">
-                                <div class="snapshot-stat">
-                                    <span id="lobby-stat-games" class="stat-num">0</span>
-                                    <span class="stat-lbl">Games</span>
-                                </div>
-                                <div class="snapshot-stat">
-                                    <span id="lobby-stat-streak" class="stat-num">0</span>
-                                    <span class="stat-lbl">Best Streak</span>
-                                </div>
-                                <div class="snapshot-stat">
-                                    <span id="lobby-stat-badges" class="stat-num">0/8</span>
-                                    <span class="stat-lbl">Badges</span>
-                                </div>
-                                <div class="snapshot-stat">
-                                    <span id="lobby-stat-mastery" class="stat-num">0%</span>
-                                    <span class="stat-lbl">Mastery</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Secondary Navigation Pills -->
-                        <div class="lobby-nav-pills">
-                            <a href="/hunt" id="btn-lobby-hunt-modes" class="lobby-nav-pill" data-route="/hunt">🏹 Game Modes</a>
-                            <a href="/genie" id="btn-lobby-genie" class="lobby-nav-pill" data-route="/genie">🧞 Spooky Genie</a>
-                            <button type="button" id="btn-lobby-leaderboard" class="lobby-nav-pill">🏆 Leaderboard</button>
-                            <button type="button" id="btn-lobby-settings" class="lobby-nav-pill">⚙️ Settings</button>
-                        </div>
-                    </div>
+        <!-- MODAL DECK 1: STORY CAMPAIGN & SPECTRAL STAGE PREVIEW -->
+        <div id="modal-deck-campaign" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="deck-campaign-title">
+            <div class="modal-card modal-crypt-stone modal-deck-large">
+                <div class="modal-header">
+                    <h2 id="deck-campaign-title">🗺️ Story Campaign & Spectral Stages</h2>
+                    <button id="btn-close-deck-campaign" class="btn-close" aria-label="Close Campaign Modal">✖</button>
                 </div>
-
-                <!-- 4. CUSTOM CRYPT CHAMBERS & RULES SETUP -->
-                <details id="crypt-custom-chamber" class="crypt-custom-chamber" open>
-                    <summary class="crypt-custom-summary">
-                        <span class="summary-left">
-                            <span class="summary-icon" aria-hidden="true">🕯️</span>
-                            <strong>Custom Crypt Chambers & Rules</strong>
-                        </span>
-                        <span class="summary-toggle-pill">Toggle Setup Options</span>
-                    </summary>
-
-                    <div class="card setup-card crypt-inner-card">
-                        <form id="form-start-quiz" class="setup-form" novalidate>
-                            <div class="form-group">
-                                <label for="player-name">Your Hunter Identity:</label>
-                                <div class="hunter-identity-input-wrap">
-                                    <button type="button" id="btn-start-change-avatar" class="btn-avatar-badge" title="Click to change your avatar">
-                                        <img id="start-avatar-img" class="hunter-avatar-badge" src="/static/avatars/pumpkin_hunter.svg" alt="Hunter Avatar" width="40" height="40">
-                                        <span class="avatar-edit-icon" aria-hidden="true">✏️</span>
-                                    </button>
-                                    <input type="text" id="player-name" name="player_name" class="stone-input" maxlength="30" value="Ghost Hunter" required placeholder="Carve your spooky nickname" autocomplete="nickname">
+                <div class="modal-body modal-scrollable">
+                    <div class="lobby-centerpiece-grid">
+                        <!-- LEFT COLUMN: THE HAUNTED JOURNEY (CAMPAIGN PROGRESSION & FLOATING MAP) -->
+                        <div class="lobby-journey-column">
+                            <!-- Continue Journey Card -->
+                            <div class="lobby-card lobby-journey-card" id="lobby-journey-card">
+                                <div class="lobby-card-header">
+                                    <span class="lobby-card-badge">STORY CAMPAIGN</span>
+                                    <h2 id="lobby-journey-heading" class="lobby-card-heading">CONTINUE YOUR JOURNEY</h2>
                                 </div>
-                            </div>
-
-                            <!-- Daily Community Haunt Widget -->
-                            <div class="community-haunt-widget" id="community-haunt-widget">
-                                <div class="community-widget-top">
-                                    <div class="community-header-left">
-                                        <span class="community-badge-pill">🌐 Global Community Haunt</span>
-                                        <span class="community-active-players" id="comm-players-count">124 Hunters Entered Today</span>
+                                <div class="lobby-journey-details">
+                                    <div class="journey-ch-icon" id="lobby-journey-icon">🏚️</div>
+                                    <div class="journey-ch-meta">
+                                        <h3 id="lobby-journey-chapter" class="journey-ch-title">Chapter 1: The Abandoned Manor</h3>
+                                        <p id="lobby-journey-stage" class="journey-st-title">Stage 1 — The Wrought-Iron Gate</p>
                                     </div>
-                                    <span class="community-countdown" id="comm-countdown-timer">Resets 23:59 UTC</span>
                                 </div>
-                                <p class="community-goal-desc" id="comm-goal-title">Answer 2,000 Spooky & Horror Questions Worldwide Today</p>
-                                <div class="community-progress-track">
-                                    <div id="comm-progress-bar" class="community-progress-fill" style="width: 69%;"></div>
+                                <!-- Progress Bar -->
+                                <div class="lobby-journey-progress-box">
+                                    <div class="journey-progress-labels">
+                                        <span class="journey-prog-label">Chapter Progress</span>
+                                        <span id="lobby-journey-progress-text" class="journey-prog-val">0 / 4 Stages Cleared</span>
+                                    </div>
+                                    <div class="journey-track">
+                                        <div id="lobby-journey-bar-fill" class="journey-bar-fill" style="width: 0%;"></div>
+                                    </div>
                                 </div>
-                                <div class="community-widget-bottom">
-                                    <span class="community-progress-stats" id="comm-progress-stats">1,380 / 2,000 Questions (69%)</span>
-                                    <button type="button" id="btn-claim-community" class="btn-claim-diamonds hidden">Claim 💎 20</button>
+                                <!-- Action Buttons -->
+                                <div class="lobby-journey-actions">
+                                    <button type="button" id="btn-lobby-continue-journey" class="btn-cta btn-continue-primary" aria-label="Continue Haunted Journey">
+                                        <span>🗺️ Continue Journey</span>
+                                    </button>
+                                    <button type="button" id="btn-hero-journey" class="btn-secondary btn-explore-map" aria-label="Explore Chapter Map">
+                                        <span>📜 Explore Chapter Map</span>
+                                    </button>
                                 </div>
                             </div>
 
-                <!-- Game Mode Selection -->
-                <div class="form-group">
-                    <label id="mode-label">Game Mode:</label>
-                    <div class="mode-options" role="radiogroup" aria-labelledby="mode-label">
-                        <label class="mode-chip">
-                            <input type="radio" name="mode" value="classic" checked>
-                            <span class="mode-content">
-                                <strong>🎃 Classic Crypt</strong>
-                                <small>Standard 10-round challenge</small>
-                            </span>
-                        </label>
-                        <label class="mode-chip">
-                            <input type="radio" name="mode" value="quick">
-                            <span class="mode-content">
-                                <strong>⚡ Quick Bite</strong>
-                                <small>5 quick casual questions</small>
-                            </span>
-                        </label>
-                        <label class="mode-chip">
-                            <input type="radio" name="mode" value="deep">
-                            <span class="mode-content">
-                                <strong>📖 Deep Dive</strong>
-                                <small>15-round marathon</small>
-                            </span>
-                        </label>
-                        <label class="mode-chip">
-                            <input type="radio" name="mode" value="panic">
-                            <span class="mode-content">
-                                <strong>⏳ Midnight Panic</strong>
-                                <small>10s rush · High speed bonus</small>
-                            </span>
-                        </label>
-                        <label class="mode-chip">
-                            <input type="radio" name="mode" value="endless">
-                            <span class="mode-content">
-                                <strong>💀 Endless Night</strong>
-                                <small>Survive until 3 strikes</small>
-                            </span>
-                        </label>
-                        <label class="mode-chip">
-                            <input type="radio" name="mode" value="daily">
-                            <span class="mode-content">
-                                <strong>🕯️ Daily Haunt</strong>
-                                <small id="daily-badge-countdown">Today's global challenge</small>
-                            </span>
-                        </label>
-                        <label class="mode-chip">
-                            <input type="radio" name="mode" value="adaptive">
-                            <span class="mode-content">
-                                <strong>🌀 Dynamic Realm</strong>
-                                <small>Adapts to your skill in real-time</small>
-                            </span>
-                        </label>
-                    </div>
-                </div>
+                            <!-- Dynamic Stage Progression Map Preview -->
+                            <div class="lobby-card lobby-map-card" id="lobby-map-preview-card">
+                                <div class="lobby-card-header">
+                                    <span class="lobby-card-badge">FLOATING PROGRESSION</span>
+                                    <h3 class="lobby-card-subheading">Spectral Stage Preview</h3>
+                                </div>
+                                <div class="floating-stage-map" id="lobby-stage-progression-map" role="list" aria-label="Dynamic Chapter Progression Map">
+                                    <!-- Populated dynamically with supernatural floating nodes -->
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- Difficulty Selection -->
-                    <div class="form-group">
-                        <label id="diff-label">Difficulty:</label>
-                        <div class="difficulty-options" role="radiogroup" aria-labelledby="diff-label">
-                            <label class="diff-chip">
-                                <input type="radio" name="difficulty" value="easy">
-                                <span class="diff-content">
-                                    <strong>Easy</strong>
-                                    <small>30s / 100 pts</small>
-                                </span>
-                            </label>
-                            <label class="diff-chip">
-                                <input type="radio" name="difficulty" value="medium" checked>
-                                <span class="diff-content">
-                                    <strong>Medium</strong>
-                                    <small>20s / 200 pts</small>
-                                </span>
-                            </label>
-                            <label class="diff-chip">
-                                <input type="radio" name="difficulty" value="hard">
-                                <span class="diff-content">
-                                    <strong>Hard</strong>
-                                    <small>15s / 300 pts</small>
-                                </span>
-                            </label>
+                        <!-- RIGHT COLUMN: QUICK ACTIONS, GAME GUIDE & SNAPSHOT -->
+                        <div class="lobby-actions-column">
+                            <!-- Quick Action Game Cards -->
+                            <div class="lobby-quick-cards-group">
+                                <button type="button" id="btn-lobby-quick-play" class="lobby-quick-card card-quick-play" aria-label="Quick Play: 5 fast questions">
+                                    <span class="quick-icon">⚡</span>
+                                    <div class="quick-content">
+                                        <strong>QUICK PLAY</strong>
+                                        <small>Start immediately · 5 casual questions</small>
+                                    </div>
+                                    <span class="quick-arrow" aria-hidden="true">➔</span>
+                                </button>
+
+                                <button type="button" id="btn-lobby-daily-haunt" class="lobby-quick-card card-daily-haunt" aria-label="Daily Haunt: Today's global challenge">
+                                    <span class="quick-icon">🕯️</span>
+                                    <div class="quick-content">
+                                        <strong>DAILY HAUNT</strong>
+                                        <small>Today's challenge · Resets 23:59 UTC</small>
+                                    </div>
+                                    <span class="quick-arrow" aria-hidden="true">➔</span>
+                                </button>
+
+                                <button type="button" id="btn-lobby-duels" class="lobby-quick-card card-duels" aria-label="Haunted Duels: Challenge a hunter">
+                                    <span class="quick-icon">⚔️</span>
+                                    <div class="quick-content">
+                                        <strong>HAUNTED DUELS</strong>
+                                        <small>Challenge a hunter · PvP & Spooky Traps</small>
+                                    </div>
+                                    <span class="quick-arrow" aria-hidden="true">➔</span>
+                                </button>
+                            </div>
+
+                            <!-- Atmospheric Spooky Guide -->
+                            <div class="lobby-card lobby-guide-card" id="lobby-guide-box">
+                                <div class="guide-top-row">
+                                    <div class="guide-title-box">
+                                        <span class="guide-ghost-avatar" aria-hidden="true">👻</span>
+                                        <span class="guide-name">Spooky Guide</span>
+                                    </div>
+                                    <button type="button" id="btn-guide-next-hint" class="btn-guide-next" title="Whisper another supernatural hint" aria-label="Whisper another supernatural hint">
+                                        🔮 Whisper Hint
+                                    </button>
+                                </div>
+                                <blockquote class="guide-quote-box">
+                                    <p id="lobby-guide-quote" class="guide-quote-text">
+                                        "Something strange is waiting inside the Abandoned Manor... The spirits respond to swift answers."
+                                    </p>
+                                </blockquote>
+                            </div>
+
+                            <!-- Compact Progress Snapshot -->
+                            <div class="lobby-card lobby-snapshot-card" id="lobby-progress-snapshot">
+                                <div class="snapshot-header">
+                                    <span class="snapshot-title">📜 Hunter Progress Snapshot</span>
+                                    <button type="button" id="btn-lobby-progress" class="btn-ghost-sm" aria-label="View complete hunter profile">View Full ➔</button>
+                                </div>
+                                <div class="snapshot-grid">
+                                    <div class="snapshot-stat">
+                                        <span id="lobby-stat-games" class="stat-num">0</span>
+                                        <span class="stat-lbl">Games</span>
+                                    </div>
+                                    <div class="snapshot-stat">
+                                        <span id="lobby-stat-streak" class="stat-num">0</span>
+                                        <span class="stat-lbl">Best Streak</span>
+                                    </div>
+                                    <div class="snapshot-stat">
+                                        <span id="lobby-stat-badges" class="stat-num">0/8</span>
+                                        <span class="stat-lbl">Badges</span>
+                                    </div>
+                                    <div class="snapshot-stat">
+                                        <span id="lobby-stat-mastery" class="stat-num">0%</span>
+                                        <span class="stat-lbl">Mastery</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Secondary Navigation Pills -->
+                            <div class="lobby-nav-pills">
+                                <a href="/hunt" id="btn-lobby-hunt-modes" class="lobby-nav-pill" data-route="/hunt">🏹 Game Modes</a>
+                                <a href="/genie" id="btn-lobby-genie" class="lobby-nav-pill" data-route="/genie">🧞 Spooky Genie</a>
+                                <button type="button" id="btn-lobby-leaderboard" class="lobby-nav-pill">🏆 Leaderboard</button>
+                                <button type="button" id="btn-lobby-settings" class="lobby-nav-pill">⚙️ Settings</button>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Trivia Categories (Pressable Interactive Cards) -->
+        <!-- MODAL DECK 2: CUSTOM CRYPT CHAMBERS & RULES -->
+        <div id="modal-crypt-rules" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="crypt-rules-title">
+            <div class="modal-card modal-crypt-stone modal-deck-rules">
+                <div class="modal-header">
+                    <h2 id="crypt-rules-title">🕯️ Custom Crypt Chambers & Rules</h2>
+                    <button id="btn-close-crypt-rules" class="btn-close" aria-label="Close Crypt Rules Modal">✖</button>
+                </div>
+                <div class="modal-body modal-scrollable">
+                    <div id="crypt-custom-chamber" class="crypt-custom-chamber">
+                        <div class="card setup-card crypt-inner-card">
+                            <form id="form-start-quiz" class="setup-form" novalidate>
+                                <div class="form-group">
+                                    <label for="player-name">Your Hunter Identity:</label>
+                                    <div class="hunter-identity-input-wrap">
+                                        <button type="button" id="btn-start-change-avatar" class="btn-avatar-badge" title="Click to change your avatar">
+                                            <img id="start-avatar-img" class="hunter-avatar-badge" src="/static/avatars/pumpkin_hunter.svg" alt="Hunter Avatar" width="40" height="40">
+                                            <span class="avatar-edit-icon" aria-hidden="true">✏️</span>
+                                        </button>
+                                        <input type="text" id="player-name" name="player_name" class="stone-input" maxlength="30" value="Ghost Hunter" required placeholder="Carve your spooky nickname" autocomplete="nickname">
+                                    </div>
+                                </div>
+
+                                <!-- Daily Community Haunt Widget -->
+                                <div class="community-haunt-widget" id="community-haunt-widget">
+                                    <div class="community-widget-top">
+                                        <div class="community-header-left">
+                                            <span class="community-badge-pill">🌐 Global Community Haunt</span>
+                                            <span class="community-active-players" id="comm-players-count">124 Hunters Entered Today</span>
+                                        </div>
+                                        <span class="community-countdown" id="comm-countdown-timer">Resets 23:59 UTC</span>
+                                    </div>
+                                    <p class="community-goal-desc" id="comm-goal-title">Answer 2,000 Spooky & Horror Questions Worldwide Today</p>
+                                    <div class="community-progress-track">
+                                        <div id="comm-progress-bar" class="community-progress-fill" style="width: 69%;"></div>
+                                    </div>
+                                    <div class="community-widget-bottom">
+                                        <span class="community-progress-stats" id="comm-progress-stats">1,380 / 2,000 Questions (69%)</span>
+                                        <button type="button" id="btn-claim-community" class="btn-claim-diamonds hidden">Claim 💎 20</button>
+                                    </div>
+                                </div>
+
+                                <!-- Game Mode Selection -->
+                                <div class="form-group">
+                                    <label id="mode-label">Game Mode:</label>
+                                    <div class="mode-options" role="radiogroup" aria-labelledby="mode-label">
+                                        <label class="mode-chip">
+                                            <input type="radio" name="mode" value="classic" checked>
+                                            <span class="mode-content">
+                                                <strong>🎃 Classic Crypt</strong>
+                                                <small>Standard 10-round challenge</small>
+                                            </span>
+                                        </label>
+                                        <label class="mode-chip">
+                                            <input type="radio" name="mode" value="quick">
+                                            <span class="mode-content">
+                                                <strong>⚡ Quick Bite</strong>
+                                                <small>5 quick casual questions</small>
+                                            </span>
+                                        </label>
+                                        <label class="mode-chip">
+                                            <input type="radio" name="mode" value="deep">
+                                            <span class="mode-content">
+                                                <strong>📖 Deep Dive</strong>
+                                                <small>15-round marathon</small>
+                                            </span>
+                                        </label>
+                                        <label class="mode-chip">
+                                            <input type="radio" name="mode" value="panic">
+                                            <span class="mode-content">
+                                                <strong>⏳ Midnight Panic</strong>
+                                                <small>10s rush · High speed bonus</small>
+                                            </span>
+                                        </label>
+                                        <label class="mode-chip">
+                                            <input type="radio" name="mode" value="endless">
+                                            <span class="mode-content">
+                                                <strong>💀 Endless Night</strong>
+                                                <small>Survive until 3 strikes</small>
+                                            </span>
+                                        </label>
+                                        <label class="mode-chip">
+                                            <input type="radio" name="mode" value="daily">
+                                            <span class="mode-content">
+                                                <strong>🕯️ Daily Haunt</strong>
+                                                <small id="daily-badge-countdown">Today's global challenge</small>
+                                            </span>
+                                        </label>
+                                        <label class="mode-chip">
+                                            <input type="radio" name="mode" value="adaptive">
+                                            <span class="mode-content">
+                                                <strong>🌀 Dynamic Realm</strong>
+                                                <small>Adapts to your skill in real-time</small>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Difficulty Selection -->
+                                <div class="form-group">
+                                    <label id="diff-label">Difficulty:</label>
+                                    <div class="difficulty-options" role="radiogroup" aria-labelledby="diff-label">
+                                        <label class="diff-chip">
+                                            <input type="radio" name="difficulty" value="easy">
+                                            <span class="diff-content">
+                                                <strong>Easy</strong>
+                                                <small>30s / 100 pts</small>
+                                            </span>
+                                        </label>
+                                        <label class="diff-chip">
+                                            <input type="radio" name="difficulty" value="medium" checked>
+                                            <span class="diff-content">
+                                                <strong>Medium</strong>
+                                                <small>20s / 200 pts</small>
+                                            </span>
+                                        </label>
+                                        <label class="diff-chip">
+                                            <input type="radio" name="difficulty" value="hard">
+                                            <span class="diff-content">
+                                                <strong>Hard</strong>
+                                                <small>15s / 300 pts</small>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Question Count Selection (Hidden in Quick, Deep, Endless, Daily) -->
+                                <div class="form-row" id="wrap-num-questions">
+                                    <div class="form-group half">
+                                        <label for="num-questions">Question Count:</label>
+                                        <select id="num-questions" name="num_questions" class="select-styled">
+                                            <option value="5">5 Questions</option>
+                                            <option value="10" selected>10 Questions (Standard)</option>
+                                            <option value="15">15 Questions</option>
+                                            <option value="20">20 Questions</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="crypt-rules-actions">
+                                    <button type="submit" id="btn-start" class="btn-cta">
+                                        <span>Enter the Crypt</span><span aria-hidden="true">→</span>
+                                    </button>
+                                    <button type="button" id="btn-open-categories-from-rules" class="btn-secondary">
+                                        <span>🔮 Configure Categories</span>
+                                    </button>
+                                </div>
+                                <p class="keyboard-hint">Answer using keyboard keys <kbd>1</kbd>–<kbd>4</kbd> or <kbd>A</kbd>–<kbd>D</kbd> once round begins.</p>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DECK 3: TRIVIA CATEGORIES -->
+        <div id="modal-trivia-categories" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="trivia-categories-title">
+            <div class="modal-card modal-crypt-stone modal-deck-categories">
+                <div class="modal-header">
+                    <h2 id="trivia-categories-title">🔮 Trivia Realm Categories</h2>
+                    <button id="btn-close-trivia-categories" class="btn-close" aria-label="Close Categories Modal">✖</button>
+                </div>
+                <div class="modal-body modal-scrollable">
                     <div class="form-group">
                         <div class="category-header-wrap">
-                            <label id="cat-label">Trivia Categories:</label>
+                            <label id="cat-label">Select Active Trivia Categories:</label>
                             <div class="cat-quick-actions">
                                 <button type="button" id="btn-select-all-cats" class="btn-cat-action btn-select-all" aria-label="Select all trivia categories">Select All</button>
                                 <button type="button" id="btn-clear-cats" class="btn-cat-action btn-clear-all" aria-label="Clear all trivia categories">Clear</button>
@@ -515,29 +620,14 @@
                             <!-- Populated dynamically via JS / server fallback -->
                         </div>
                     </div>
-
-                    <!-- Question Count Selection (Hidden in Quick, Deep, Endless, Daily) -->
-                    <div class="form-row" id="wrap-num-questions">
-                        <div class="form-group half">
-                            <label for="num-questions">Question Count:</label>
-                            <select id="num-questions" name="num_questions" class="select-styled">
-                                <option value="5">5 Questions</option>
-                                <option value="10" selected>10 Questions (Standard)</option>
-                                <option value="15">15 Questions</option>
-                                <option value="20">20 Questions</option>
-                            </select>
-                        </div>
+                    <div class="categories-modal-footer">
+                        <button type="button" id="btn-confirm-categories" class="btn-cta">
+                            <span>Confirm Categories</span> ➔
+                        </button>
                     </div>
-
-                    <button type="submit" id="btn-start" class="btn-cta">
-                        <span>Enter the Crypt</span><span aria-hidden="true">→</span>
-                    </button>
-                    <p class="keyboard-hint">Answer using keyboard keys <kbd>1</kbd>–<kbd>4</kbd> or <kbd>A</kbd>–<kbd>D</kbd> once round begins.</p>
-                </form>
-                    </div>
-                </details>
+                </div>
             </div>
-        </section>
+        </div>
 
         <!-- SCREEN 2: ACTIVE QUIZ -->
         <section id="screen-quiz" class="game-screen" aria-labelledby="question-text" data-active-mode="classic">
@@ -1222,9 +1312,12 @@
 
         <!-- MODAL 1: LEADERBOARD -->
         <div id="modal-leaderboard" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
-            <div class="modal-card modal-leaderboard-card">
+            <div class="modal-card modal-leaderboard-card modal-crypt-stone">
                 <div class="modal-header">
-                    <h2 id="leaderboard-title">🎃 Crypt of High Scores</h2>
+                    <div class="modal-title-group">
+                        <h2 id="leaderboard-title">🎃 Crypt of High Scores</h2>
+                        <p class="cursed-ledger-subtitle">Ancient Cursed Ledger · Runic Tombstones of the Fallen</p>
+                    </div>
                     <button id="btn-close-modal" class="btn-close" aria-label="Close high scores modal">✖</button>
                 </div>
 

@@ -50,7 +50,13 @@ export class QuizLifecycleManager {
         else if (mode === "endless") numQuestions = 50;
         else if (mode === "daily") numQuestions = 10;
 
-        const selectedCategories = formData.getAll("categories");
+        let selectedCategories = formData.getAll("categories");
+        if (selectedCategories.length === 0) {
+            const checked = Array.from(document.querySelectorAll("input[name='categories']:checked")).map((el) => el.value);
+            if (checked.length > 0) {
+                selectedCategories = checked;
+            }
+        }
         if (selectedCategories.length === 0) {
             alert("Please select at least one category!");
             this.app.showNotice("Please select at least one category to enter the crypt!", "warning");
@@ -58,6 +64,7 @@ export class QuizLifecycleManager {
         }
 
         try {
+            this.app.closeAllModals?.();
             this.sound.startBackgroundAmbience();
             let timeLimit = difficulty === "easy" ? 30 : difficulty === "hard" ? 15 : 20;
             if (mode === "panic") timeLimit = 10;
@@ -136,6 +143,7 @@ export class QuizLifecycleManager {
     }
 
     async startGameWithParams(extraParams = {}) {
+        this.app.closeAllModals?.();
         this.sound.unlock();
         this.sound.startBackgroundAmbience();
 
@@ -615,11 +623,14 @@ export class QuizLifecycleManager {
 
         const newAchievements = this.app.recordProgress ? this.app.recordProgress(result) : [];
 
-        // Progressive Enhancement Haptics
+        // Progressive Enhancement Haptics & Horror Reveal Audio
         triggerHaptic(
             result.is_correct ? "correct" : "incorrect",
             this.profile?.preferences?.haptics_enabled !== false
         );
+        if (typeof this.sound.playHorrorReveal === "function") {
+            this.sound.playHorrorReveal(result.is_correct);
+        }
 
         // Visual options highlight
         const optionsBtns = this.dom.optionsGrid.querySelectorAll(".option-btn");

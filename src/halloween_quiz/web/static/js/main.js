@@ -158,6 +158,22 @@ export class HalloweenQuizApp {
             btnLobbyLeaderboard: document.getElementById("btn-lobby-leaderboard"),
             btnLobbySettings: document.getElementById("btn-lobby-settings"),
 
+            // Modal Decks (Zero-Scroll Command Deck)
+            modalDeckCampaign: document.getElementById("modal-deck-campaign"),
+            btnCloseDeckCampaign: document.getElementById("btn-close-deck-campaign"),
+            tileDashCampaignPreview: document.getElementById("tile-dash-campaign-preview"),
+            modalCryptRules: document.getElementById("modal-crypt-rules"),
+            btnCloseCryptRules: document.getElementById("btn-close-crypt-rules"),
+            tileDashCryptRules: document.getElementById("tile-dash-crypt-rules"),
+            modalTriviaCategories: document.getElementById("modal-trivia-categories"),
+            btnCloseTriviaCategories: document.getElementById("btn-close-trivia-categories"),
+            tileDashTriviaCategories: document.getElementById("tile-dash-trivia-categories"),
+            btnConfirmCategories: document.getElementById("btn-confirm-categories"),
+            btnOpenCategoriesFromRules: document.getElementById("btn-open-categories-from-rules"),
+            narratorLoreBanner: document.getElementById("narrator-lore-banner"),
+            btnReplayLore: document.getElementById("btn-replay-lore"),
+            btnSkipLore: document.getElementById("btn-skip-lore"),
+
             // In-App Notice & Toasts
             appNotice: document.getElementById("app-notice"),
             appNoticeText: document.getElementById("app-notice-text"),
@@ -590,6 +606,9 @@ export class HalloweenQuizApp {
             this.dom.modalDuels,
             this.dom.modalPremium,
             this.dom.modalAuth,
+            this.dom.modalDeckCampaign,
+            this.dom.modalCryptRules,
+            this.dom.modalTriviaCategories,
         ];
         modals.forEach((m) => {
             if (m) {
@@ -611,6 +630,82 @@ export class HalloweenQuizApp {
         });
     }
 
+    openDeckCampaign() {
+        this.closeAllModals();
+        if (this.dom.modalDeckCampaign) {
+            this.dom.modalDeckCampaign.classList.remove("hidden");
+            this.dom.modalDeckCampaign.classList.add("active");
+        }
+        this.renderLobbyExperience();
+    }
+
+    closeDeckCampaign() {
+        if (this.dom.modalDeckCampaign) {
+            this.dom.modalDeckCampaign.classList.add("hidden");
+            this.dom.modalDeckCampaign.classList.remove("active");
+        }
+    }
+
+    openCryptRules() {
+        this.closeAllModals();
+        if (this.dom.modalCryptRules) {
+            this.dom.modalCryptRules.classList.remove("hidden");
+            this.dom.modalCryptRules.classList.add("active");
+        }
+    }
+
+    closeCryptRules() {
+        if (this.dom.modalCryptRules) {
+            this.dom.modalCryptRules.classList.add("hidden");
+            this.dom.modalCryptRules.classList.remove("active");
+        }
+    }
+
+    openTriviaCategories() {
+        this.closeAllModals();
+        if (this.dom.modalTriviaCategories) {
+            this.dom.modalTriviaCategories.classList.remove("hidden");
+            this.dom.modalTriviaCategories.classList.add("active");
+        }
+    }
+
+    closeTriviaCategories() {
+        if (this.dom.modalTriviaCategories) {
+            this.dom.modalTriviaCategories.classList.add("hidden");
+            this.dom.modalTriviaCategories.classList.remove("active");
+        }
+    }
+
+    playNarrativeIntro() {
+        if (!this.sound) return;
+        const banner = document.getElementById("narrator-lore-banner");
+        if (banner) {
+            banner.classList.add("speaking");
+            banner.classList.remove("lore-completed");
+        }
+        this.sound.playHorrorIntroLore(() => {
+            this.onNarrativeIntroFinished();
+        });
+    }
+
+    skipNarrativeIntro() {
+        if (this.sound) {
+            this.sound.stopHorrorIntroLore();
+        }
+        this.onNarrativeIntroFinished();
+    }
+
+    onNarrativeIntroFinished() {
+        const banner = document.getElementById("narrator-lore-banner");
+        if (banner) {
+            banner.classList.remove("speaking");
+            banner.classList.add("lore-completed");
+        }
+        if (this.sound && this.sound.musicEnabled && !this.sound.bgmPlaying) {
+            this.sound.startBackgroundAmbience();
+        }
+    }
+
     openHome() {
         if (this.router && window.location.pathname !== "/") {
             this.router.navigate("/");
@@ -629,6 +724,9 @@ export class HalloweenQuizApp {
     showScreen(screenName) {
         if (screenName !== "landing" && !this.hasEnteredGate()) {
             screenName = "landing";
+        }
+        if (screenName === "quiz" || screenName === "gameover") {
+            this.closeAllModals();
         }
         document.body.setAttribute("data-active-screen", screenName);
         Object.entries(this.screens).forEach(([name, screen]) => {
@@ -742,6 +840,7 @@ export class HalloweenQuizApp {
         this.closeAllModals();
         this.showScreen("start");
         this.applyProfileToUi();
+        this.openCryptRules();
         this.dom.playerName?.focus();
     }
 
@@ -1092,7 +1191,7 @@ export class HalloweenQuizApp {
                 card.setAttribute("aria-checked", "true");
                 card.setAttribute("tabindex", "0");
                 card.innerHTML = `
-                    <input type="checkbox" name="categories" value="${cat.id}" checked>
+                    <input type="checkbox" name="categories" value="${cat.id}" form="form-start-quiz" checked>
                     <div class="card-inner">
                         <div class="card-top-row">
                             <span class="cat-icon">${cat.icon}</span>
@@ -1693,9 +1792,7 @@ export class HalloweenQuizApp {
 
         this.dom.modalAuth?.classList.add("hidden");
         this.dom.modalAuth?.classList.remove("active");
-        if (this.sound.musicEnabled && !this.sound.bgmPlaying) {
-            this.sound.startBackgroundAmbience();
-        }
+        this.playNarrativeIntro();
         this.updateAuthUi();
         this.renderLobbyExperience();
 
@@ -2609,6 +2706,7 @@ export class HalloweenQuizApp {
 
         // UI Sound on buttons
         document.addEventListener("click", (event) => {
+            if (!event.target || typeof event.target.closest !== "function") return;
             const button = event.target.closest("button");
             if (
                 !button ||
@@ -2664,6 +2762,40 @@ export class HalloweenQuizApp {
 
         // Lobby Actions
         this.dom.btnEnterTheHaunt?.addEventListener("click", () => this.startGame());
+
+        // Command Deck Modal Triggers & Closers
+        this.dom.tileDashCampaignPreview?.addEventListener("click", () => this.openDeckCampaign());
+        this.dom.btnCloseDeckCampaign?.addEventListener("click", () => this.closeDeckCampaign());
+        this.dom.modalDeckCampaign?.addEventListener("click", (e) => {
+            if (e.target === this.dom.modalDeckCampaign) this.closeDeckCampaign();
+        });
+
+        this.dom.tileDashCryptRules?.addEventListener("click", () => this.openCryptRules());
+        this.dom.btnCloseCryptRules?.addEventListener("click", () => this.closeCryptRules());
+        this.dom.modalCryptRules?.addEventListener("click", (e) => {
+            if (e.target === this.dom.modalCryptRules) this.closeCryptRules();
+        });
+
+        this.dom.tileDashTriviaCategories?.addEventListener("click", () => this.openTriviaCategories());
+        this.dom.btnCloseTriviaCategories?.addEventListener("click", () => this.closeTriviaCategories());
+        this.dom.btnConfirmCategories?.addEventListener("click", () => this.closeTriviaCategories());
+        this.dom.btnOpenCategoriesFromRules?.addEventListener("click", () => this.openTriviaCategories());
+        this.dom.modalTriviaCategories?.addEventListener("click", (e) => {
+            if (e.target === this.dom.modalTriviaCategories) this.closeTriviaCategories();
+        });
+
+        // Narrator Lore Banner Controls
+        this.dom.btnReplayLore?.addEventListener("click", () => this.playNarrativeIntro());
+        this.dom.btnSkipLore?.addEventListener("click", () => this.skipNarrativeIntro());
+
+        // Subtle Horror Hover SFX on Interactive Elements
+        document.addEventListener("mouseenter", (e) => {
+            if (!e.target || typeof e.target.closest !== "function") return;
+            const target = e.target.closest("button, .dash-icon-tile, .option-btn, .category-card, .lobby-quick-card");
+            if (target && this.sound && typeof this.sound.playHorrorHover === "function") {
+                this.sound.playHorrorHover();
+            }
+        }, true);
         this.dom.btnLobbyContinueJourney?.addEventListener("click", () => this.handleLobbyContinueJourney());
         this.dom.btnLobbyQuickPlay?.addEventListener("click", () => {
             this.startGameWithParams({ mode: "quick", num_questions: 5 });

@@ -5984,4 +5984,380 @@ body[data-active-screen="auth"] #modal-auth.active {
   }
 }
 
+/* ==========================================================================
+   🎮 SINGLE-SCREEN ZERO-SCROLL COMMAND DECK (Blackwood Manor)
+   ========================================================================== */
+body[data-active-screen="start"] {
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+
+body[data-active-screen="start"] .container {
+  height: calc(100vh - 64px) !important;
+  height: calc(100dvh - 64px) !important;
+  max-height: calc(100dvh - 64px) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 8px 14px 10px !important;
+  justify-content: space-between !important;
+}
+
+body[data-active-screen="start"] #screen-start {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body[data-active-screen="start"] .lobby-wrapper {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: clamp(6px, 1.2vh, 12px) !important;
+}
+
+body[data-active-screen="start"] .lobby-identity-banner {
+  margin-bottom: 0 !important;
+  padding: clamp(8px, 1.2vh, 12px) clamp(10px, 1.5vw, 16px) !important;
+  flex: 0 0 auto !important;
+}
+
+body[data-active-screen="start"] .lobby-hero {
+  padding: clamp(10px, 1.8vh, 20px) clamp(12px, 2vw, 24px) !important;
+  margin-bottom: 0 !important;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+body[data-active-screen="start"] .dashboard-icon-grid {
+  margin-top: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+/* 🎙️ Narrator Lore Banner */
+.narrator-lore-banner {
+  width: 100%;
+  max-width: 640px;
+  margin: clamp(6px, 1vh, 12px) auto;
+  padding: clamp(8px, 1.2vh, 12px) clamp(10px, 1.5vw, 16px);
+  background: linear-gradient(135deg, rgba(20, 14, 30, 0.92), rgba(10, 6, 16, 0.96));
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 18px rgba(0, 0, 0, 0.6);
+  position: relative;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.narrator-lore-banner.speaking {
+  border-color: rgba(255, 138, 40, 0.8);
+  box-shadow: 0 0 24px rgba(255, 138, 40, 0.3), inset 0 0 16px rgba(168, 85, 247, 0.15);
+  animation: lore-pulse 2s infinite ease-in-out;
+}
+
+@keyframes lore-pulse {
+  0%, 100% { border-color: rgba(255, 138, 40, 0.6); }
+  50% { border-color: rgba(168, 85, 247, 0.9); }
+}
+
+.narrator-lore-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.narrator-ghost-avatar {
+  font-size: 16px;
+  filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.7));
+}
+
+.narrator-lore-titles {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.narrator-lore-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 800;
+  font-family: var(--mono);
+}
+
+.narrator-lore-title {
+  font-size: 12px;
+  color: #e9d5ff;
+}
+
+.narrator-lore-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-lore-ctrl {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #d8b4fe;
+  border-radius: 99px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-lore-ctrl:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.6);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.btn-lore-skip {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.narrator-lore-text {
+  margin: 0;
+  font-size: clamp(10.5px, 2.2vw, 12px);
+  line-height: 1.4;
+  color: rgba(226, 214, 242, 0.88);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   🏛️ ANCIENT CRYPT STONE MODAL DECKS
+   ========================================================================== */
+.modal-crypt-stone {
+  background: linear-gradient(135deg, rgba(18, 14, 26, 0.98), rgba(8, 6, 12, 0.99)) !important;
+  border: 2px solid rgba(138, 92, 246, 0.35) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 32px rgba(138, 92, 246, 0.15) !important;
+  border-radius: 20px !important;
+}
+
+.modal-deck-large {
+  max-width: 900px !important;
+  width: 95% !important;
+}
+
+.modal-deck-rules {
+  max-width: 660px !important;
+  width: 95% !important;
+}
+
+.modal-deck-categories {
+  max-width: 720px !important;
+  width: 95% !important;
+}
+
+.modal-scrollable {
+  max-height: calc(85vh - 70px) !important;
+  max-height: calc(85dvh - 70px) !important;
+  overflow-y: auto !important;
+  padding: clamp(12px, 2vh, 20px) !important;
+}
+
+.crypt-rules-actions,
+.categories-modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* ==========================================================================
+   📱 MOBILE-FIRST TRIVIA GAMEPLAY VIEWPORT FIT (No Scrolling During Quiz)
+   ========================================================================== */
+body[data-active-screen="quiz"] {
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+
+body[data-active-screen="quiz"] .mobile-bottom-nav {
+  display: none !important;
+}
+
+body[data-active-screen="quiz"] .top-nav {
+  padding: 4px 12px !important;
+  min-height: 38px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body[data-active-screen="quiz"] .container {
+  height: calc(100vh - 46px) !important;
+  height: calc(100dvh - 46px) !important;
+  max-height: calc(100dvh - 46px) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 4px 8px !important;
+}
+
+body[data-active-screen="quiz"] #screen-quiz {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body[data-active-screen="quiz"] .quiz-card {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: clamp(8px, 1.8vh, 16px) !important;
+  border-radius: 16px !important;
+}
+
+body[data-active-screen="quiz"] .quiz-hud {
+  padding-bottom: clamp(4px, 0.8vh, 8px) !important;
+  margin-bottom: clamp(4px, 0.8vh, 8px) !important;
+  gap: clamp(6px, 1.2vw, 10px) !important;
+  flex: 0 0 auto !important;
+}
+
+body[data-active-screen="quiz"] .timer-container {
+  padding: clamp(3px, 0.6vh, 6px) clamp(6px, 1.2vw, 10px) !important;
+  margin-bottom: clamp(4px, 0.8vh, 8px) !important;
+  flex: 0 0 auto !important;
+}
+
+body[data-active-screen="quiz"] .booster-hud-bar {
+  margin-bottom: clamp(4px, 0.8vh, 8px) !important;
+  padding: 2px 4px !important;
+  flex: 0 0 auto !important;
+}
+
+body[data-active-screen="quiz"] .question-body {
+  margin: 0 0 clamp(4px, 1vh, 8px) !important;
+  flex: 0 1 auto !important;
+}
+
+body[data-active-screen="quiz"] .question-title {
+  font-size: clamp(14px, 3.8vw, 21px) !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.03em !important;
+}
+
+body[data-active-screen="quiz"] .options-container {
+  gap: clamp(5px, 1vh, 8px) !important;
+  flex: 1 1 auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+body[data-active-screen="quiz"] .option-btn {
+  min-height: clamp(42px, 6.2vh, 56px) !important;
+  padding: clamp(6px, 1vh, 9px) !important;
+  gap: clamp(6px, 1.2vw, 10px) !important;
+  border-radius: 10px !important;
+}
+
+body[data-active-screen="quiz"] .opt-badge,
+body[data-active-screen="quiz"] .option-key {
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 24px !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+}
+
+body[data-active-screen="quiz"] .opt-text,
+body[data-active-screen="quiz"] .option-label {
+  font-size: clamp(11.5px, 2.7vw, 13.5px) !important;
+  line-height: 1.25 !important;
+}
+
+body[data-active-screen="quiz"] .feedback-panel {
+  margin-top: clamp(4px, 0.8vh, 8px) !important;
+  padding: clamp(6px, 1.2vh, 10px) !important;
+  border-radius: 10px !important;
+  flex: 0 0 auto !important;
+}
+
+body[data-active-screen="quiz"] .feedback-title {
+  font-size: clamp(13px, 3vw, 16px) !important;
+  margin-bottom: 2px !important;
+}
+
+body[data-active-screen="quiz"] .feedback-text {
+  font-size: clamp(11px, 2.4vw, 12px) !important;
+  line-height: 1.35 !important;
+  max-height: 46px !important;
+  overflow-y: auto !important;
+}
+
+body[data-active-screen="quiz"] #btn-next-question {
+  margin-top: clamp(4px, 0.8vh, 6px) !important;
+  padding: clamp(6px, 1vh, 9px) 16px !important;
+  font-size: clamp(12px, 2.8vw, 14px) !important;
+}
+
+/* ==========================================================================
+   🪦 CURSED LEDGER / TOMBSTONE LEADERBOARD POLISH
+   ========================================================================== */
+.cursed-ledger-subtitle {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  margin: 2px 0 0 0;
+  opacity: 0.9;
+}
+
+.modal-leaderboard-card {
+  border-radius: 24px 24px 16px 16px !important;
+  border: 2px solid rgba(168, 85, 247, 0.4) !important;
+}
+
+#leaderboard-tbody tr {
+  background: linear-gradient(135deg, rgba(22, 17, 32, 0.95), rgba(12, 9, 20, 0.98)) !important;
+  border: 1px solid rgba(168, 85, 247, 0.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 3px 8px rgba(0, 0, 0, 0.5) !important;
+  transition: all 0.18s ease !important;
+}
+
+#leaderboard-tbody tr:hover {
+  border-color: rgba(255, 138, 40, 0.6) !important;
+  background: linear-gradient(135deg, rgba(34, 24, 48, 0.98), rgba(20, 14, 30, 0.98)) !important;
+  transform: translateX(2px) !important;
+}
+
+#leaderboard-tbody td {
+  padding: 9px 12px !important;
+  font-size: 12.5px !important;
+}
+
+#leaderboard-tbody td.lb-score {
+  font-family: var(--mono) !important;
+  color: var(--gold) !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4) !important;
+}
+
+
 

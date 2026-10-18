@@ -717,4 +717,168 @@ export class SoundEngine {
             console.warn("Web Audio synthesis warning:", err);
         }
     }
+
+    /**
+     * 🎙️ Automated Horror Intro Voiceover Sequence (Blackwood Manor Lore)
+     */
+    playHorrorIntroLore(onDone = null) {
+        this.unlock();
+        this.isSpeakingLore = true;
+        let finished = false;
+
+        const finish = () => {
+            if (finished) return;
+            finished = true;
+            this.isSpeakingLore = false;
+            this.stopSpectralDrone();
+            if (typeof onDone === "function") {
+                onDone();
+            }
+        };
+
+        // 1. Synthesize background spectral drone via Web Audio
+        this.startSpectralDrone();
+
+        // 2. Play speech synthesis if available in browser
+        const text = "Welcome, brave soul, to Blackwood Manor. Exactly one century ago on All Hallows' Eve, the wrought-iron gates slammed shut, and twelve souls vanished into the darkness. Their spirits still haunt these ancient stone chambers, testing any mortal who dares enter. Answer their riddles... or remain trapped forever in the crypt.";
+
+        if ("speechSynthesis" in window) {
+            try {
+                window.speechSynthesis.cancel(); // clear queue
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.pitch = 0.74;
+                utterance.rate = 0.84;
+                utterance.volume = Math.max(0.2, this.musicVolume * 3.5);
+
+                const voices = window.speechSynthesis.getVoices();
+                const eerieVoice = voices.find((v) => (v.lang.startsWith("en") && (v.name.includes("Male") || v.name.includes("Deep") || v.name.includes("Natural")))) || voices[0];
+                if (eerieVoice) utterance.voice = eerieVoice;
+
+                utterance.onend = () => finish();
+                utterance.onerror = () => finish();
+
+                window.speechSynthesis.speak(utterance);
+
+                // Safety timeout in case speech synthesis stalls
+                setTimeout(() => finish(), 14000);
+                return;
+            } catch (err) {
+                console.warn("Speech synthesis unavailable:", err);
+            }
+        }
+
+        // Fallback timer if speech synthesis is not available
+        setTimeout(() => finish(), 3500);
+    }
+
+    stopHorrorIntroLore() {
+        this.isSpeakingLore = false;
+        if ("speechSynthesis" in window) {
+            try {
+                window.speechSynthesis.cancel();
+            } catch (_) {}
+        }
+        this.stopSpectralDrone();
+    }
+
+    startSpectralDrone() {
+        if (!this.audioCtx || this.spectralDroneNodes) return;
+        try {
+            const now = this.audioCtx.currentTime;
+            const droneGain = this.audioCtx.createGain();
+            droneGain.gain.setValueAtTime(0.001, now);
+            droneGain.gain.linearRampToValueAtTime(0.12 * this.sfxVolume, now + 1.2);
+            droneGain.connect(this.audioCtx.destination);
+
+            const osc1 = this.audioCtx.createOscillator();
+            osc1.type = "sawtooth";
+            osc1.frequency.setValueAtTime(55, now); // A1
+
+            const filter = this.audioCtx.createBiquadFilter();
+            filter.type = "lowpass";
+            filter.frequency.setValueAtTime(160, now);
+            filter.Q.setValueAtTime(4, now);
+
+            osc1.connect(filter);
+            filter.connect(droneGain);
+            osc1.start(now);
+
+            this.spectralDroneNodes = { osc1, filter, droneGain };
+        } catch (err) {
+            console.warn("Spectral drone error:", err);
+        }
+    }
+
+    stopSpectralDrone() {
+        if (!this.spectralDroneNodes || !this.audioCtx) return;
+        try {
+            const now = this.audioCtx.currentTime;
+            const { osc1, droneGain } = this.spectralDroneNodes;
+            droneGain.gain.linearRampToValueAtTime(0.001, now + 0.6);
+            setTimeout(() => {
+                try {
+                    osc1.stop();
+                    osc1.disconnect();
+                    droneGain.disconnect();
+                } catch (_) {}
+            }, 650);
+        } catch (_) {}
+        this.spectralDroneNodes = null;
+    }
+
+    /**
+     * Subtle horror sound effect for button hovers / taps
+     */
+    playHorrorHover() {
+        if (!this.sfxEnabled || !this.audioCtx) return;
+        try {
+            const now = this.audioCtx.currentTime;
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(740, now);
+            osc.frequency.exponentialRampToValueAtTime(320, now + 0.045);
+
+            gain.gain.setValueAtTime(0.04 * this.sfxVolume, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.045);
+        } catch (_) {}
+    }
+
+    /**
+     * Subtle horror sound effect for answer reveals
+     */
+    playHorrorReveal(isCorrect = true) {
+        if (!this.sfxEnabled || !this.audioCtx) return;
+        try {
+            const now = this.audioCtx.currentTime;
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+
+            if (isCorrect) {
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.18);
+                gain.gain.setValueAtTime(0.25 * this.sfxVolume, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+            } else {
+                osc.type = "sawtooth";
+                osc.frequency.setValueAtTime(130, now);
+                osc.frequency.linearRampToValueAtTime(65, now + 0.25);
+                gain.gain.setValueAtTime(0.22 * this.sfxVolume, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            }
+
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } catch (_) {}
+    }
 }
+
