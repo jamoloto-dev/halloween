@@ -1,6 +1,7 @@
 """Playwright browser end-to-end tests for Spooky Master / Halloween Quiz."""
 
 import json
+import os
 import re
 import urllib.error
 import urllib.request
@@ -12,7 +13,7 @@ pytest.importorskip("playwright")
 
 from playwright.sync_api import Page, expect
 
-BASE_URL = "http://localhost:5000"
+BASE_URL = os.getenv("TEST_BASE_URL", "http://localhost:5000")
 
 pytestmark = [pytest.mark.e2e]
 
@@ -56,6 +57,9 @@ def test_homepage_elements_and_categories(live_page: Page):
 
     # Brand and setup card
     expect(live_page.locator(".brand-title")).to_be_visible()
+
+    # Open Crypt Rules modal
+    live_page.locator("#tile-dash-crypt-rules").click()
     expect(live_page.locator("#player-name")).to_be_visible()
 
     # Top nav must contain only Brand, Progress, Leaderboard, Settings (and Install if available)
@@ -68,19 +72,24 @@ def test_homepage_elements_and_categories(live_page: Page):
     expect(live_page.locator(".top-nav #btn-sound-toggle")).not_to_be_attached()
     expect(live_page.locator(".top-nav #music-volume-slider")).not_to_be_attached()
     expect(live_page.locator(".top-nav #sfx-volume-slider")).not_to_be_attached()
+    live_page.locator("#btn-close-crypt-rules").click()
 
-    # Verify all 6 canonical categories are rendered as interactive cards
+    # Verify all 6 canonical categories are rendered as interactive cards in Categories modal
+    live_page.locator("#tile-dash-trivia-categories").click()
     expected_categories = ["spooky", "costumes", "movies", "history", "candy", "paranormal"]
     for cat in expected_categories:
         cat_card = live_page.locator(f".category-card:has(input[value='{cat}'])")
         expect(cat_card).to_be_visible()
         cat_input = live_page.locator(f".category-card input[value='{cat}']")
         expect(cat_input).to_be_checked()
+    live_page.locator("#btn-close-trivia-categories").click()
 
-    # Verify difficulty options
+    # Verify difficulty options in Crypt Rules modal
+    live_page.locator("#tile-dash-crypt-rules").click()
     expect(live_page.locator("input[name='difficulty'][value='easy']")).to_be_attached()
     expect(live_page.locator("input[name='difficulty'][value='medium']")).to_be_checked()
     expect(live_page.locator("input[name='difficulty'][value='hard']")).to_be_attached()
+    live_page.locator("#btn-close-crypt-rules").click()
 
 
 def test_audio_controls_in_settings_modal(live_page: Page):
@@ -140,6 +149,7 @@ def test_audio_controls_in_settings_modal(live_page: Page):
 
 def test_category_selection_cards_and_guards(live_page: Page):
     """Verify category card toggle behavior, check indicators, and zero-category guard."""
+    live_page.locator("#tile-dash-trivia-categories").click()
     cards = live_page.locator(".category-card")
     expect(cards).to_have_count(6)
 
@@ -171,6 +181,7 @@ def test_category_selection_cards_and_guards(live_page: Page):
     checkboxes = live_page.locator(".category-card input[type='checkbox']")
     for i in range(6):
         expect(checkboxes.nth(i)).not_to_be_checked()
+    live_page.locator("#btn-close-trivia-categories").click()
 
     # Handle dialog alert when trying to start with 0 categories
     alert_messages = []
@@ -181,16 +192,21 @@ def test_category_selection_cards_and_guards(live_page: Page):
 
     live_page.on("dialog", handle_dialog)
 
+    # Switch to crypt rules to attempt starting
+    live_page.locator("#tile-dash-crypt-rules").click()
     live_page.locator("#btn-start").click()
     assert len(alert_messages) > 0
     assert "at least one category" in alert_messages[0].lower()
     expect(live_page.locator("#screen-start")).to_be_visible()
     expect(live_page.locator("#screen-quiz")).not_to_be_visible()
+    live_page.locator("#btn-close-crypt-rules").click()
 
     # Restore all categories using Select All button
+    live_page.locator("#tile-dash-trivia-categories").click()
     live_page.locator("#btn-select-all-cats").click()
     for i in range(6):
         expect(checkboxes.nth(i)).to_be_checked()
+    live_page.locator("#btn-close-trivia-categories").click()
 
 
 def test_sampled_audio_failure_falls_back_without_throwing(live_page: Page):
@@ -318,6 +334,7 @@ def test_profile_and_mastery_dashboard(live_page: Page):
 
 def test_profile_customization_from_start_screen(live_page: Page):
     """Change avatar via picker drawer and verify persistence in profile."""
+    live_page.locator("#tile-dash-crypt-rules").click()
     avatar_btn = live_page.locator("#btn-start-change-avatar")
     expect(avatar_btn).to_be_visible()
     avatar_btn.click()
@@ -341,11 +358,13 @@ def test_profile_customization_from_start_screen(live_page: Page):
     profile_raw = live_page.evaluate("() => localStorage.getItem('spooky_player_profile')")
     profile = json.loads(profile_raw)
     assert profile["avatar_id"] == "werewolf"
+    live_page.locator("#btn-close-crypt-rules").click()
 
 
 def test_complete_quiz_gameplay_flow(live_page: Page):
     """Start game, answer questions, inspect feedback, use keyboard, complete round."""
-    # Set player name and select 5 questions for a quick round
+    # Open Crypt Rules to set player name and select 5 questions for a quick round
+    live_page.locator("#tile-dash-crypt-rules").click()
     name_input = live_page.locator("#player-name")
     name_input.fill("Playwright Hunter")
     live_page.locator("#num-questions").select_option("5")
@@ -470,6 +489,7 @@ def test_settings_modal_accessibility_toggles(live_page: Page):
 
 def test_endless_mode_hud_and_strikes(live_page: Page):
     """Select Endless mode and verify the 3-lives HUD appears during gameplay."""
+    live_page.locator("#tile-dash-crypt-rules").click()
     # Select Endless mode
     endless_radio = live_page.locator("input[name='mode'][value='endless']")
     endless_radio.check(force=True)
@@ -573,6 +593,7 @@ def test_haunted_duels_creation_and_traps(live_page: Page):
 
 def test_explore_chapter_map_button(live_page: Page):
     """Clicking 'Explore Chapter Map' button opens canonical Campaign modal."""
+    live_page.locator("#tile-dash-campaign-preview").click()
     btn = live_page.locator("#btn-hero-journey")
     expect(btn).to_be_visible()
     btn.click()
@@ -635,7 +656,7 @@ def test_progress_navigation(live_page: Page):
 
 def test_nav_branding_returns_home(live_page: Page):
     """Clicking top-nav branding returns to start screen from active quiz."""
-    live_page.locator("#btn-start").click()
+    live_page.locator("#btn-enter-the-haunt").click()
     expect(live_page.locator("#screen-quiz")).to_be_visible()
 
     live_page.locator("#nav-branding-home").click()
@@ -670,6 +691,7 @@ def test_correct_sample_mapping(live_page: Page):
     assert mapping == "/sounds/answer-correct.wav"
 
     # Start game to reach active question screen
+    live_page.locator("#tile-dash-crypt-rules").click()
     live_page.locator("#num-questions").select_option("5")
     live_page.locator("#btn-start").click()
     expect(live_page.locator("#screen-quiz")).to_be_visible()
@@ -710,7 +732,7 @@ def test_incorrect_sample_mapping(live_page: Page):
     assert mapping == "/sounds/answer-incorrect.wav"
 
     # Start game to reach active question screen
-    live_page.locator("#btn-start").click()
+    live_page.locator("#btn-enter-the-haunt").click()
     expect(live_page.locator("#screen-quiz")).to_be_visible()
 
     live_page.evaluate("""() => {
@@ -756,11 +778,13 @@ def test_category_sound_mapping(live_page: Page):
         };
     }""")
 
+    live_page.locator("#tile-dash-trivia-categories").click()
     cards = live_page.locator(".category-card")
     cards.first.click()
 
     event_log = live_page.evaluate("() => window.__audio_event_log")
     assert "category_select" in event_log
+    live_page.locator("#btn-close-trivia-categories").click()
 
 
 def test_audio_settings_persistence(live_page: Page):
@@ -827,11 +851,14 @@ def test_onboarding_overlay_dismissal_and_no_blocking(page: Page):
     close_btn.click()
     expect(onboarding).not_to_be_visible()
 
-    # Explore Chapter Map can now be clicked directly without any overlay blocking
+    # Explore Chapter Map can now be accessed via Campaign Preview deck without any overlay blocking
+    page.locator("#tile-dash-campaign-preview").click()
     page.locator("#btn-hero-journey").click()
     expect(page.locator("#modal-campaign")).to_be_visible()
     page.locator("#btn-close-campaign").click()
     expect(page.locator("#modal-campaign")).not_to_be_visible()
+    if page.locator("#modal-deck-campaign").is_visible():
+        page.locator("#btn-close-deck-campaign").click()
 
 
 def test_lobby_hero_and_identity_banner(live_page: Page):
@@ -878,6 +905,7 @@ def test_lobby_enter_the_haunt_flow(live_page: Page):
 
 def test_lobby_journey_card_and_stage_preview(live_page: Page):
     """Verify Journey continue card, dynamic stage progression map, and navigation."""
+    live_page.locator("#tile-dash-campaign-preview").click()
     expect(live_page.locator("#lobby-journey-card")).to_be_visible()
     expect(live_page.locator("#lobby-journey-heading")).to_be_visible()
     expect(live_page.locator("#lobby-stage-progression-map")).to_be_visible()
@@ -894,10 +922,13 @@ def test_lobby_journey_card_and_stage_preview(live_page: Page):
     expect(live_page.locator("#modal-campaign")).to_be_visible()
     live_page.locator("#btn-close-campaign").click()
     expect(live_page.locator("#modal-campaign")).not_to_be_visible()
+    if live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#btn-close-deck-campaign").click()
 
 
 def test_lobby_quick_cards_and_navigation(live_page: Page):
     """Verify Quick Play, Daily Haunt, and Haunted Duels quick action buttons."""
+    live_page.locator("#tile-dash-campaign-preview").click()
     # Duels button opens duels modal
     btn_duels = live_page.locator("#btn-lobby-duels")
     expect(btn_duels).to_be_visible()
@@ -905,6 +936,9 @@ def test_lobby_quick_cards_and_navigation(live_page: Page):
     expect(live_page.locator("#modal-duels")).to_be_visible()
     live_page.locator("#btn-close-duels").click()
     expect(live_page.locator("#modal-duels")).not_to_be_visible()
+
+    if not live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#tile-dash-campaign-preview").click()
 
     # Quick Play starts a 5-question session
     btn_quick = live_page.locator("#btn-lobby-quick-play")
@@ -918,6 +952,7 @@ def test_lobby_quick_cards_and_navigation(live_page: Page):
 
 def test_lobby_spooky_guide_hint_cycling(live_page: Page):
     """Verify Spooky Guide box renders quotes and cycling button updates hint."""
+    live_page.locator("#tile-dash-campaign-preview").click()
     quote_el = live_page.locator("#lobby-guide-quote")
     expect(quote_el).to_be_visible()
     initial_text = quote_el.inner_text()
@@ -930,10 +965,12 @@ def test_lobby_spooky_guide_hint_cycling(live_page: Page):
 
     updated_text = quote_el.inner_text()
     assert updated_text != initial_text
+    live_page.locator("#btn-close-deck-campaign").click()
 
 
 def test_lobby_snapshot_and_nav_pills(live_page: Page):
     """Verify snapshot metrics and secondary nav pills (Leaderboard, Settings, Progress)."""
+    live_page.locator("#tile-dash-campaign-preview").click()
     expect(live_page.locator("#lobby-progress-snapshot")).to_be_visible()
     expect(live_page.locator("#lobby-stat-games")).to_be_visible()
     expect(live_page.locator("#lobby-stat-streak")).to_be_visible()
@@ -946,17 +983,25 @@ def test_lobby_snapshot_and_nav_pills(live_page: Page):
     live_page.locator("#btn-close-mastery").click()
     expect(live_page.locator("#modal-mastery")).not_to_be_visible()
 
+    if not live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#tile-dash-campaign-preview").click()
+
     # Leaderboard button opens leaderboard modal
     live_page.locator("#btn-lobby-leaderboard").click()
     expect(live_page.locator("#modal-leaderboard")).to_be_visible()
     live_page.locator("#btn-close-modal").click()
     expect(live_page.locator("#modal-leaderboard")).not_to_be_visible()
 
+    if not live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#tile-dash-campaign-preview").click()
+
     # Settings button opens settings modal
     live_page.locator("#btn-lobby-settings").click()
     expect(live_page.locator("#modal-settings")).to_be_visible()
     live_page.locator("#btn-close-settings").click()
     expect(live_page.locator("#modal-settings")).not_to_be_visible()
+    if live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#btn-close-deck-campaign").click()
 
 
 def test_lobby_clean_console_and_page_health(page: Page):
@@ -993,6 +1038,7 @@ def test_lobby_avatar_guises_dock_switching(live_page: Page):
 
 def test_lobby_daily_haunt_flow(live_page: Page):
     """Verify clicking DAILY HAUNT card starts a 10-question daily challenge session."""
+    live_page.locator("#tile-dash-campaign-preview").click()
     btn_daily = live_page.locator("#btn-lobby-daily-haunt")
     expect(btn_daily).to_be_visible()
     btn_daily.click()
@@ -1008,6 +1054,7 @@ def test_lobby_daily_haunt_flow(live_page: Page):
 
 def test_lobby_progress_snapshot_card_click(live_page: Page):
     """Clicking anywhere on the progress snapshot card opens the full hunter mastery modal."""
+    live_page.locator("#tile-dash-campaign-preview").click()
     snapshot_card = live_page.locator("#lobby-progress-snapshot")
     expect(snapshot_card).to_be_visible()
     snapshot_card.click()
@@ -1015,6 +1062,8 @@ def test_lobby_progress_snapshot_card_click(live_page: Page):
     expect(live_page.locator("#modal-mastery")).to_be_visible()
     live_page.locator("#btn-close-mastery").click()
     expect(live_page.locator("#modal-mastery")).not_to_be_visible()
+    if live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#btn-close-deck-campaign").click()
 
 
 def test_lobby_reduced_motion_behavior(live_page: Page):
@@ -1081,27 +1130,34 @@ def test_final_manual_journey_complete_sequence(live_page: Page):
     expect(live_page.locator("#screen-start")).to_be_visible()
 
     # 7 & 8. Continue Journey & Journey opens
+    live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-continue-journey").click()
     expect(live_page.locator("#modal-campaign")).to_be_visible()
     live_page.locator("#btn-close-campaign").click()
     expect(live_page.locator("#modal-campaign")).not_to_be_visible()
 
     # 9 & 10. Explore Chapter Map & Chapter map opens
+    if not live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-hero-journey").click()
     expect(live_page.locator("#modal-campaign")).to_be_visible()
     live_page.locator("#btn-close-campaign").click()
     expect(live_page.locator("#modal-campaign")).not_to_be_visible()
 
     # 11. Return Home
+    if live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#btn-close-deck-campaign").click()
     expect(live_page.locator("#screen-start")).to_be_visible()
 
     # 12 & 13. Daily Haunt & Return Home
+    live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-daily-haunt").click()
     expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
     live_page.locator("#nav-branding-home").click()
     expect(live_page.locator("#screen-start")).to_be_visible()
 
     # 14 & 15. Haunted Duels & Return Home
+    live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-duels").click()
     expect(live_page.locator("#modal-duels")).to_be_visible()
     live_page.locator("#btn-close-duels").click()
@@ -1109,6 +1165,7 @@ def test_final_manual_journey_complete_sequence(live_page: Page):
     expect(live_page.locator("#screen-start")).to_be_visible()
 
     # 16 & 17. Progress & Return Home
+    live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-progress").click()
     expect(live_page.locator("#modal-mastery")).to_be_visible()
     live_page.locator("#btn-close-mastery").click()
@@ -1116,12 +1173,16 @@ def test_final_manual_journey_complete_sequence(live_page: Page):
     expect(live_page.locator("#screen-start")).to_be_visible()
 
     # 18. Leaderboard
+    if not live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-leaderboard").click()
     expect(live_page.locator("#modal-leaderboard")).to_be_visible()
     live_page.locator("#btn-close-modal").click()
     expect(live_page.locator("#modal-leaderboard")).not_to_be_visible()
 
     # 19 & 20. Settings & Adjust sound
+    if not live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-settings").click()
     expect(live_page.locator("#modal-settings")).to_be_visible()
     sound_toggle = live_page.locator("#modal-btn-sound-toggle")
@@ -1131,9 +1192,12 @@ def test_final_manual_journey_complete_sequence(live_page: Page):
     # 21. Return Home
     live_page.locator("#btn-close-settings").click()
     expect(live_page.locator("#modal-settings")).not_to_be_visible()
+    if live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#btn-close-deck-campaign").click()
     expect(live_page.locator("#screen-start")).to_be_visible()
 
     # 22 & 23. Quick Play & Start quiz
+    live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-quick-play").click()
     expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
     expect(live_page.locator("#q-counter")).to_contain_text("of 5")
@@ -1220,6 +1284,7 @@ def test_v25_full_regression_journey_complete_flow(live_page: Page):
     expect(live_page.locator("#screen-start")).to_be_visible()
 
     # 9. Quick Play
+    live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-quick-play").click()
     expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
 
@@ -1249,12 +1314,16 @@ def test_v25_full_regression_journey_complete_flow(live_page: Page):
     expect(live_page.locator("#screen-start")).to_be_visible()
 
     # 13. Progress
+    live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-progress").click()
     expect(live_page.locator("#modal-mastery")).to_be_visible()
     live_page.locator("#btn-close-mastery").click()
     expect(live_page.locator("#modal-mastery")).not_to_be_visible()
+    if live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#btn-close-deck-campaign").click()
 
     # 14. Hunter Studio
+    live_page.locator("#tile-dash-crypt-rules").click()
     live_page.locator("#btn-start-change-avatar").click()
     expect(live_page.locator("#modal-avatar-picker")).to_be_visible()
     live_page.locator("#tab-avatar-generator").click()
@@ -1266,20 +1335,27 @@ def test_v25_full_regression_journey_complete_flow(live_page: Page):
     expect(equip_btn).to_be_visible(timeout=5000)
     equip_btn.click()
     expect(live_page.locator("#modal-avatar-picker")).not_to_be_visible()
+    if live_page.locator("#modal-crypt-rules").is_visible():
+        live_page.locator("#btn-close-crypt-rules").click()
 
     # 16. Leaderboard
+    live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-leaderboard").click()
     expect(live_page.locator("#modal-leaderboard")).to_be_visible()
     live_page.locator("#btn-close-modal").click()
     expect(live_page.locator("#modal-leaderboard")).not_to_be_visible()
 
     # 17. Settings
+    if not live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-settings").click()
     expect(live_page.locator("#modal-settings")).to_be_visible()
     live_page.locator("#btn-close-settings").click()
     expect(live_page.locator("#modal-settings")).not_to_be_visible()
 
     # 18. Daily Haunt
+    if not live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-daily-haunt").click()
     expect(live_page.locator("#screen-quiz")).to_be_visible(timeout=5000)
 
@@ -1289,12 +1365,15 @@ def test_v25_full_regression_journey_complete_flow(live_page: Page):
     # 20. Duels
     live_page.locator("#nav-branding-home").click()
     expect(live_page.locator("#screen-start")).to_be_visible()
+    live_page.locator("#tile-dash-campaign-preview").click()
     live_page.locator("#btn-lobby-duels").click()
     expect(live_page.locator("#modal-duels")).to_be_visible()
 
     # 21. Return Home
     live_page.locator("#btn-close-duels").click()
     expect(live_page.locator("#modal-duels")).not_to_be_visible()
+    if live_page.locator("#modal-deck-campaign").is_visible():
+        live_page.locator("#btn-close-deck-campaign").click()
     expect(live_page.locator("#screen-start")).to_be_visible()
 
     # 22. Console & Page Error verification
