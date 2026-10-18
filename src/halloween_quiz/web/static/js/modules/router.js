@@ -121,7 +121,7 @@ export class GameRouter {
         }
 
         const match = this.matchRoute(pathname);
-        if (!match) {
+        if (!match || match.route.page === "privacy") {
             window.location.href = pathname;
             return;
         }
@@ -157,8 +157,10 @@ export class GameRouter {
             !this.app.hasEnteredGate();
 
         if (isGated) {
+            const isResultsWithSession =
+                resolved.route.page === "results" && Boolean(resolved.params?.sessionId);
             const nonPostAuthPages = new Set(["home", "quiz", "results", "privacy"]);
-            if (match && !nonPostAuthPages.has(resolved.route.page)) {
+            if (match && (!nonPostAuthPages.has(resolved.route.page) || isResultsWithSession)) {
                 this.app.pendingPostAuthRoute = pathname;
             } else {
                 this.app.pendingPostAuthRoute = null;

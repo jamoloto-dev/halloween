@@ -646,3 +646,302 @@ def test_e2e_deep_link_post_auth_destination_and_invalid_token_gate(page):
     assert token_state["token"] is None
     assert token_state["gate"] is None
     assert token_state["hasEntered"] is False
+
+
+@pytest.mark.e2e
+def test_e2e_parameterized_routes_and_aliases_clean_gate_and_destinations(page):
+    """Verify cold clean-storage visits on parameterized routes and aliases (/journey/chapter/:id, /duels/:code, /duel/:code, /results/:sessionId) and public /privacy."""
+    if not _is_server_available(BASE_URL):
+        pytest.skip(f"Web server at {BASE_URL} not reachable.")
+
+    import json
+
+    from playwright.sync_api import expect
+
+    # 1. Create real valid server-side fixtures via API (chapter ID, duel code, and completed quiz session ID)
+    with urllib.request.urlopen(f"{BASE_URL}/api/campaign/chapters", timeout=5.0) as ch_res:
+        chapters_payload = json.loads(ch_res.read().decode("utf-8"))
+    valid_chapter_id = chapters_payload["chapters"][0]["id"]
+    expected_chapter_title = chapters_payload["chapters"][0]["title"]
+
+    duel_req = urllib.request.Request(
+        f"{BASE_URL}/api/duels",
+        data=json.dumps({
+            "creator_id": "fixture_creator_1",
+            "creator_name": "Countess Bathory",
+            "creator_avatar": "vampire",
+            "difficulty": "medium",
+            "num_questions": 5,
+            "traps": ["ghost_fog"],
+        }).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(duel_req, timeout=5.0) as duel_res:
+        duel_payload = json.loads(duel_res.read().decode("utf-8"))
+    valid_duel_code = duel_payload["duel_code"]
+
+    start_req = urllib.request.Request(
+        f"{BASE_URL}/api/quiz/start",
+        data=json.dumps({
+            "player_name": "SessionFixtureHunter",
+            "avatar_id": "pumpkin_hunter",
+            "difficulty": "medium",
+            "mode": "classic",
+            "num_questions": 1,
+            "time_limit_per_question": 20,
+        }).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(start_req, timeout=5.0) as s_res:
+        start_payload = json.loads(s_res.read().decode("utf-8"))
+    valid_session_id = start_payload["session_id"]
+    first_option = start_payload["first_question"]["options"][0]
+
+    ans_req = urllib.request.Request(
+        f"{BASE_URL}/api/quiz/{valid_session_id}/answer",
+        data=json.dumps({"answer": first_option, "time_taken": 2.5}).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(ans_req, timeout=5.0) as a_res:
+        ans_payload = json.loads(a_res.read().decode("utf-8"))
+    assert ans_payload["is_game_over"] is True
+
+    forbidden_selectors = [
+        "#modal-auth",
+        "#screen-start",
+        "#screen-quiz",
+        "#screen-gameover",
+        "#page-hunt",
+        "#page-genie",
+        "#page-daily-haunt",
+        "#page-duel-invite",
+        "#modal-campaign",
+        "#modal-duels",
+        "#modal-mastery",
+        "#modal-leaderboard",
+        "#modal-settings",
+        "#modal-premium",
+        "#modal-avatar-picker",
+    ]
+
+    parameterized_cases = [
+        (f"/journey/chapter/{valid_chapter_id}", "#modal-campaign"),
+        (f"/duels/{valid_duel_code}", "#page-duel-invite"),
+        (f"/duel/{valid_duel_code}", "#page-duel-invite"),
+        (f"/results/{valid_session_id}", "#screen-gameover"),
+    ]
+
+    page.goto(BASE_URL)
+    page.wait_for_load_state("networkidle")
+
+    for route, target_selector in parameterized_cases:
+        page.evaluate("() => localStorage.clear()")
+        page.goto(f"{BASE_URL}{route}")
+        page.wait_for_load_state("networkidle")
+
+        # Verify cold visit lands on landing screen with gate incomplete and audio not started
+        expect(page.locator("#screen-landing")).to_be_visible()
+        expect(page.locator("#btn-landing-enter")).to_be_visible()
+
+        for sel in forbidden_selectors:
+            expect(page.locator(sel)).not_to_be_visible()
+
+        cold_state = page.evaluate("""() => ({
+            pathname: window.location.pathname,
+            activeScreen: document.body.getAttribute('data-active-screen'),
+            hasEnteredGate: window.halloweenApp.hasEnteredGate(),
+            ambienceRequested: window.halloweenApp.sound.ambienceRequested,
+            bgmPaused: document.getElementById('bgm-audio').paused,
+            pendingPostAuthRoute: window.halloweenApp.pendingPostAuthRoute,
+        })""")
+        assert cold_state["pathname"] == route
+        assert cold_state["activeScreen"] == "landing"
+        assert cold_state["hasEnteredGate"] is False
+        assert cold_state["ambienceRequested"] is False
+        assert cold_state["bgmPaused"] is True
+        assert cold_state["pendingPostAuthRoute"] == route
+
+        # Complete ENTER -> Guest entry and verify arrival at exact parameterized destination
+        page.locator("#btn-landing-enter").click()
+        expect(page.locator("#modal-auth")).to_be_visible()
+        page.locator("#btn-auth-quick-guest").click()
+
+        expect(page).to_have_url(re.compile(rf"{re.escape(route)}$"))
+        expect(page.locator(target_selector)).to_be_visible()
+
+        if route.startswith("/journey/chapter/"):
+            expect(page.locator("#chapter-title")).to_have_text(expected_chapter_title)
+        elif route.startswith("/duel"):
+            expect(page.locator("#invite-duel-code-display")).to_have_text(valid_duel_code)
+            expect(page.locator("#invite-challenger-name")).to_have_text("Countess Bathory")
+        elif route.startswith("/results/"):
+            expect(page.locator("#review-list .review-item")).to_have_count(1)
+
+    # 2. Verify /results/<invalid-session-id> safely falls back to the dashboard after entry
+    invalid_results_route = "/results/nonexistent-session-999"
+    page.evaluate("() => localStorage.clear()")
+    page.goto(f"{BASE_URL}{invalid_results_route}")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+    expect(page.locator("#screen-gameover")).not_to_be_visible()
+
+    page.locator("#btn-landing-enter").click()
+    expect(page.locator("#modal-auth")).to_be_visible()
+    page.locator("#btn-auth-quick-guest").click()
+
+    expect(page).to_have_url(re.compile(r"/$"))
+    expect(page.locator("#screen-start")).to_be_visible()
+    expect(page.locator("#screen-gameover")).not_to_be_visible()
+
+    # 3. Verify /privacy remains intentionally public even with clean localStorage
+    page.evaluate("() => localStorage.clear()")
+    page.goto(f"{BASE_URL}/privacy")
+    page.wait_for_load_state("networkidle")
+    assert "Privacy Policy" in page.title()
+    expect(page.locator("h1")).to_contain_text("Privacy Policy")
+
+
+@pytest.mark.e2e
+def test_e2e_offline_auth_fallback_history_reload_and_real_audio_sync(page):
+    """Verify network-unreachable /api/auth/me handling, reload & Back/Forward history, and real audio volume/mute/navigation behavior."""
+    if not _is_server_available(BASE_URL):
+        pytest.skip(f"Web server at {BASE_URL} not reachable.")
+
+    from playwright.sync_api import expect
+
+    # 1. Network-unreachable /api/auth/me check:
+    # (a) When spooky_session_token is present WITHOUT spooky_gate_entered, offline failure keeps gate closed
+    page.goto(BASE_URL)
+    page.wait_for_load_state("networkidle")
+    page.evaluate("""() => {
+        localStorage.clear();
+        localStorage.setItem('spooky_session_token', 'unverified_offline_token');
+    }""")
+    page.route("**/api/auth/me", lambda route: route.abort("failed"))
+    page.goto(f"{BASE_URL}/hunt")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+    expect(page.locator("#page-hunt")).not_to_be_visible()
+    assert page.evaluate("() => window.halloweenApp.hasEnteredGate()") is False
+
+    # (b) When returning player has spooky_gate_entered='true' AND /api/auth/me fails due to offline network,
+    # offline fallback preserves access to destination
+    page.evaluate("""() => {
+        localStorage.setItem('spooky_gate_entered', 'true');
+        localStorage.setItem('spooky_session_token', 'returning_offline_token');
+    }""")
+    page.goto(f"{BASE_URL}/hunt")
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#page-hunt")).to_be_visible()
+    assert page.evaluate("() => window.halloweenApp._authNetworkOffline") is True
+    assert page.evaluate("() => window.halloweenApp.hasEnteredGate()") is True
+    page.unroute("**/api/auth/me")
+
+    # 2. Clean entry -> Audio volume slider, mute/unmute synchronization across screens, and no track restart on navigation
+    page.evaluate("() => localStorage.clear()")
+    page.goto(BASE_URL)
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#screen-landing")).to_be_visible()
+
+    page.locator("#btn-landing-enter").click()
+    expect(page.locator("#modal-auth")).to_be_visible()
+    page.locator("#btn-auth-quick-guest").click()
+    expect(page.locator("#screen-start")).to_be_visible()
+
+    # Verify navigating to /hunt and /genie does NOT reset track, change audio source, or trigger redundant play() calls
+    page.evaluate("""() => {
+        const audio = document.getElementById('bgm-audio');
+        window.__bgmSrcBeforeNav = audio.currentSrc || audio.src;
+        window.__bgmTimeBeforeNav = audio.currentTime;
+        window.__bgmPlayCalls = 0;
+        const origPlay = audio.play;
+        audio.play = function(...args) {
+            window.__bgmPlayCalls++;
+            return origPlay.apply(this, args);
+        };
+    }""")
+    page.wait_for_timeout(200)
+    page.locator('.top-nav a[data-route="/hunt"]').click()
+    expect(page).to_have_url(re.compile(r"/hunt$"))
+    expect(page.locator("#page-hunt")).to_be_visible()
+
+    nav_audio_state = page.evaluate("""() => {
+        const audio = document.getElementById('bgm-audio');
+        return {
+            currentTime: audio.currentTime,
+            timeBefore: window.__bgmTimeBeforeNav,
+            sameSrc: (audio.currentSrc || audio.src) === window.__bgmSrcBeforeNav,
+            paused: audio.paused,
+            playCalls: window.__bgmPlayCalls,
+        };
+    }""")
+    assert nav_audio_state["sameSrc"] is True
+    assert nav_audio_state["paused"] is False
+    assert nav_audio_state["currentTime"] >= nav_audio_state["timeBefore"]
+    assert nav_audio_state["playCalls"] == 0
+
+    # Browser reload (F5) and Back/Forward navigation preserve gate and view state
+    page.locator('.top-nav a[data-route="/genie"]').click()
+    expect(page).to_have_url(re.compile(r"/genie$"))
+    expect(page.locator("#page-genie")).to_be_visible()
+
+    page.go_back()
+    expect(page).to_have_url(re.compile(r"/hunt$"))
+    expect(page.locator("#page-hunt")).to_be_visible()
+
+    page.go_forward()
+    expect(page).to_have_url(re.compile(r"/genie$"))
+    expect(page.locator("#page-genie")).to_be_visible()
+
+    page.reload()
+    page.wait_for_load_state("networkidle")
+    expect(page).to_have_url(re.compile(r"/genie$"))
+    expect(page.locator("#page-genie")).to_be_visible()
+    expect(page.locator("#screen-landing")).not_to_be_visible()
+
+    # Open Settings and verify music volume slider changes actual HTMLAudioElement.volume
+    page.locator("#btn-settings-open").click()
+    expect(page.locator("#modal-settings")).to_be_visible()
+    page.locator("#modal-music-slider").evaluate(
+        "(el) => { el.value = '0.25'; el.dispatchEvent(new Event('input', { bubbles: true })); }"
+    )
+    vol_state = page.evaluate("""() => ({
+        soundVol: window.halloweenApp.sound.musicVolume,
+        elemVol: document.getElementById('bgm-audio').volume,
+    })""")
+    assert abs(vol_state["soundVol"] - 0.25) < 0.01
+    assert abs(vol_state["elemVol"] - 0.25) < 0.01
+    page.locator("#btn-close-settings").click()
+
+    # Verify top-nav music toggle synchronizes with gameplay HUD audio toggle and settings toggle
+    page.locator("#btn-nav-music-toggle").click()
+    mute_sync = page.evaluate("""() => ({
+        musicEnabled: window.halloweenApp.sound.musicEnabled,
+        bgmPlaying: window.halloweenApp.sound.bgmPlaying,
+        navPressed: document.getElementById('btn-nav-music-toggle').getAttribute('aria-pressed'),
+        quizPressed: document.getElementById('btn-quiz-audio-toggle').getAttribute('aria-pressed'),
+    })""")
+    assert mute_sync["musicEnabled"] is False
+    assert mute_sync["bgmPlaying"] is False
+    assert mute_sync["navPressed"] == "false"
+    assert mute_sync["quizPressed"] == "false"
+
+    # Unmute via top-nav toggle and verify synchronized restoration
+    page.locator("#btn-nav-music-toggle").click()
+    expect(page.locator("#btn-nav-music-toggle")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("#btn-quiz-audio-toggle")).to_have_attribute("aria-pressed", "true")
+    assert page.evaluate("() => window.halloweenApp.sound.musicEnabled") is True
+
+    # Verify missing audio asset fallback does not throw
+    missing_ok = page.evaluate("""() => {
+        try {
+            window.halloweenApp.sound.play('nonexistent_sound_key_xyz');
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }""")
+    assert missing_ok is True

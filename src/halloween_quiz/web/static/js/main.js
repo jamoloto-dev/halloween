@@ -754,9 +754,55 @@ export class HalloweenQuizApp {
         }
     }
 
-    bootstrapResults(sessionId = null) {
+    async bootstrapResults(sessionId = null) {
         if (!this.ensureGateEntered()) return;
-        this.showScreen("gameover");
+        if (this.sessionId && (!sessionId || this.sessionId === sessionId) && this.isGameOver) {
+            this.showScreen("gameover");
+            return;
+        }
+        if (sessionId) {
+            try {
+                const res = await fetch(`/api/quiz/${encodeURIComponent(sessionId)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.is_completed) {
+                        this.sessionId = sessionId;
+                        this.isGameOver = true;
+                        const summary = data.summary || {};
+                        if (this.dom.statFinalScore) this.dom.statFinalScore.textContent = String(data.score ?? 0);
+                        if (this.dom.statAccuracy) this.dom.statAccuracy.textContent = `${summary.percentage || 0}%`;
+                        if (this.dom.statCorrect) {
+                            this.dom.statCorrect.textContent = `${summary.correct_count || 0}/${summary.total_questions || data.total_questions || 10}`;
+                        }
+                        if (this.dom.statMaxStreak) this.dom.statMaxStreak.textContent = String(summary.max_streak || 0);
+                        if (this.dom.reviewList && Array.isArray(summary.history)) {
+                            this.dom.reviewList.innerHTML = "";
+                            summary.history.forEach((h, idx) => {
+                                const row = document.createElement("div");
+                                row.className = `review-item ${h.is_correct ? "item-correct" : "item-incorrect"}`;
+                                row.innerHTML = `
+                                    <div class="review-header">
+                                        <span class="review-index">#${idx + 1}</span>
+                                        <span class="review-q">${this.escapeHtml(h.question || "")}</span>
+                                        <span class="review-badge">${h.is_correct ? "✔ Correct" : "✖ Missed"}</span>
+                                    </div>
+                                    <div class="review-answers">
+                                        <div>Your Answer: <strong>${this.escapeHtml(h.selected_answer || "")}</strong></div>
+                                        ${!h.is_correct ? `<div>Correct: <strong class="correct-text">${this.escapeHtml(h.correct_answer || "")}</strong></div>` : ""}
+                                    </div>
+                                `;
+                                this.dom.reviewList.appendChild(row);
+                            });
+                        }
+                        this.showScreen("gameover");
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Results hydration warning:", err);
+            }
+        }
+        this.showScreen("start");
     }
 
     bootstrapJourney() {
@@ -768,6 +814,7 @@ export class HalloweenQuizApp {
     bootstrapJourneyChapter(chapterId) {
         if (!this.ensureGateEntered()) return;
         this.closeAllModals();
+        this.campaignMgr.requestedChapterId = chapterId;
         this.campaignMgr.openCampaign();
         if (this.campaignChapters && this.campaignChapters.length > 0) {
             const ch = this.campaignChapters.find(
@@ -1654,8 +1701,10 @@ export class HalloweenQuizApp {
 
         if (this.router && targetRoute) {
             const match = this.router.matchRoute(targetRoute);
+            const isResultsWithSession =
+                match && match.route.page === "results" && Boolean(match.params?.sessionId);
             const nonPostAuthPages = new Set(["home", "quiz", "results", "privacy"]);
-            if (match && !nonPostAuthPages.has(match.route.page)) {
+            if (match && (!nonPostAuthPages.has(match.route.page) || isResultsWithSession)) {
                 this.router.navigate(targetRoute, true);
                 return;
             }
@@ -2945,6 +2994,7 @@ export class HalloweenQuizApp {
             this.profile.preferences.music_enabled = this.sound.musicEnabled;
             this.saveProfile();
             this.syncSettingsUi();
+            this.updateMusicNavButton(this.sound.musicEnabled);
             if (p && typeof p.then === "function") {
                 p.then((started) => {
                     this.syncSettingsUi();

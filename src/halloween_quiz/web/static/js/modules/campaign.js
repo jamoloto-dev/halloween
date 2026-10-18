@@ -10,7 +10,8 @@ export class CampaignManager {
     constructor(app) {
         this.app = app;
         this.chapters = [];
-        this.activeChapterId = "chapter_1";
+        this.activeChapterId = "ch1_abandoned_manor";
+        this.requestedChapterId = null;
         this.selectedStageId = "stage_1_1";
     }
 
@@ -29,6 +30,25 @@ export class CampaignManager {
             const data = await res.json();
             this.chapters = data.chapters || [];
             this.app.campaignChapters = this.chapters; // sync reference
+            if (this.requestedChapterId && this.chapters.length > 0) {
+                const reqId = this.requestedChapterId;
+                const matched = this.chapters.find(
+                    (c) =>
+                        c.id === reqId ||
+                        c.id === `ch${reqId}` ||
+                        String(c.chapter_number) === String(reqId).replace(/\D/g, "")
+                );
+                if (matched) {
+                    this.activeChapterId = matched.id;
+                    this.app.activeChapterId = matched.id;
+                }
+            } else if (
+                this.chapters.length > 0 &&
+                !this.chapters.some((c) => c.id === this.activeChapterId)
+            ) {
+                this.activeChapterId = this.chapters[0].id;
+                this.app.activeChapterId = this.chapters[0].id;
+            }
             this.renderChapterTabs();
             this.renderChapterStages(this.activeChapterId);
             this.app.renderLobbyExperience?.();
