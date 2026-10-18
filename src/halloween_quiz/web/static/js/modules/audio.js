@@ -34,12 +34,26 @@ export class SoundEngine {
 
         this.initAudioContext();
         this.preloadSoundEffects();
+        this._playPendingPromise = null;
 
         if (this.bgmAudio) {
             this.bgmAudio.addEventListener("error", () => {
                 console.warn("Background music file error; continuing without music.");
                 this.backgroundAvailable = false;
                 this.bgmPlaying = false;
+                this.notifyBgmStateChange();
+            });
+            this.bgmAudio.addEventListener("playing", () => {
+                this.bgmPlaying = !this.bgmAudio.paused && !this.bgmAudio.muted;
+                this.isAutoplayBlocked = false;
+                this.notifyBgmStateChange();
+            });
+            this.bgmAudio.addEventListener("pause", () => {
+                this.bgmPlaying = false;
+                this.notifyBgmStateChange();
+            });
+            this.bgmAudio.addEventListener("volumechange", () => {
+                this.bgmPlaying = !this.bgmAudio.paused && !this.bgmAudio.muted && this.bgmAudio.volume > 0;
                 this.notifyBgmStateChange();
             });
         }
@@ -65,7 +79,7 @@ export class SoundEngine {
 
     unlock() {
         if (this.audioCtx && this.audioCtx.state === "suspended") {
-            this.audioCtx.resume();
+            this.audioCtx.resume().catch(() => {});
         }
     }
 
@@ -100,11 +114,20 @@ export class SoundEngine {
             this.bgmAudio.muted = !this.musicEnabled;
         }
         if (this.musicEnabled && this.ambienceRequested) {
-            this.startBackgroundAmbience();
-        } else if (!this.musicEnabled && this.bgmPlaying) {
-            this.stopBackgroundAmbience(false, 200);
+            return this.startBackgroundAmbience();
+        }
+        if (!this.musicEnabled) {
+            if (this.fadeFrame) {
+                cancelAnimationFrame(this.fadeFrame);
+                this.fadeFrame = null;
+            }
+            if (this.bgmAudio && !this.bgmAudio.paused) {
+                this.bgmAudio.pause();
+            }
+            this.bgmPlaying = false;
         }
         this.notifyBgmStateChange();
+        return Promise.resolve(this.bgmPlaying);
     }
 
     setMusicVolume(val) {
@@ -137,9 +160,10 @@ export class SoundEngine {
         }
 
         if (this.bgmAudio) {
-            const currentSrc = this.bgmAudio.getAttribute("src") || this.bgmAudio.currentSrc || "";
+            const sourceChildSrc = this.bgmAudio.querySelector("source")?.getAttribute("src") || "";
+            const currentSrc = this.bgmAudio.getAttribute("src") || this.bgmAudio.currentSrc || sourceChildSrc || "";
             if (!currentSrc || !currentSrc.includes(track.url)) {
-                const wasPlaying = this.bgmPlaying;
+                const wasPlaying = this.bgmPlaying || !this.bgmAudio.paused;
                 this.bgmAudio.src = track.url;
                 if (wasPlaying && restartIfPlaying && this.musicEnabled) {
                     this.startBackgroundAmbience();
@@ -158,12 +182,14 @@ export class SoundEngine {
     }
 
     toggleBgm() {
-        if (!this.bgmAudio) return false;
-        if (this.bgmPlaying || !this.bgmAudio.paused) {
-            this.setMusicEnabled(false);
-            return false;
+        if (!this.bgmAudio) return Promise.resolve(false);
+        const isCurrentlyPlaying = this.bgmPlaying && !this.bgmAudio.paused && !this.bgmAudio.muted;
+        if (isCurrentlyPlaying) {
+            return this.setMusicEnabled(false);
         }
-        this.setMusicEnabled(true);
+        this.musicEnabled = true;
+        this.isAutoplayBlocked = false;
+        this.bgmAudio.muted = false;
         return this.startBackgroundAmbience();
     }
 
@@ -206,7 +232,9 @@ export class SoundEngine {
 
     startBackgroundAmbience() {
         if (!this.bgmAudio || !this.backgroundAvailable || !this.musicEnabled || this.selectedTrack === "silent") {
-            return;
+            this.bgmPlaying = false;
+            this.notifyBgmStateChange();
+            return Promise.resolve(false);
         }
 
         this.ambienceRequested = true;
@@ -218,32 +246,61 @@ export class SoundEngine {
             this.bgmAudio.volume = this.musicVolume;
         }
 
-        if (this.bgmAudio.paused || this.bgmAudio.ended) {
-            const playPromise = this.bgmAudio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    this.bgmPlaying = true;
-                    this.isAutoplayBlocked = false;
-                    this.notifyBgmStateChange();
-                }).catch((err) => {
-                    console.warn("Autoplay blocked; waiting for user gesture.", err);
-                    this.bgmPlaying = false;
-                    this.isAutoplayBlocked = true;
-                    this.notifyBgmStateChange();
-                    this.attachAutoplayUnlocker();
-                });
-            }
-        } else {
-            this.bgmPlaying = true;
-            this.isAutoplayBlocked = false;
-            this.notifyBgmStateChange();
+        if (this._playPendingPromise) {
+            return this._playPendingPromise;
         }
+
+        if (this.bgmAudio.paused || this.bgmAudio.ended) {
+            try {
+                const playPromise = this.bgmAudio.play();
+                if (playPromise !== undefined && typeof playPromise.then === "function") {
+                    this._playPendingPromise = playPromise.then(() => {
+                        this._playPendingPromise = null;
+                        this.bgmPlaying = true;
+                        this.isAutoplayBlocked = false;
+                        this.notifyBgmStateChange();
+                        return true;
+                    }).catch((err) => {
+                        this._playPendingPromise = null;
+                        console.warn("Autoplay blocked; waiting for user gesture.", err);
+                        this.bgmPlaying = false;
+                        this.isAutoplayBlocked = true;
+                        this.notifyBgmStateChange();
+                        this.attachAutoplayUnlocker();
+                        return false;
+                    });
+                    return this._playPendingPromise;
+                }
+                this.bgmPlaying = !this.bgmAudio.paused;
+                this.isAutoplayBlocked = false;
+                this.notifyBgmStateChange();
+                return Promise.resolve(this.bgmPlaying);
+            } catch (err) {
+                console.warn("Audio play threw synchronously; continuing without blocking.", err);
+                this.bgmPlaying = false;
+                this.isAutoplayBlocked = true;
+                this.notifyBgmStateChange();
+                this.attachAutoplayUnlocker();
+                return Promise.resolve(false);
+            }
+        }
+
+        this.bgmPlaying = true;
+        this.isAutoplayBlocked = false;
+        this.notifyBgmStateChange();
+        return Promise.resolve(true);
     }
 
     attachAutoplayUnlocker() {
         if (this._unlockerAttached) return;
         this._unlockerAttached = true;
-        const onFirstGesture = () => {
+        const onFirstGesture = (event) => {
+            const target = event?.target;
+            if (target && typeof target.closest === "function") {
+                if (target.closest("#btn-nav-music-toggle, #btn-auth-music-toggle, #btn-quiz-audio-toggle, #modal-btn-bgm-toggle")) {
+                    return;
+                }
+            }
             this._unlockerAttached = false;
             window.removeEventListener("click", onFirstGesture);
             window.removeEventListener("keydown", onFirstGesture);
@@ -252,9 +309,9 @@ export class SoundEngine {
                 this.startBackgroundAmbience();
             }
         };
-        window.addEventListener("click", onFirstGesture, { once: true });
-        window.addEventListener("keydown", onFirstGesture, { once: true });
-        window.addEventListener("touchstart", onFirstGesture, { once: true });
+        window.addEventListener("click", onFirstGesture);
+        window.addEventListener("keydown", onFirstGesture);
+        window.addEventListener("touchstart", onFirstGesture);
     }
 
     fadeBackgroundTo(targetVolume, durationMs = 1000, onDone = null) {

@@ -121,7 +121,7 @@ export class GameRouter {
         }
 
         const match = this.matchRoute(pathname);
-        if (!match) {
+        if (!match || match.route.page === "privacy") {
             window.location.href = pathname;
             return;
         }
@@ -149,6 +149,23 @@ export class GameRouter {
 
         this.currentRoute = resolved.route;
         this.currentParams = resolved.params;
+
+        const isGated =
+            resolved.route.page !== "privacy" &&
+            this.app &&
+            typeof this.app.hasEnteredGate === "function" &&
+            !this.app.hasEnteredGate();
+
+        if (isGated) {
+            const isResultsWithSession =
+                resolved.route.page === "results" && Boolean(resolved.params?.sessionId);
+            const nonPostAuthPages = new Set(["home", "quiz", "results", "privacy"]);
+            if (match && (!nonPostAuthPages.has(resolved.route.page) || isResultsWithSession)) {
+                this.app.pendingPostAuthRoute = pathname;
+            } else {
+                this.app.pendingPostAuthRoute = null;
+            }
+        }
 
         // 1. Update Document Title
         document.title = resolved.route.title;
@@ -208,8 +225,9 @@ export class GameRouter {
             el.classList.add("hidden");
         });
 
-        // 2. Hide all legacy game screens
+        // 2. Hide all legacy game screens (including #screen-landing)
         const legacyScreens = [
+            document.getElementById("screen-landing"),
             document.getElementById("screen-start"),
             document.getElementById("screen-quiz"),
             document.getElementById("screen-gameover"),
@@ -234,10 +252,16 @@ export class GameRouter {
             hunter_studio: document.getElementById("modal-avatar-picker"),
         };
 
-        // Ensure all modal overlays are hidden unless targeted
+        const isGated =
+            pageName !== "privacy" &&
+            this.app &&
+            typeof this.app.hasEnteredGate === "function" &&
+            !this.app.hasEnteredGate();
+
+        // Ensure all modal overlays are hidden unless targeted and gate is entered
         Object.entries(modalMap).forEach(([key, modalEl]) => {
             if (!modalEl) return;
-            if (key === pageName) {
+            if (!isGated && key === pageName) {
                 modalEl.classList.remove("hidden");
                 modalEl.classList.add("active");
             } else {
@@ -246,25 +270,65 @@ export class GameRouter {
             }
         });
 
+        if (isGated) {
+            const authModal = document.getElementById("modal-auth");
+            const landingScreen = document.getElementById("screen-landing");
+            if (this.app._isEnteringFromLanding && authModal) {
+                authModal.classList.remove("hidden");
+                authModal.classList.add("active");
+                document.body.setAttribute("data-active-screen", "auth");
+            } else {
+                if (authModal) {
+                    authModal.classList.remove("active");
+                    authModal.classList.add("hidden");
+                }
+                if (landingScreen) {
+                    landingScreen.classList.remove("hidden");
+                    landingScreen.classList.add("active");
+                }
+                document.body.setAttribute("data-active-screen", "landing");
+            }
+            return;
+        }
+
+        if (pageName !== "home") {
+            const authModal = document.getElementById("modal-auth");
+            if (authModal) {
+                authModal.classList.remove("active");
+                authModal.classList.add("hidden");
+            }
+            document.body.setAttribute("data-active-screen", pageName);
+        }
+
         // 4. Activate specific screen / page container
-        if (pageName === "home" || pageName === "play") {
+        if (pageName === "home") {
             const startScreen = document.getElementById("screen-start");
             if (startScreen) {
                 startScreen.classList.remove("hidden");
                 startScreen.classList.add("active");
             }
+            document.body.setAttribute("data-active-screen", "start");
+        } else if (pageName === "play") {
+            const startScreen = document.getElementById("screen-start");
+            if (startScreen) {
+                startScreen.classList.remove("hidden");
+                startScreen.classList.add("active");
+            }
+            document.body.setAttribute("data-active-screen", "start");
         } else if (pageName === "quiz") {
             const quizScreen = document.getElementById("screen-quiz");
             if (quizScreen) {
                 quizScreen.classList.remove("hidden");
                 quizScreen.classList.add("active");
             }
+            document.body.setAttribute("data-active-screen", "quiz");
         } else if (pageName === "results") {
             const resultsScreen = document.getElementById("screen-gameover");
             if (resultsScreen) {
                 resultsScreen.classList.remove("hidden");
                 resultsScreen.classList.add("active");
             }
+            document.body.setAttribute("data-active-screen", "results");
         } else {
             // Activate corresponding page-view if present (e.g. #page-hunt, #page-genie, #page-daily-haunt)
             const targetPage = document.getElementById(`page-${pageName.replace(/_/g, "-")}`);
@@ -277,6 +341,15 @@ export class GameRouter {
 
     bootstrapCurrentPage(pageName, params, isClientTransition) {
         if (!this.app) return;
+
+        if (
+            pageName !== "privacy" &&
+            typeof this.app.hasEnteredGate === "function" &&
+            !this.app.hasEnteredGate()
+        ) {
+            this.app.bootstrapHome?.();
+            return;
+        }
 
         switch (pageName) {
             case "home":

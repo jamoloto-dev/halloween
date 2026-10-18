@@ -42,7 +42,8 @@ def ensure_server_running():
 
 @pytest.fixture(autouse=True)
 def ensure_server(page: Page):
-    """Ensure page is loaded and server is reachable."""
+    """Ensure page is loaded in dashboard state and server is reachable."""
+    page.add_init_script("window.localStorage.setItem('spooky_gate_entered', 'true');")
     page.goto(BASE_URL)
     page.wait_for_load_state("networkidle")
 
