@@ -1048,7 +1048,7 @@ export class HalloweenQuizApp {
     async purgeObsoleteCaches() {
         if ("caches" in window) {
             try {
-                const currentCache = "spooky-master-v2.6.0";
+                const currentCache = "spooky-master-v2.7.0";
                 const keys = await caches.keys();
                 for (const key of keys) {
                     if (key !== currentCache) {

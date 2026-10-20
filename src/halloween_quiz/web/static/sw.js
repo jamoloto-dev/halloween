@@ -3,7 +3,7 @@
  * Versioned caching, offline fallback shell, and stale cache cleanup.
  */
 
-const CACHE_NAME = "spooky-master-v2.6.0";
+const CACHE_NAME = "spooky-master-v2.7.0";
 const PRECACHE_ASSETS = [
     "/",
     "/play",
@@ -20,8 +20,8 @@ const PRECACHE_ASSETS = [
     "/hunter-studio",
     "/offline.html",
     "/privacy",
-    "/static/style.css?v=20260924-spooky-master-v2.6.0",
-    "/static/app.js?v=20260924-spooky-master-v2.6.0",
+    "/static/style.css?v=2.7.0",
+    "/static/app.js?v=2.7.0",
     "/static/js/main.js",
     "/static/js/modules/router.js",
     "/static/js/modules/api.js",
