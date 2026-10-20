@@ -628,6 +628,15 @@ export class HalloweenQuizApp {
                 p.classList.remove("active");
             }
         });
+        this.syncModalScrollLock();
+    }
+
+    syncModalScrollLock() {
+        const hasActiveModal = Boolean(
+            document.querySelector(".modal-overlay.active:not(.hidden)")
+        );
+        document.body.classList.toggle("modal-open", hasActiveModal);
+        document.documentElement.classList.toggle("modal-open", hasActiveModal);
     }
 
     openDeckCampaign() {
@@ -636,6 +645,7 @@ export class HalloweenQuizApp {
             this.dom.modalDeckCampaign.classList.remove("hidden");
             this.dom.modalDeckCampaign.classList.add("active");
         }
+        this.syncModalScrollLock();
         this.renderLobbyExperience();
     }
 
@@ -644,6 +654,7 @@ export class HalloweenQuizApp {
             this.dom.modalDeckCampaign.classList.add("hidden");
             this.dom.modalDeckCampaign.classList.remove("active");
         }
+        this.syncModalScrollLock();
     }
 
     openCryptRules() {
@@ -652,6 +663,7 @@ export class HalloweenQuizApp {
             this.dom.modalCryptRules.classList.remove("hidden");
             this.dom.modalCryptRules.classList.add("active");
         }
+        this.syncModalScrollLock();
     }
 
     closeCryptRules() {
@@ -659,6 +671,7 @@ export class HalloweenQuizApp {
             this.dom.modalCryptRules.classList.add("hidden");
             this.dom.modalCryptRules.classList.remove("active");
         }
+        this.syncModalScrollLock();
     }
 
     openTriviaCategories() {
@@ -667,6 +680,7 @@ export class HalloweenQuizApp {
             this.dom.modalTriviaCategories.classList.remove("hidden");
             this.dom.modalTriviaCategories.classList.add("active");
         }
+        this.syncModalScrollLock();
     }
 
     closeTriviaCategories() {
@@ -674,6 +688,7 @@ export class HalloweenQuizApp {
             this.dom.modalTriviaCategories.classList.add("hidden");
             this.dom.modalTriviaCategories.classList.remove("active");
         }
+        this.syncModalScrollLock();
     }
 
     playNarrativeIntro() {
@@ -701,8 +716,12 @@ export class HalloweenQuizApp {
             banner.classList.remove("speaking");
             banner.classList.add("lore-completed");
         }
-        if (this.sound && this.sound.musicEnabled && !this.sound.bgmPlaying) {
-            this.sound.startBackgroundAmbience();
+        if (this.sound && this.sound.musicEnabled) {
+            if (this.sound.bgmPlaying) {
+                this.sound.fadeBackgroundTo(this.sound.musicVolume, 800);
+            } else {
+                this.sound.startBackgroundAmbience();
+            }
         }
     }
 
@@ -724,6 +743,9 @@ export class HalloweenQuizApp {
     showScreen(screenName) {
         if (screenName !== "landing" && !this.hasEnteredGate()) {
             screenName = "landing";
+        }
+        if (screenName !== "start") {
+            this.sound?.stopHorrorIntroLore?.();
         }
         if (screenName === "quiz" || screenName === "gameover") {
             this.closeAllModals();
@@ -1584,9 +1606,16 @@ export class HalloweenQuizApp {
             timeLimit = 20;
         }
 
-        const cats = Array.isArray(this.categories) && this.categories.length > 0
-            ? this.categories
-            : ["monsters_creatures", "witchcraft_spells", "urban_legends_folklore", "horror_cinema", "halloween_traditions", "gothic_literature"];
+        let cats = Array.isArray(this.categories) && this.categories.length > 0 ? this.categories : null;
+        if (!cats || cats.length === 0) {
+            const checked = Array.from(document.querySelectorAll("input[name='categories']:checked")).map((el) => el.value);
+            if (checked.length > 0) {
+                cats = checked;
+            }
+        }
+        if (!cats || cats.length === 0) {
+            cats = ["spooky", "costumes", "movies", "history", "candy", "paranormal"];
+        }
 
         this.startGameWithParams({
             mode: mode,
@@ -2778,7 +2807,14 @@ export class HalloweenQuizApp {
 
         this.dom.tileDashTriviaCategories?.addEventListener("click", () => this.openTriviaCategories());
         this.dom.btnCloseTriviaCategories?.addEventListener("click", () => this.closeTriviaCategories());
-        this.dom.btnConfirmCategories?.addEventListener("click", () => this.closeTriviaCategories());
+        this.dom.btnConfirmCategories?.addEventListener("click", () => {
+            const checked = document.querySelectorAll("input[name='categories']:checked");
+            if (checked.length === 0) {
+                this.showNotice("Please select at least one trivia category!", "warning");
+                return;
+            }
+            this.closeTriviaCategories();
+        });
         this.dom.btnOpenCategoriesFromRules?.addEventListener("click", () => this.openTriviaCategories());
         this.dom.modalTriviaCategories?.addEventListener("click", (e) => {
             if (e.target === this.dom.modalTriviaCategories) this.closeTriviaCategories();
@@ -2788,12 +2824,19 @@ export class HalloweenQuizApp {
         this.dom.btnReplayLore?.addEventListener("click", () => this.playNarrativeIntro());
         this.dom.btnSkipLore?.addEventListener("click", () => this.skipNarrativeIntro());
 
-        // Subtle Horror Hover SFX on Interactive Elements
+        // Subtle Horror Hover SFX on Interactive Elements (throttled & unique element guarded)
+        let lastHoveredInteractive = null;
         document.addEventListener("mouseenter", (e) => {
             if (!e.target || typeof e.target.closest !== "function") return;
             const target = e.target.closest("button, .dash-icon-tile, .option-btn, .category-card, .lobby-quick-card");
-            if (target && this.sound && typeof this.sound.playHorrorHover === "function") {
+            if (target && target !== lastHoveredInteractive && this.sound && typeof this.sound.playHorrorHover === "function") {
+                lastHoveredInteractive = target;
                 this.sound.playHorrorHover();
+            }
+        }, true);
+        document.addEventListener("mouseleave", (e) => {
+            if (e.target && e.target === lastHoveredInteractive) {
+                lastHoveredInteractive = null;
             }
         }, true);
         this.dom.btnLobbyContinueJourney?.addEventListener("click", () => this.handleLobbyContinueJourney());

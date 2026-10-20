@@ -59,7 +59,11 @@ export class CampaignManager {
 
     openCampaign() {
         this.app.closeAllModals();
-        this.dom.modalCampaign?.classList.remove("hidden");
+        if (this.dom.modalCampaign) {
+            this.dom.modalCampaign.classList.remove("hidden");
+            this.dom.modalCampaign.classList.add("active");
+        }
+        this.app.syncModalScrollLock?.();
         if (!this.chapters || this.chapters.length === 0) {
             this.loadCampaignData();
         } else {
@@ -69,7 +73,11 @@ export class CampaignManager {
     }
 
     closeCampaign() {
-        this.dom.modalCampaign?.classList.add("hidden");
+        if (this.dom.modalCampaign) {
+            this.dom.modalCampaign.classList.add("hidden");
+            this.dom.modalCampaign.classList.remove("active");
+        }
+        this.app.syncModalScrollLock?.();
     }
 
     renderChapterTabs() {

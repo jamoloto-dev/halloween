@@ -16,5 +16,3 @@ __pycache__/
 .vscode/
 tests/
 .idea/
-assets/sounds/*.wav
-assets/sounds/*.mp3
