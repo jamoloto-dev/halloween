@@ -722,22 +722,35 @@ export class SoundEngine {
      * 🎙️ Automated Horror Intro Voiceover Sequence (Blackwood Manor Lore)
      */
     playHorrorIntroLore(onDone = null) {
+        this.stopHorrorIntroLore();
         this.unlock();
         this.isSpeakingLore = true;
+        this._isExplicitlyStoppingLore = false;
         let finished = false;
 
-        const finish = () => {
+        // Duck background ambience gently so narration and drone are audible
+        if (this.bgmAudio && this.bgmPlaying) {
+            this.fadeBackgroundTo(Math.min(0.04, this.musicVolume * 0.15), 300);
+        }
+
+        const finish = (isCancel = false) => {
             if (finished) return;
             finished = true;
+            if (this._loreTimeout) {
+                clearTimeout(this._loreTimeout);
+                this._loreTimeout = null;
+            }
             this.isSpeakingLore = false;
-            this.stopSpectralDrone();
-            if (typeof onDone === "function") {
+            this.stopSpectralDrone(isCancel);
+            if (!isCancel && typeof onDone === "function") {
                 onDone();
             }
         };
 
-        // 1. Synthesize background spectral drone via Web Audio
-        this.startSpectralDrone();
+        // 1. Synthesize background spectral drone via Web Audio if SFX enabled
+        if (this.sfxEnabled) {
+            this.startSpectralDrone();
+        }
 
         // 2. Play speech synthesis if available in browser
         const text = "Welcome, brave soul, to Blackwood Manor. Exactly one century ago on All Hallows' Eve, the wrought-iron gates slammed shut, and twelve souls vanished into the darkness. Their spirits still haunt these ancient stone chambers, testing any mortal who dares enter. Answer their riddles... or remain trapped forever in the crypt.";
@@ -754,13 +767,20 @@ export class SoundEngine {
                 const eerieVoice = voices.find((v) => (v.lang.startsWith("en") && (v.name.includes("Male") || v.name.includes("Deep") || v.name.includes("Natural")))) || voices[0];
                 if (eerieVoice) utterance.voice = eerieVoice;
 
-                utterance.onend = () => finish();
-                utterance.onerror = () => finish();
+                utterance.onend = () => {
+                    if (!this._isExplicitlyStoppingLore) finish(false);
+                };
+                utterance.onerror = (e) => {
+                    if (this._isExplicitlyStoppingLore || e?.error === "canceled" || e?.error === "interrupted") {
+                        return;
+                    }
+                    finish(false);
+                };
 
                 window.speechSynthesis.speak(utterance);
 
                 // Safety timeout in case speech synthesis stalls
-                setTimeout(() => finish(), 14000);
+                this._loreTimeout = setTimeout(() => finish(false), 14000);
                 return;
             } catch (err) {
                 console.warn("Speech synthesis unavailable:", err);
@@ -768,22 +788,31 @@ export class SoundEngine {
         }
 
         // Fallback timer if speech synthesis is not available
-        setTimeout(() => finish(), 3500);
+        this._loreTimeout = setTimeout(() => finish(false), 3500);
     }
 
     stopHorrorIntroLore() {
+        this._isExplicitlyStoppingLore = true;
         this.isSpeakingLore = false;
+        if (this._loreTimeout) {
+            clearTimeout(this._loreTimeout);
+            this._loreTimeout = null;
+        }
         if ("speechSynthesis" in window) {
             try {
                 window.speechSynthesis.cancel();
             } catch (_) {}
         }
-        this.stopSpectralDrone();
+        this.stopSpectralDrone(true);
     }
 
     startSpectralDrone() {
-        if (!this.audioCtx || this.spectralDroneNodes) return;
+        if (!this.sfxEnabled || !this.audioCtx || this.spectralDroneNodes) return;
         try {
+            if (this._droneStopTimer) {
+                clearTimeout(this._droneStopTimer);
+                this._droneStopTimer = null;
+            }
             const now = this.audioCtx.currentTime;
             const droneGain = this.audioCtx.createGain();
             droneGain.gain.setValueAtTime(0.001, now);
@@ -809,19 +838,24 @@ export class SoundEngine {
         }
     }
 
-    stopSpectralDrone() {
+    stopSpectralDrone(immediate = false) {
         if (!this.spectralDroneNodes || !this.audioCtx) return;
         try {
+            if (this._droneStopTimer) {
+                clearTimeout(this._droneStopTimer);
+                this._droneStopTimer = null;
+            }
             const now = this.audioCtx.currentTime;
             const { osc1, droneGain } = this.spectralDroneNodes;
-            droneGain.gain.linearRampToValueAtTime(0.001, now + 0.6);
-            setTimeout(() => {
+            const fadeTime = immediate ? 0.08 : 0.6;
+            droneGain.gain.linearRampToValueAtTime(0.001, now + fadeTime);
+            this._droneStopTimer = setTimeout(() => {
                 try {
                     osc1.stop();
                     osc1.disconnect();
                     droneGain.disconnect();
                 } catch (_) {}
-            }, 650);
+            }, Math.round(fadeTime * 1000) + 50);
         } catch (_) {}
         this.spectralDroneNodes = null;
     }
@@ -831,6 +865,9 @@ export class SoundEngine {
      */
     playHorrorHover() {
         if (!this.sfxEnabled || !this.audioCtx) return;
+        const nowMs = performance.now();
+        if (this._lastHoverTime && nowMs - this._lastHoverTime < 90) return;
+        this._lastHoverTime = nowMs;
         try {
             const now = this.audioCtx.currentTime;
             const osc = this.audioCtx.createOscillator();

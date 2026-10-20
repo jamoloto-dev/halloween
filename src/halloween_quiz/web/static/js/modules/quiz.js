@@ -58,8 +58,8 @@ export class QuizLifecycleManager {
             }
         }
         if (selectedCategories.length === 0) {
-            alert("Please select at least one category!");
             this.app.showNotice("Please select at least one category to enter the crypt!", "warning");
+            alert("Please select at least one category!");
             return;
         }
 
@@ -87,9 +87,9 @@ export class QuizLifecycleManager {
             });
 
             if (!res.ok) {
-                const err = await res.json();
+                const err = await res.json().catch(() => ({}));
                 this.sound.stopBackgroundAmbience(true);
-                alert(err.detail || "Failed to start quiz.");
+                this.app.showNotice(err.detail || "Failed to start quiz.", "warning");
                 return;
             }
 
@@ -138,7 +138,7 @@ export class QuizLifecycleManager {
         } catch (err) {
             console.error("Error starting game:", err);
             this.sound.stopBackgroundAmbience(true);
-            alert("Could not connect to game server. Please try again.");
+            this.app.showNotice("Could not connect to game server. Please try again.", "warning");
         }
     }
 
