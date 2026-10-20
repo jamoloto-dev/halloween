@@ -59,6 +59,7 @@ export class QuizLifecycleManager {
         }
         if (selectedCategories.length === 0) {
             this.app.showNotice("Please select at least one category to enter the crypt!", "warning");
+            alert("Please select at least one category!");
             return;
         }
 
