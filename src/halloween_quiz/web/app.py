@@ -206,13 +206,22 @@ def create_app() -> FastAPI:
 
     # Root PWA routes
     @app.get("/manifest.json")
+    @app.get("/manifest.webmanifest")
     async def get_manifest():
         manifest_file = static_dir / "manifest.json"
         if manifest_file.exists():
-            return FileResponse(manifest_file, media_type="application/manifest+json")
-        return HTMLResponse("{}", media_type="application/json")
+            return FileResponse(
+                manifest_file,
+                media_type="application/manifest+json",
+                headers={
+                    "Content-Type": "application/manifest+json; charset=utf-8",
+                    "Cache-Control": "public, max-age=0, must-revalidate",
+                },
+            )
+        return HTMLResponse("{}", media_type="application/manifest+json")
 
     @app.get("/sw.js")
+    @app.get("/service-worker.js")
     async def get_service_worker():
         sw_file = static_dir / "sw.js"
         if sw_file.exists():
@@ -222,6 +231,7 @@ def create_app() -> FastAPI:
                 headers={
                     "Service-Worker-Allowed": "/",
                     "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Content-Type": "application/javascript; charset=utf-8",
                 },
             )
         return HTMLResponse("// SW not found", media_type="application/javascript")

@@ -46,6 +46,12 @@ class SecurityHeadersMiddleware:
             await self.app(scope, receive, send)
             return
 
+        path = scope.get("path", "")
+        is_static_asset = (
+            path.startswith(("/static/", "/sounds/", "/assets/"))
+            or path.endswith((".mp3", ".ogg", ".woff2", ".svg", ".png"))
+        )
+
         async def wrapped_send(message: Message) -> None:
             if message["type"] == "http.response.start":
                 headers = list(message.get("headers", []))
@@ -58,6 +64,11 @@ class SecurityHeadersMiddleware:
                     headers.append((b"referrer-policy", b"strict-origin-when-cross-origin"))
                 if "x-xss-protection" not in header_keys:
                     headers.append((b"x-xss-protection", b"1; mode=block"))
+                if is_static_asset:
+                    if "access-control-allow-origin" not in header_keys:
+                        headers.append((b"access-control-allow-origin", b"*"))
+                    if "cache-control" not in header_keys:
+                        headers.append((b"cache-control", b"public, max-age=31536000, immutable"))
                 message["headers"] = headers
             await send(message)
 
