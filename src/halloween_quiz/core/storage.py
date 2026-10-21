@@ -236,7 +236,9 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     try:
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.execute("PRAGMA synchronous=NORMAL")
-        cursor.execute("PRAGMA busy_timeout=5000")
+        cursor.execute("PRAGMA busy_timeout=30000")
+        cursor.execute("PRAGMA cache_size=-64000")
+        cursor.execute("PRAGMA temp_store=MEMORY")
     except Exception:
         pass
     finally:
@@ -260,9 +262,18 @@ class ScoreRepository:
 
             self.engine = create_engine(
                 db_url,
-                connect_args={"check_same_thread": False},
+                connect_args={"check_same_thread": False, "timeout": 30.0},
                 pool_pre_ping=True,
             )
+            # Enforce SQLite WAL mode and busy timeout immediately on initialization
+            try:
+                with self.engine.connect() as pragma_conn:
+                    pragma_conn.execute(text("PRAGMA journal_mode=WAL"))
+                    pragma_conn.execute(text("PRAGMA busy_timeout=30000"))
+                    pragma_conn.execute(text("PRAGMA synchronous=NORMAL"))
+                    pragma_conn.commit()
+            except Exception:
+                pass
         else:
             # PostgreSQL URL handling (e.g. Render / Railway / Heroku)
             if db_url.startswith("postgres://"):

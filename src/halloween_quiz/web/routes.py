@@ -46,7 +46,12 @@ from halloween_quiz.core.models import (
     UserRegisterRequest,
 )
 from halloween_quiz.core.storage import ScoreRepository
-from halloween_quiz.web.security import rate_limit_quiz_action, rate_limit_start_quiz
+from halloween_quiz.web.security import (
+    rate_limit_auth,
+    rate_limit_quiz_action,
+    rate_limit_score_submission,
+    rate_limit_start_quiz,
+)
 
 logger = logging.getLogger("halloween_quiz.routes")
 
@@ -216,7 +221,11 @@ def readiness_check(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/api/auth/register", response_model=UserAuthResponse)
+@router.post(
+    "/api/auth/register",
+    response_model=UserAuthResponse,
+    dependencies=[Depends(rate_limit_auth)],
+)
 def register_account(
     payload: UserRegisterRequest,
     auth: AuthService = Depends(get_auth_service),
@@ -237,7 +246,11 @@ def register_account(
         )
 
 
-@router.post("/api/auth/login", response_model=UserAuthResponse)
+@router.post(
+    "/api/auth/login",
+    response_model=UserAuthResponse,
+    dependencies=[Depends(rate_limit_auth)],
+)
 def login_account(
     payload: UserLoginRequest,
     auth: AuthService = Depends(get_auth_service),
@@ -256,7 +269,11 @@ def login_account(
         )
 
 
-@router.post("/api/auth/guest", response_model=UserAuthResponse)
+@router.post(
+    "/api/auth/guest",
+    response_model=UserAuthResponse,
+    dependencies=[Depends(rate_limit_auth)],
+)
 def create_guest(
     payload: UserGuestRequest,
     auth: AuthService = Depends(get_auth_service),
@@ -313,6 +330,43 @@ def get_categories(
         "premium_packs": bank.get_premium_topics(),
         "difficulties": [d.value for d in Difficulty],
         "modes": [m.value for m in GameMode],
+    }
+
+
+@router.get("/api/questions")
+@router.get("/api/trivia/questions")
+def get_trivia_questions(
+    category: str | None = None,
+    difficulty: str | None = None,
+    limit: int = 50,
+    bank: QuestionBank = Depends(get_question_bank),
+):
+    """Retrieve trivia questions served directly from in-memory startup cache with zero database queries."""
+    safe_limit = max(1, min(limit, 200))
+    questions = bank.get_cached_questions(category=category, difficulty=difficulty, limit=safe_limit)
+    return {
+        "status": "success",
+        "cached": True,
+        "total_available": bank.total_count,
+        "count": len(questions),
+        "questions": [
+            {
+                "id": q.id,
+                "category": q.category,
+                "difficulty": (
+                    q.difficulty.value
+                    if hasattr(q.difficulty, "value")
+                    else str(q.difficulty)
+                ),
+                "question": q.question,
+                "options": q.options,
+                "question_type": getattr(q, "question_type", "multiple_choice"),
+                "media_type": getattr(q, "media_type", "none"),
+                "media_url": getattr(q, "media_url", None),
+                "media_alt": getattr(q, "media_alt", None),
+            }
+            for q in questions
+        ],
     }
 
 
@@ -738,8 +792,16 @@ def verify_or_restore_purchase(
     }
 
 
-@router.post("/api/leaderboard", response_model=ScoreRecord)
-@router.post("/api/scores", response_model=ScoreRecord)
+@router.post(
+    "/api/leaderboard",
+    response_model=ScoreRecord,
+    dependencies=[Depends(rate_limit_score_submission)],
+)
+@router.post(
+    "/api/scores",
+    response_model=ScoreRecord,
+    dependencies=[Depends(rate_limit_score_submission)],
+)
 def record_score_manually(
     payload: ScoreRecord,
     request: Request,
@@ -1128,7 +1190,10 @@ def accept_duel(code: str, payload: AcceptDuelRequest):
     return duel
 
 
-@router.post("/api/duels/{code}/submit")
+@router.post(
+    "/api/duels/{code}/submit",
+    dependencies=[Depends(rate_limit_score_submission)],
+)
 def submit_duel(code: str, payload: SubmitDuelRequest):
     """Submit a completed duel run and resolve tiebreaker hierarchy if match is finished."""
     result = PlayerDuelResult(

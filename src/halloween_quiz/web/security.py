@@ -142,3 +142,25 @@ def rate_limit_quiz_action(request: Request) -> None:
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Slow down! You are answering faster than allowed by the crypt keeper.",
         )
+
+
+def rate_limit_auth(request: Request) -> None:
+    """Limit authentication attempts (login, register, guest) to 20 per minute per IP."""
+    ip = get_client_ip(request)
+    allowed, remaining = limiter.check(f"auth:{ip}", max_requests=20, window_seconds=60.0)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many authentication attempts. Please wait a minute before retrying.",
+        )
+
+
+def rate_limit_score_submission(request: Request) -> None:
+    """Limit score and leaderboard submissions to 30 per minute per IP."""
+    ip = get_client_ip(request)
+    allowed, remaining = limiter.check(f"score:{ip}", max_requests=30, window_seconds=60.0)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many score submissions. Please wait a moment before submitting again.",
+        )

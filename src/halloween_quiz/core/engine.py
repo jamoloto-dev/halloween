@@ -140,8 +140,45 @@ class QuestionBank:
 
         self.questions = loaded
         self._by_category = {}
+        self._by_cat_and_diff: dict[tuple[str, str], list[Question]] = {}
         for q in self.questions:
             self._by_category.setdefault(q.category, []).append(q)
+            diff_key = (
+                q.difficulty.value.lower()
+                if hasattr(q.difficulty, "value")
+                else str(q.difficulty).lower()
+            )
+            self._by_cat_and_diff.setdefault((q.category.lower(), diff_key), []).append(q)
+
+    def get_cached_questions(
+        self,
+        category: str | None = None,
+        difficulty: str | None = None,
+        limit: int = 50,
+    ) -> list[Question]:
+        """Return trivia questions directly from in-memory cache with zero disk or database access."""
+        if category and difficulty:
+            pool = self._by_cat_and_diff.get((category.lower(), difficulty.lower()), [])
+        elif category:
+            pool = self._by_category.get(category.lower(), [])
+        elif difficulty:
+            diff_str = difficulty.lower()
+            pool = [
+                q
+                for q in self.questions
+                if (
+                    q.difficulty.value.lower()
+                    if hasattr(q.difficulty, "value")
+                    else str(q.difficulty).lower()
+                )
+                == diff_str
+            ]
+        else:
+            pool = self.questions
+
+        if limit and limit > 0:
+            return pool[:limit]
+        return pool
 
     @property
     def total_count(self) -> int:
