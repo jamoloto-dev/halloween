@@ -78,6 +78,9 @@ export class SoundEngine {
     }
 
     unlock() {
+        if (!this.audioCtx) {
+            this.initAudioContext();
+        }
         if (this.audioCtx && this.audioCtx.state === "suspended") {
             this.audioCtx.resume().catch(() => {});
         }

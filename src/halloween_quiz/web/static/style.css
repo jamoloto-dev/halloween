@@ -2327,11 +2327,9 @@ kbd {
 /* Responsive Breakpoints */
 @media (max-width: 990px), (orientation: landscape) and (max-height: 550px) {
   .top-nav { min-height:auto; align-items:center; gap:8px; padding:8px clamp(10px, 2.5vw, 16px); max-width:100vw; box-sizing:border-box; overflow-x:hidden; }
-  .nav-actions { gap:4px; max-width:100%; flex-wrap:nowrap; overflow-x:auto; }
-  .nav-btn { min-height:34px; padding:6px 8px; font-size:0; }
-  .nav-btn::first-letter { font-size:15px; }
+  .nav-actions { gap:6px; max-width:100%; flex-wrap:nowrap; overflow-x:auto; }
+  .nav-btn { min-height:34px; padding:6px 10px; font-size:12px; }
   .nav-diamond-pill { font-size:12px; min-height:34px; padding:5px 8px; }
-  .nav-diamond-pill::first-letter { font-size:14px; }
 }
 
 @media (max-width: 768px) {
@@ -4474,16 +4472,27 @@ body[data-page="pass"] #modal-premium:not(.hidden),
 body[data-page="settings"] #modal-settings:not(.hidden),
 body[data-page="hunters"] #modal-avatar-picker:not(.hidden),
 body[data-page="hunter_studio"] #modal-avatar-picker:not(.hidden) {
-  position: static !important;
-  inset: auto !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  height: 100% !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
   display: flex !important;
+  flex-direction: column !important;
   align-items: stretch !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  margin: 1.5rem auto 3rem !important;
-  background: transparent !important;
-  backdrop-filter: none !important;
-  z-index: 10 !important;
+  justify-content: flex-start !important;
+  padding: calc(60px + env(safe-area-inset-top, 0px)) 12px calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+  margin: 0 !important;
+  background: rgba(8, 6, 15, 0.98) !important;
+  backdrop-filter: blur(20px) !important;
+  z-index: 1000 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
   animation: page-fade-in 0.22s ease-out !important;
 }
 
@@ -4502,11 +4511,12 @@ body[data-page="settings"] #modal-settings:not(.hidden) .modal-card,
 body[data-page="hunters"] #modal-avatar-picker:not(.hidden) .modal-card,
 body[data-page="hunter_studio"] #modal-avatar-picker:not(.hidden) .modal-card {
   width: 100% !important;
-  max-width: 900px !important;
+  max-width: 100% !important;
   max-height: none !important;
   overflow: visible !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55) !important;
-  margin-bottom: 2rem !important;
+  box-shadow: none !important;
+  border-radius: 16px !important;
+  margin-bottom: 24px !important;
 }
 
 /* Hide start screen when on routed sub-pages */
@@ -4781,8 +4791,16 @@ body[data-page="play"] .crypt-custom-summary {
     margin-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
     padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   }
-  .top-nav .nav-actions .nav-btn:not(#btn-market-open):not(#btn-pwa-install) {
+  .top-nav .nav-actions .nav-btn:not(#btn-market-open):not(#btn-pwa-install):not(#btn-nav-music-toggle):not(#btn-nav-auth) {
     display: none;
+  }
+  .app-footer {
+    display: none !important;
+  }
+  body[data-page="settings"] .app-footer,
+  #modal-settings .app-footer,
+  .settings-app-info {
+    display: block !important;
   }
   .page-card-header {
     flex-direction: column;
@@ -6660,19 +6678,32 @@ body[data-active-screen="quiz"] #btn-next-question {
    📱 REAL-DEVICE MOBILE VIEWPORT & TYPOGRAPHY OVERRIDES (< 768px)
    ========================================================================== */
 @media (max-width: 768px) {
-  /* Prevent destructive overflow clipping on mobile views: allow natural vertical scrolling */
-  body,
+  /* Rigid mobile app frame: lock document viewport, scroll inside dedicated containers */
+  html,
+  body {
+    height: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    position: relative !important;
+  }
+
   .container,
   #screen-start,
   .page-view {
+    height: calc(100vh - 58px) !important;
+    height: calc(100dvh - 58px) !important;
+    max-height: calc(100dvh - 58px) !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
-    max-height: none !important;
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    box-sizing: border-box !important;
   }
 
   .lobby-wrapper {
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    min-height: min-content !important;
+    padding-bottom: 24px !important;
   }
 
   .modal-card {
@@ -6711,6 +6742,32 @@ body[data-active-screen="quiz"] #btn-next-question {
     line-height: inherit !important;
     white-space: normal !important;
   }
+}
+
+.settings-app-info {
+  margin-top: 24px;
+  padding: 16px 12px;
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+.settings-footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.settings-footer-links a {
+  color: var(--muted);
+  text-decoration: underline;
+}
+.settings-footer-copy {
+  font-size: 10px;
+  color: var(--faint);
+  line-height: 1.4;
+  margin: 0;
 }
 
 

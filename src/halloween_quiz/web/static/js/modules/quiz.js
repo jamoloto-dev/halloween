@@ -409,6 +409,10 @@ export class QuizLifecycleManager {
         this.timeQuestionStarted = Date.now();
         this.questionDeadline = Date.now() + (timeLimit * 1000);
         this.isTimingOut = false;
+        this.isAnswerPending = false;
+        this.isFeedbackActive = false;
+        this.app.isAnswerPending = false;
+        this.app.isFeedbackActive = false;
         this.lastWarningSecond = null;
 
         this.updateTimerHud(this.timerRemaining, this.timerTotal);
@@ -756,10 +760,19 @@ export class QuizLifecycleManager {
 
     advanceToNext() {
         if (!this.isFeedbackActive && !this.app.isFeedbackActive) return;
+        this.stopQuestionTimer();
+        this.isFeedbackActive = false;
+        this.app.isFeedbackActive = false;
+        this.isAnswerPending = false;
+        this.app.isAnswerPending = false;
+
         if (this.app.isGameOver) {
             this.finishGame();
         } else if (this.nextQuestionData || this.app.nextQuestionData) {
-            this.renderQuestion(this.nextQuestionData || this.app.nextQuestionData);
+            const nextQ = this.nextQuestionData || this.app.nextQuestionData;
+            this.nextQuestionData = null;
+            this.app.nextQuestionData = null;
+            this.renderQuestion(nextQ);
         }
     }
 

@@ -104,7 +104,7 @@
         </div>
 
         <!-- SCREEN 0: DEDICATED CINEMATIC HORROR LANDING SCREEN -->
-        <section id="screen-landing" class="game-screen landing-screen hidden" aria-labelledby="landing-title">
+        <section id="screen-landing" class="game-screen landing-screen active" aria-labelledby="landing-title">
             <div class="landing-sanctum-stage">
                 <div class="landing-moonlight-halo" aria-hidden="true"></div>
                 <div class="landing-mansion-silhouette" aria-hidden="true"></div>
@@ -120,7 +120,7 @@
                     <div class="landing-cta-box">
                         <button type="button" id="btn-landing-enter" class="btn-cta btn-landing-enter" aria-label="Enter Spooky Master">
                             <span class="btn-cta-glimmer" aria-hidden="true"></span>
-                            <span class="btn-landing-enter-text">ENTER</span>
+                            <span class="btn-landing-enter-text">Enter the Haunt ➔</span>
                         </button>
                     </div>
                 </div>
@@ -128,7 +128,7 @@
         </section>
 
         <!-- SCREEN 1: SETUP / HAUNTED GAME LOBBY (COMPACT GAME DASHBOARD) -->
-        <section id="screen-start" class="game-screen active" aria-labelledby="start-title">
+        <section id="screen-start" class="game-screen hidden" aria-labelledby="start-title">
             <div class="lobby-wrapper">
 
                 <!-- 1. RETURNING PLAYER IDENTITY BAR -->
@@ -1505,6 +1505,18 @@
                     <div class="settings-section settings-future-box">
                         <div class="future-badge">☁️ Cloud Sync — Coming Later</div>
                         <p class="future-text">Online accounts and multi-device synchronization are designed for a future release. All your progress is stored safely on this device.</p>
+                    </div>
+
+                    <!-- SETTINGS FOOTER & APP INFO -->
+                    <div class="settings-section settings-app-info">
+                        <div class="settings-footer-links">
+                            <a href="/privacy" data-route="/privacy">Privacy Policy</a>
+                            <span>·</span>
+                            <a href="https://github.com/jamoloto-dev/halloween" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+                            <span>·</span>
+                            <span>Version 2.7.0</span>
+                        </div>
+                        <p class="settings-footer-copy">Procedural & Sampled Web Audio API · SQLite WAL Persistence · PWA Offline Capable</p>
                     </div>
                 </div>
             </div>
